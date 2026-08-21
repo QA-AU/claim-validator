@@ -60,12 +60,20 @@ def _claims_sheet(wb, result: ValidationResult) -> None:
 
     sheet = wb.create_sheet("Claims")
     sheet.append(["Claim ID", "Text", "Shape", "Verdict", "Quality classification",
-                  "Agreement", "Cited chunks", "Reason"])
+                  "Agreement", "Escalation", "Cited chunks", "Reason"])
 
     r = 2
     for claim in result.per_claim:
         d = claim.to_dict()
         verdict = claim_verdict(d)
+        if claim.escalated:
+            escalation_note = (
+                f"{claim.escalation_model}: {claim.escalated_from} → {claim.verdict}"
+                if claim.escalated_from and claim.escalated_from != claim.verdict
+                else f"{claim.escalation_model}: confirmed {claim.verdict}"
+            )
+        else:
+            escalation_note = "—"
         write_row(sheet, r, [
             claim.id,
             claim.text,
@@ -73,6 +81,7 @@ def _claims_sheet(wb, result: ValidationResult) -> None:
             claim.verdict,
             verdict,
             claim.agreement or "-",
+            escalation_note,
             ", ".join(str(c) for c in claim.cited_chunks) or "-",
             claim.reason,
         ], wrap_all_from=2)
@@ -80,9 +89,12 @@ def _claims_sheet(wb, result: ValidationResult) -> None:
             vcell = sheet.cell(row=r, column=col)
             vcell.font = Font(name="Arial", size=10, bold=True)
             vcell.fill = PatternFill("solid", fgColor=VERDICT_FILL[verdict])
+        if claim.escalated:
+            ecell = sheet.cell(row=r, column=7)
+            ecell.font = Font(name="Arial", size=10, bold=True, italic=True)
         r += 1
 
-    style_sheet(sheet, 1, [12, 46, 26, 16, 20, 12, 16, 46])
+    style_sheet(sheet, 1, [12, 42, 24, 16, 20, 12, 24, 14, 42])
 
 
 def _shape_checks_sheet(wb, result: ValidationResult) -> None:

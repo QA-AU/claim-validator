@@ -31,6 +31,13 @@ class ClaimResult:
     agreement: Optional[str]
     cited_chunks: List[int]
     reason: str
+    # Per-claim escalation detail — without this, the aggregate `escalated`
+    # count in quality says *how many* verdicts a stronger model settled, but
+    # not *which* claim or what it changed from, which is the whole point of
+    # showing escalation results to a person rather than just a number.
+    escalated: bool = False
+    escalated_from: str = ""
+    escalation_model: str = ""
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -42,6 +49,9 @@ class ClaimResult:
             "agreement": self.agreement,
             "cited_chunks": self.cited_chunks,
             "reason": self.reason,
+            "escalated": self.escalated,
+            "escalated_from": self.escalated_from,
+            "escalation_model": self.escalation_model,
         }
 
 
@@ -164,6 +174,9 @@ def run_validation(
             agreement=f"{verdict.agreement}/{verdict.runs_judged}" if verdict else None,
             cited_chunks=claim.source_chunks,
             reason=(verdict.reason if verdict else "no citation found by retrieval"),
+            escalated=bool(verdict and verdict.escalated),
+            escalated_from=(verdict.escalated_from if verdict else ""),
+            escalation_model=(verdict.escalation_model if verdict else ""),
         ))
 
     completeness_tracker = RunTracker(db_session, workflow_id, name=document_id or "validation",
