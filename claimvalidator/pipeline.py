@@ -8,6 +8,7 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
 from phases.entailment import judge_entailment
+from phases.llm_usage import usage_of
 from phases.ontology_store import OntologyStore
 from phases.phase1_models import Ontology
 from phases.phase1_orchestrator import run_phase1
@@ -197,6 +198,13 @@ def run_validation(
         if v.escalated and v.escalated_from and v.escalated_from != v.verdict
     )
 
+    # One client used throughout — build/reuse, retrieval, judging, census —
+    # so its accumulated usage is the whole run's cost, not one step's.
+    from claimvalidator import config
+
+    usage = usage_of(llm_client)
+    usage_dict = usage.to_dict(config.token_rates())
+
     quality = {
         "claims_submitted": len(claims),
         "shape_checked": shape_report.checked,
@@ -214,6 +222,11 @@ def run_validation(
         "runs": entailment_report.runs,
         "concepts_covered": sum(1 for g in gap.per_concept.values() if g.addressed_count > 0),
         "concepts_total": len(gap.per_concept),
+        "llm_calls": usage_dict["calls"],
+        "input_tokens": usage_dict["input_tokens"],
+        "output_tokens": usage_dict["output_tokens"],
+        "total_tokens": usage_dict["total_tokens"],
+        "cost_cents": usage_dict["cost_cents"] if usage_dict["cost_available"] else "not available",
     }
 
     return ValidationResult(

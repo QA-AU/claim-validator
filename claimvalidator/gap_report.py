@@ -28,12 +28,21 @@ class ConceptGap:
     spread_high: int
     probable: List[str] = field(default_factory=list)
     never_addressed: List[str] = field(default_factory=list)
+    # name -> why it's never_addressed, distinguishing the two unrelated
+    # failure modes this report can produce (see the module docstring):
+    # a real citation the census verified, in a chunk no claim's own
+    # citation happened to reach ("chunk-coincidence" — worse on large
+    # documents), versus the census never verifying a location for this
+    # name at all ("no verified citation" — unrelated to document size,
+    # a property of the name itself).
+    never_addressed_reasons: Dict[str, str] = field(default_factory=dict)
     addressed_count: int = 0
 
     def to_dict(self) -> Dict[str, Any]:
         return {
             "spread": {"low": self.spread_low, "high": self.spread_high, "probable": self.probable},
             "claims_never_addressed": self.never_addressed,
+            "claims_never_addressed_reasons": self.never_addressed_reasons,
             "addressed_count": self.addressed_count,
         }
 
@@ -97,15 +106,30 @@ def build_gap_report(
         chunk_of = result.chunk_of if result else {}
         probable = spread.probable
 
-        never_addressed = [
-            display_name for display_name in probable
-            if chunk_of.get(slugify(display_name)) not in touched_chunks
-        ]
+        never_addressed = []
+        never_addressed_reasons: Dict[str, str] = {}
+        for display_name in probable:
+            located_chunk = chunk_of.get(slugify(display_name))
+            if located_chunk in touched_chunks:
+                continue
+            never_addressed.append(display_name)
+            if located_chunk is None:
+                never_addressed_reasons[display_name] = (
+                    "no verified citation — the census never confirmed a location "
+                    "for this name, independent of what any claim cited"
+                )
+            else:
+                never_addressed_reasons[display_name] = (
+                    f"census cites chunk {located_chunk}; no claim's own citation "
+                    f"reached it"
+                )
+
         per_concept[name] = ConceptGap(
             spread_low=spread.low,
             spread_high=spread.high,
             probable=probable,
             never_addressed=never_addressed,
+            never_addressed_reasons=never_addressed_reasons,
             addressed_count=len(probable) - len(never_addressed),
         )
 
