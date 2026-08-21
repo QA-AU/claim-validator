@@ -1,0 +1,9 @@
+id,text
+C1,The client_credentials grant type is used when the client is acting on its own behalf rather than on behalf of a resource owner.
+C2,A 302 redirect response is used to return an authorization code to the client via the user-agent.
+C3,The invalid_request error is returned when a request is missing a required parameter or is otherwise malformed.
+C4,Refresh tokens are always issued alongside access tokens for every single grant type defined in this specification.
+C5,Confidential clients are not required to authenticate with the authorization server when requesting a token.
+C6,The specification mandates that all authorization servers must support PKCE (Proof Key for Code Exchange) for public clients.
+C7,Access tokens must be encrypted with AES-256 before being returned to the client in the token response.
+C8,The authorization code grant type requires the client to first obtain an authorization code before requesting an access token.

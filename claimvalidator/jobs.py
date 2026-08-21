@@ -72,7 +72,9 @@ def run_validation_job(job_id: str, SessionLocal, llm_client_factory) -> None:
     fresh client per background task is safer than sharing one across
     concurrent jobs whose usage tracking (`client.usage`) would otherwise mix.
     """
+    from claimvalidator import config
     from claimvalidator.pipeline import run_validation
+    from claimvalidator.report_excel import build_excel_report
     from claimvalidator.schemas import ValidationRequest
 
     session = SessionLocal()
@@ -100,9 +102,18 @@ def run_validation_job(job_id: str, SessionLocal, llm_client_factory) -> None:
         )
         duration_s = time.monotonic() - started
 
+        # The one artefact meant for a person to open, written next to the
+        # JSON result rather than left as something only a script produces —
+        # this was previously true only when someone called
+        # build_excel_report by hand; a job run through the API never
+        # actually wrote one.
+        excel_path = f"{config.REPORTS_DIR}/{job_id}.xlsx"
+        build_excel_report(result, excel_path)
+
         result_dict = result.to_dict()
         result_dict["job_id"] = job_id
         result_dict["duration_seconds"] = round(duration_s, 1)
+        result_dict["excel_report"] = excel_path
         mark_done(session, job_id, result_dict)
 
         if job.webhook_url:
