@@ -177,6 +177,13 @@ def run_validation(
                                         concepts=len(gap.per_concept))
     completeness_tracker.finish("success" if gap.ran else "skipped")
 
+    undecided = sum(1 for v in entailment_report.judged if not v.decided)
+    escalated = sum(1 for v in entailment_report.verdicts if v.escalated)
+    overturned = sum(
+        1 for v in entailment_report.verdicts
+        if v.escalated and v.escalated_from and v.escalated_from != v.verdict
+    )
+
     quality = {
         "claims_submitted": len(claims),
         "shape_checked": shape_report.checked,
@@ -187,6 +194,10 @@ def run_validation(
         "mentions_only": len(entailment_report.mentions_only),
         "contradicted": len(entailment_report.contradicted),
         "no_evidence": len(entailment_report.no_evidence),
+        "undecided": undecided,
+        "escalated": escalated,
+        "escalation_failed_batches": entailment_report.escalation_failed_batches,
+        "overturned": overturned,
         "runs": entailment_report.runs,
         "concepts_covered": sum(1 for g in gap.per_concept.values() if g.addressed_count > 0),
         "concepts_total": len(gap.per_concept),
