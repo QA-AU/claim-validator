@@ -1,0 +1,9 @@
+id,text
+C1,The rate limit is 100 requests per minute per IP address.
+C2,Authentication tokens never expire once issued.
+C3,A 429 status code is returned when the rate limit is exceeded.
+C4,The API supports the OAuth 2.0 device authorization grant flow.
+C5,The authenticate endpoint requires a valid Bearer token in the Authorization header.
+C6,Refreshing a token requires a POST request to /api/v1/refresh with a refresh_token.
+C7,Passwords must be at least 12 characters long.
+C8,Getting the user profile returns a 404 status code if the user is not found.
