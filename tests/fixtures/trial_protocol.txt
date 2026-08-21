@@ -1,0 +1,58 @@
+ONCOLOGY TRIAL PROTOCOL SUMMARY — Study ONC-2291
+
+## Overview
+
+ONC-2291 is a randomised, open-label Phase III study evaluating pembrolizumab
+plus chemotherapy versus chemotherapy alone in patients with previously
+untreated advanced non-small-cell lung carcinoma (NSCLC).
+
+## Eligibility Criteria
+
+Patients must be over 18 years of age. Histologically confirmed stage IIIB or
+stage IV NSCLC is required. Patients must have an ECOG performance status of 0
+or 1. Adequate organ function is required, defined as absolute neutrophil count
+of at least 1500 per microlitre and platelet count of at least 100,000 per
+microlitre.
+
+Patients with known EGFR sensitising mutations or ALK rearrangements are
+excluded. Prior systemic therapy for advanced disease is not permitted. Patients
+with untreated central nervous system metastases are excluded.
+
+## Biomarkers
+
+PD-L1 expression is assessed centrally by immunohistochemistry and reported as
+tumour proportion score (TPS). Patients are stratified by PD-L1 TPS of at least
+50 percent versus less than 50 percent. Tumour mutational burden (TMB) is
+measured on archival tissue where available. EGFR and ALK status are determined
+at screening for eligibility purposes.
+
+## Endpoints
+
+The primary endpoint is overall survival (OS), defined as time from
+randomisation to death from any cause. The key secondary endpoint is
+progression-free survival (PFS), assessed by blinded independent central review
+per RECIST version 1.1. Additional secondary endpoints include objective
+response rate (ORR) and duration of response (DoR). Patient-reported outcomes
+are assessed as an exploratory endpoint.
+
+## Treatment Regimen
+
+Pembrolizumab 200 mg is administered intravenously every three weeks for up to
+35 cycles. Carboplatin is dosed to an area under the curve of 5 on day 1 of each
+21-day cycle. Pemetrexed 500 mg per square metre is given on day 1 of each
+cycle. Treatment continues until disease progression, unacceptable toxicity, or
+completion of 35 cycles.
+
+## Adverse Events
+
+Adverse events are graded per CTCAE version 5.0. Immune-mediated adverse events
+of special interest include pneumonitis, colitis, hepatitis, and
+hypophysitis. Grade 3 or higher pneumonitis requires permanent discontinuation
+of pembrolizumab. Dose reduction of chemotherapy is permitted; dose reduction of
+pembrolizumab is not permitted.
+
+## Safety Monitoring
+
+An independent data monitoring committee reviews unblinded safety data every six
+months. Enrolment must be halted if the rate of grade 5 treatment-related events
+exceeds 2 percent in either arm.
