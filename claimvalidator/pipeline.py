@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
 from phases.entailment import judge_entailment
-from phases.llm_usage import usage_of
+from phases.llm_usage import Usage, usage_of
 from phases.ontology_store import OntologyStore
 from phases.phase1_models import Ontology
 from phases.phase1_orchestrator import run_phase1
@@ -26,15 +26,30 @@ from claimvalidator.logprob_judge import LogprobsUnsupportedError, judge_entailm
 logger = logging.getLogger(__name__)
 
 
-def _usage_snapshot(llm_client) -> Dict[str, int]:
-    """The three running totals `usage_of` reports, copied out as plain ints.
+def _usage_snapshot(*llm_clients) -> Dict[str, int]:
+    """The three running totals `usage_of` reports, copied out as plain ints
+    and summed across every distinct client passed in.
 
     `usage_of` hands back the client's live, mutating `Usage` object — the
     same instance every call — so a "before" snapshot must copy the numbers
-    out rather than keep the reference, or it would silently track "after" too.
+    out rather than keep the reference, or it would silently track "after"
+    too. Variadic (not just one client) because judging can run against a
+    client of its own, separate from the one used for everything else — see
+    `judge_llm_client` below; deduped by identity so passing the same
+    client twice (the common case, when no override is given) doesn't
+    double-count it.
     """
-    u = usage_of(llm_client)
-    return {"calls": u.calls, "input_tokens": u.input_tokens, "output_tokens": u.output_tokens}
+    total = {"calls": 0, "input_tokens": 0, "output_tokens": 0}
+    seen_ids = set()
+    for client in llm_clients:
+        if client is None or id(client) in seen_ids:
+            continue
+        seen_ids.add(id(client))
+        u = usage_of(client)
+        total["calls"] += u.calls
+        total["input_tokens"] += u.input_tokens
+        total["output_tokens"] += u.output_tokens
+    return total
 
 
 def _agreement_label(verdict) -> Optional[str]:
@@ -146,16 +161,31 @@ def run_validation(
     force_census: bool = True,
     census_runs: int = 3,
     judge_method: str = "auto",
+    judge_llm_client=None,
 ) -> ValidationResult:
     """
     `judge_method`: "auto" uses the one-call, logprob-confidence judge
-    (`claimvalidator/logprob_judge.py`) when `llm_client` supports it
+    (`claimvalidator/logprob_judge.py`) when the judging client supports it
     (currently Ollama only — Anthropic's API does not expose token
     probabilities) and falls back to the existing 3-run majority vote
     otherwise; "majority_vote" always forces the existing path;
     "logprob" always forces the new one, raising if the client can't do it.
     Gated on capability rather than provider name, so a client either can or
     can't — nothing here special-cases a provider by name.
+
+    `judge_llm_client`: optional, defaults to reusing `llm_client`. Judging
+    is a different job from the rest of the pipeline — one short,
+    constrained classification per claim — and a thinking-capable model
+    that is a good choice for ontology extraction or the census can be a
+    poor choice specifically for the logprob judge: Ollama's `/api/generate`
+    does not reliably honour `think: false` for every hybrid model, and a
+    thinking model's chain-of-thought tokens can end up in `logprobs`
+    instead of its actual answer, which `judge_entailment_logprob` detects
+    and raises on (see LogprobsUnsupportedError) rather than silently
+    reporting bad confidence. Passing a second, plain instruction-following
+    client here — e.g. a small local Ollama model — lets the rest of the
+    run keep whatever model `llm_client` is configured with while judging
+    uses one that actually answers "one word, no reasoning" reliably.
     """
     rates = config.token_rates()
     # Per-phase spend, keyed to match the RunTracker phase_name suffixes below
@@ -245,12 +275,16 @@ def run_validation(
     judge_tracker = RunTracker(db_session, workflow_id, name=document_id or "validation",
                                 phase_name="claim_entailment")
     judge_tracker.start()
-    judge_usage_before = _usage_snapshot(llm_client)
+    # A separate client, when given, means judging spends its own tokens —
+    # snapshot both so `phase_usage["entailment"]` and the run's aggregate
+    # totals below still add up to everything actually spent.
+    judge_client = judge_llm_client or llm_client
+    judge_usage_before = _usage_snapshot(llm_client, judge_client)
 
-    supports_logprobs = hasattr(llm_client, "generate_with_logprobs")
+    supports_logprobs = hasattr(judge_client, "generate_with_logprobs")
     if judge_method == "logprob" and not supports_logprobs:
         raise ValueError(
-            "judge_method='logprob' but this llm_client has no "
+            "judge_method='logprob' but the judging client has no "
             "generate_with_logprobs — only Ollama supports it currently"
         )
     use_logprob_judge = judge_method == "logprob" or (judge_method == "auto" and supports_logprobs)
@@ -258,7 +292,7 @@ def run_validation(
     if use_logprob_judge:
         try:
             entailment_report = judge_entailment_logprob(
-                [_JudgeClaim(c) for c in claims], chunks, llm_client,
+                [_JudgeClaim(c) for c in claims], chunks, judge_client,
             )
         except LogprobsUnsupportedError as e:
             if judge_method == "logprob":
@@ -269,14 +303,16 @@ def run_validation(
             )
             use_logprob_judge = False
             entailment_report = judge_entailment(
-                [_JudgeClaim(c) for c in claims], chunks, llm_client, db_session=db_session,
+                [_JudgeClaim(c) for c in claims], chunks, judge_client, db_session=db_session,
             )
     else:
         entailment_report = judge_entailment(
-            [_JudgeClaim(c) for c in claims], chunks, llm_client, db_session=db_session,
+            [_JudgeClaim(c) for c in claims], chunks, judge_client, db_session=db_session,
         )
     verdicts_by_id = {v.requirement_id: v for v in entailment_report.verdicts}
-    phase_usage["entailment"] = _usage_delta(judge_usage_before, _usage_snapshot(llm_client), rates)
+    phase_usage["entailment"] = _usage_delta(
+        judge_usage_before, _usage_snapshot(llm_client, judge_client), rates
+    )
     judge_tracker.step_complete(
         "judge",
         judged=len(entailment_report.judged),
@@ -338,12 +374,17 @@ def run_validation(
         if v.escalated and v.escalated_from and v.escalated_from != v.verdict
     )
 
-    # One client used throughout — build/reuse, retrieval, judging, census —
-    # so its accumulated usage is the whole run's cost, not one step's. Equal
-    # to the sum of `phase_usage` above; kept as its own read of the client
-    # rather than summed from the phases, so a bug in one phase's snapshot
-    # can't silently throw off the number that actually matters most.
-    usage = usage_of(llm_client)
+    # Almost always one client throughout — build/reuse, retrieval, judging,
+    # census — so its accumulated usage is the whole run's cost. Combined
+    # with `judge_client` here too, since when `judge_llm_client` was given,
+    # its spend is otherwise invisible to this total: `usage_of(llm_client)`
+    # alone would silently undercount by whatever judging spent on its own
+    # client. Built from a fresh snapshot rather than summed from
+    # `phase_usage` above, so a bug in one phase's snapshot can't throw off
+    # the number that actually matters most.
+    combined = _usage_snapshot(llm_client, judge_client)
+    usage = Usage(calls=combined["calls"], input_tokens=combined["input_tokens"],
+                  output_tokens=combined["output_tokens"])
     usage_dict = usage.to_dict(rates)
 
     quality = {

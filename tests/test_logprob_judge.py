@@ -140,6 +140,20 @@ def test_missing_logprobs_on_the_only_claim_raises_rather_than_silently_degradin
         judge_entailment_logprob([_JudgeClaim(claim)], CHUNKS, client)
 
 
+def test_logprobs_present_but_never_matching_a_verdict_also_raises():
+    """The qwen3.8 case: logprobs came back non-empty, but the token was
+    "The" — the start of a reasoning trace, not the answer. Empty tokens
+    and unmatchable-but-present tokens are the same failure from a caller's
+    point of view (no usable confidence), so both must raise the same way."""
+    claim = ResolvedClaim(id="C1", text="client_id is required.", source_chunks=[0])
+    client = ScriptedLogprobClient([
+        LogprobResponse(text="ENTAILS", tokens=_tokens_for("The", -0.01)),
+    ])
+
+    with pytest.raises(LogprobsUnsupportedError):
+        judge_entailment_logprob([_JudgeClaim(claim)], CHUNKS, client)
+
+
 def test_missing_logprobs_is_only_checked_on_the_first_real_call():
     """A later claim's logprobs coming back empty (a genuine parse miss, not
     a systemic capability gap) must not abort claims already judged fine —

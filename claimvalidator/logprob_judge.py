@@ -215,16 +215,30 @@ def judge_entailment_logprob(
             )
             continue
 
+        verdict, probabilities, raw_token = _extract_confidence(result.tokens)
+
+        # Checked once, on the first call that actually completed — not
+        # "logprobs came back empty" alone, but "logprobs never resolved to
+        # one of the four words at all". A cloud-hosted model fails this by
+        # returning nothing; a thinking model fails it a different way, by
+        # returning real-looking tokens that are its reasoning trace, not
+        # its answer (found live: qwen3.8 returned exactly one token, "The"
+        # — the start of a sentence, while the actual answer, "ENTAILS", was
+        # in `response` but never appeared in `logprobs` at all). Either
+        # failure means this call cannot back its own claimed confidence.
         if not checked_support:
             checked_support = True
-            if not result.tokens:
+            if verdict is None:
                 raise LogprobsUnsupportedError(
-                    f"{llm_client.__class__.__name__} answered but returned no "
-                    f"logprobs — likely a cloud-hosted model, which does not "
-                    f"support this even though the client class does"
+                    f"{llm_client.__class__.__name__} did not produce a "
+                    f"usable verdict from logprobs on the first call "
+                    f"(raw first token: {raw_token!r}) — either the model "
+                    f"returns no logprobs at all (a cloud-hosted model), or "
+                    f"they don't correspond to its actual answer (a "
+                    f"thinking/reasoning model, whose logprobs may reflect "
+                    f"its hidden reasoning instead)"
                 )
 
-        verdict, probabilities, raw_token = _extract_confidence(result.tokens)
         if verdict is None:
             # Logprobs were unusable (Ollama returned none, or the first
             # token matched none of the four words) — fall back to reading
