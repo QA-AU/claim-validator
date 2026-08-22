@@ -267,6 +267,17 @@ _METRIC_EXPLANATIONS = {
         "this run wanted was never actually obtained.",
         "Informational",
     ),
+    "judge_method": (
+        "Which mechanism produced every verdict in this run — \"majority_vote\" "
+        "(3 runs, take the majority) or \"logprob\" (1 call per claim, "
+        "confidence read from the model's own token probabilities instead of "
+        "agreement across repeats).",
+        "\"logprob\" only runs when the configured LLM client supports it "
+        "(currently Ollama; Anthropic's API does not expose token "
+        "probabilities) — see each claim's Agreement column on the Claims "
+        "tab for the per-claim confidence this method actually produced.",
+        "Informational",
+    ),
     "overturned": (
         "Verdicts the stronger model actually changed from what the first "
         "model reported.",

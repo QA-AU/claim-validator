@@ -198,6 +198,17 @@ class EntailmentVerdict:
     miscited_from: List[int] = field(default_factory=list)
     better_chunks: List[int] = field(default_factory=list)
 
+    # How this verdict was reached — "majority_vote" (the default, `runs`
+    # repeated samples plus a vote) or "logprob" (one call, confidence read
+    # from the model's own token probabilities instead of from agreement
+    # across repeats — see claimvalidator/logprob_judge.py). `confidence` is
+    # only set by the latter: a majority vote's `agreement`/`runs_judged`
+    # already says what it needs to, and a bucketed 0/3-3/3 count is not the
+    # same kind of number as a continuous probability, so the two are kept
+    # in separate fields rather than one overloaded to mean either.
+    method: str = "majority_vote"
+    confidence: Optional[float] = None
+
     @property
     def decided(self) -> bool:
         """Did a strict majority of the runs that answered agree?"""
@@ -231,6 +242,8 @@ class EntailmentVerdict:
             "escalation_model": self.escalation_model,
             "miscited_from": self.miscited_from,
             "better_chunks": self.better_chunks,
+            "method": self.method,
+            "confidence": self.confidence,
         }
 
 

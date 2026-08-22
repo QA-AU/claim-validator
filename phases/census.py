@@ -218,12 +218,17 @@ MEANING: {concept_description or concept_name}
 TEXT:
 {numbered}
 
+Work through the text top to bottom, in this order:
+1. Find the next passage that states an instance of this concept.
+2. Before adding it, check it is not a restatement of an instance you already
+   listed in THIS response — the same thing mentioned twice is one instance,
+   not two.
+3. Record the chunk number the instance is actually stated in.
+4. Continue until you reach the end of the text. If none were found, return [].
+
 Return a JSON array. Each element is an object with:
 - name: a short identifier for this instance
 - chunk: the number from the [chunk N] marker above the passage that states it
-
-One element per distinct instance actually stated in this text. The same thing
-mentioned twice is one instance. If there are none, return [].
 
 Return ONLY the JSON array."""
 
@@ -425,14 +430,24 @@ CONCEPTS:
 TEXT:
 {numbered}
 
+Work through this procedure in order, one concept at a time:
+1. Take the next concept from the list above that you have not yet covered.
+2. Read the text top to bottom and note every passage that states a distinct
+   instance of it.
+3. Before adding an instance, check it is not a restatement of one you
+   already listed for THIS concept in THIS response — the same thing
+   mentioned twice is one instance, not two.
+4. Record the chunk number the instance is actually stated in, not implied by.
+5. Decide explicitly whether the next concept in the list has any instances
+   here before moving on — do not pass over a concept without considering it.
+
 Return a JSON array. Each element is an object with:
 - concept: exactly one of the concept names listed above
 - name: a short identifier for this instance
 - chunk: the number from the [chunk N] marker above the passage that states it
 
-One element per distinct instance actually stated in this text. The same thing
-mentioned twice is one instance. Work through the concepts one at a time so none
-is overlooked. If a concept has no instances here, simply omit it.
+Omit a concept from the array only after step 5 above found nothing for it,
+not by skipping it outright.
 
 Return ONLY the JSON array."""
 

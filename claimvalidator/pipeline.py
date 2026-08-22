@@ -4,6 +4,7 @@ HTTP layer adds no business logic of its own, only request/response
 marshalling.
 """
 
+import logging
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
@@ -20,6 +21,9 @@ from claimvalidator.claim_retrieval import retrieve_for_claim
 from claimvalidator.claim_shims import ResolvedClaim, _ClaimSet, _JudgeClaim, shape_profile
 from claimvalidator.document_identity import resolve_ontology_key
 from claimvalidator.gap_report import GapReport, build_gap_report
+from claimvalidator.logprob_judge import LogprobsUnsupportedError, judge_entailment_logprob
+
+logger = logging.getLogger(__name__)
 
 
 def _usage_snapshot(llm_client) -> Dict[str, int]:
@@ -31,6 +35,21 @@ def _usage_snapshot(llm_client) -> Dict[str, int]:
     """
     u = usage_of(llm_client)
     return {"calls": u.calls, "input_tokens": u.input_tokens, "output_tokens": u.output_tokens}
+
+
+def _agreement_label(verdict) -> Optional[str]:
+    """"2/3" for a majority-vote verdict, "94% confidence (logprob)" for a
+    logprob one — a bucketed vote count and a continuous probability are
+    different kinds of number, so they get visibly different labels rather
+    than forcing the logprob path's confidence through an N/N format that
+    would always read as a hollow 1/1."""
+    if verdict is None:
+        return None
+    if verdict.method == "logprob":
+        if verdict.confidence is None:
+            return "logprob (confidence unavailable)"
+        return f"{round(verdict.confidence * 100)}% confidence (logprob)"
+    return f"{verdict.agreement}/{verdict.runs_judged}"
 
 
 def _usage_delta(before: Dict[str, int], after: Dict[str, int], rates) -> Dict[str, Any]:
@@ -68,6 +87,13 @@ class ClaimResult:
     escalated: bool = False
     escalated_from: str = ""
     escalation_model: str = ""
+    # How the verdict was reached — "majority_vote" (default) or "logprob"
+    # (claimvalidator/logprob_judge.py) — and, only for the latter, the
+    # model's own confidence. A bucketed N/3 agreement count and a continuous
+    # probability are different kinds of number; kept in separate fields
+    # rather than one overloaded to mean either. See EntailmentVerdict.
+    judge_method: str = "majority_vote"
+    confidence: Optional[float] = None
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -82,6 +108,8 @@ class ClaimResult:
             "escalated": self.escalated,
             "escalated_from": self.escalated_from,
             "escalation_model": self.escalation_model,
+            "judge_method": self.judge_method,
+            "confidence": self.confidence,
         }
 
 
@@ -117,7 +145,18 @@ def run_validation(
     census_max_chunks: int = 200,
     force_census: bool = True,
     census_runs: int = 3,
+    judge_method: str = "auto",
 ) -> ValidationResult:
+    """
+    `judge_method`: "auto" uses the one-call, logprob-confidence judge
+    (`claimvalidator/logprob_judge.py`) when `llm_client` supports it
+    (currently Ollama only — Anthropic's API does not expose token
+    probabilities) and falls back to the existing 3-run majority vote
+    otherwise; "majority_vote" always forces the existing path;
+    "logprob" always forces the new one, raising if the client can't do it.
+    Gated on capability rather than provider name, so a client either can or
+    can't — nothing here special-cases a provider by name.
+    """
     rates = config.token_rates()
     # Per-phase spend, keyed to match the RunTracker phase_name suffixes below
     # (claim_ontology -> "ontology", etc.) — populated as each phase finishes,
@@ -207,9 +246,35 @@ def run_validation(
                                 phase_name="claim_entailment")
     judge_tracker.start()
     judge_usage_before = _usage_snapshot(llm_client)
-    entailment_report = judge_entailment(
-        [_JudgeClaim(c) for c in claims], chunks, llm_client, db_session=db_session,
-    )
+
+    supports_logprobs = hasattr(llm_client, "generate_with_logprobs")
+    if judge_method == "logprob" and not supports_logprobs:
+        raise ValueError(
+            "judge_method='logprob' but this llm_client has no "
+            "generate_with_logprobs — only Ollama supports it currently"
+        )
+    use_logprob_judge = judge_method == "logprob" or (judge_method == "auto" and supports_logprobs)
+
+    if use_logprob_judge:
+        try:
+            entailment_report = judge_entailment_logprob(
+                [_JudgeClaim(c) for c in claims], chunks, llm_client,
+            )
+        except LogprobsUnsupportedError as e:
+            if judge_method == "logprob":
+                raise  # explicitly forced — a silent fallback would hide it
+            logger.warning(
+                f"[Pipeline] logprob judge unusable ({e}); falling back to "
+                f"majority_vote for this run"
+            )
+            use_logprob_judge = False
+            entailment_report = judge_entailment(
+                [_JudgeClaim(c) for c in claims], chunks, llm_client, db_session=db_session,
+            )
+    else:
+        entailment_report = judge_entailment(
+            [_JudgeClaim(c) for c in claims], chunks, llm_client, db_session=db_session,
+        )
     verdicts_by_id = {v.requirement_id: v for v in entailment_report.verdicts}
     phase_usage["entailment"] = _usage_delta(judge_usage_before, _usage_snapshot(llm_client), rates)
     judge_tracker.step_complete(
@@ -236,12 +301,14 @@ def run_validation(
             shape_reason=violations_by_id.get(claim.id),
             verdict=verdict.verdict if verdict else "unjudged",
             judged=bool(verdict and verdict.judged),
-            agreement=f"{verdict.agreement}/{verdict.runs_judged}" if verdict else None,
+            agreement=_agreement_label(verdict),
             cited_chunks=claim.source_chunks,
             reason=(verdict.reason if verdict else "no citation found by retrieval"),
             escalated=bool(verdict and verdict.escalated),
             escalated_from=(verdict.escalated_from if verdict else ""),
             escalation_model=(verdict.escalation_model if verdict else ""),
+            judge_method=(verdict.method if verdict else "majority_vote"),
+            confidence=(verdict.confidence if verdict else None),
         ))
 
     completeness_tracker = RunTracker(db_session, workflow_id, name=document_id or "validation",
@@ -293,6 +360,7 @@ def run_validation(
         "escalated": escalated,
         "escalation_failed_batches": entailment_report.escalation_failed_batches,
         "overturned": overturned,
+        "judge_method": "logprob" if use_logprob_judge else "majority_vote",
         "runs": entailment_report.runs,
         "concepts_covered": sum(1 for g in gap.per_concept.values() if g.addressed_count > 0),
         "concepts_total": len(gap.per_concept),
