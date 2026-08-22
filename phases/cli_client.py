@@ -79,7 +79,7 @@ class AnthropicClient(UsageTrackingMixin):
         self.model = model or os.getenv("ANTHROPIC_MODEL") or default_model(cheap_tier())
         self.max_tokens = max_tokens
 
-    def generate(self, prompt: str, system_prompt: str = None) -> str:
+    def generate(self, prompt: str, system_prompt: str = None, temperature: float = None) -> str:
         kwargs = {
             "model": self.model,
             "max_tokens": self.max_tokens,
@@ -87,6 +87,8 @@ class AnthropicClient(UsageTrackingMixin):
         }
         if system_prompt:
             kwargs["system"] = system_prompt
+        if temperature is not None:
+            kwargs["temperature"] = temperature
 
         response = self.client.messages.create(**kwargs)
         # Recorded from the provider's own figures. A response that carries none

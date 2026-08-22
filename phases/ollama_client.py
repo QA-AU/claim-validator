@@ -30,7 +30,7 @@ class OllamaClient(UsageTrackingMixin):
         self.model = model
         self.host = (host or os.getenv("OLLAMA_HOST") or DEFAULT_HOST).rstrip("/")
 
-    def generate(self, prompt: str, system_prompt: str = None) -> str:
+    def generate(self, prompt: str, system_prompt: str = None, temperature: float = None) -> str:
         payload = {
             "model": self.model,
             "prompt": prompt,
@@ -38,6 +38,8 @@ class OllamaClient(UsageTrackingMixin):
         }
         if system_prompt:
             payload["system"] = system_prompt
+        if temperature is not None:
+            payload["options"] = {"temperature": temperature}
 
         response = requests.post(
             f"{self.host}/api/generate", json=payload, timeout=REQUEST_TIMEOUT_S

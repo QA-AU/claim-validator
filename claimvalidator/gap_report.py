@@ -72,6 +72,7 @@ def build_gap_report(
     runs: int = 3,
     max_chunks: int = 200,
     force: bool = False,
+    db_session=None,
 ) -> GapReport:
     """The census-vs-claims diff.
 
@@ -80,6 +81,13 @@ def build_gap_report(
     times plus one extra `census_many` pass for chunk locations (`CensusSpread`
     doesn't carry per-run locations, by design, to save memory across `runs`),
     so this is real, visible cost, not something to run unconditionally.
+
+    `db_session`, when supplied, is passed through to `census_repeated` so
+    `census_batch` resolves through the database-backed settings registry
+    (`phases/settings_registry.py`) instead of always taking the built-in
+    default — the same "database, then built-in default" resolution every
+    other tunable in this codebase already goes through, now actually
+    reachable from this entry point.
     """
     if len(chunks) > max_chunks and not force:
         return GapReport(
@@ -95,8 +103,8 @@ def build_gap_report(
         (ct.name, ct.description) for ct in ontology.concept_types
     ]
 
-    spreads = census_repeated(concepts, chunks, llm_client, runs=runs)
-    located = census_many(concepts, chunks, llm_client)
+    spreads = census_repeated(concepts, chunks, llm_client, runs=runs, db_session=db_session)
+    located = census_many(concepts, chunks, llm_client, db_session=db_session)
 
     touched_chunks: Set[int] = {c for claim in claims for c in claim.source_chunks}
 

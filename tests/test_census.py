@@ -26,7 +26,7 @@ class MultiClient:
         self.responses = list(responses)
         self.prompts = []
 
-    def generate(self, prompt, system_prompt=None):
+    def generate(self, prompt, system_prompt=None, temperature=None):
         self.prompts.append(prompt)
         return self.responses[min(len(self.prompts) - 1, len(self.responses) - 1)]
 
@@ -115,7 +115,7 @@ def test_a_failed_batch_fails_it_for_every_concept():
     from phases.census import census_many
 
     class Exploding:
-        def generate(self, prompt, system_prompt=None):
+        def generate(self, prompt, system_prompt=None, temperature=None):
             raise RuntimeError("overloaded")
 
     results = census_many([("endpoint", ""), ("error_code", "")], ["a"], Exploding())
@@ -135,7 +135,7 @@ def test_a_census_is_reported_as_a_range_not_a_count():
         def __init__(self):
             self.n = 0
 
-        def generate(self, prompt, system_prompt=None):
+        def generate(self, prompt, system_prompt=None, temperature=None):
             self.n += 1
             names = ["a", "b"] if self.n == 1 else ["a"]
             return json.dumps([_sighting("endpoint", x, 0) for x in names])
@@ -164,7 +164,7 @@ def test_names_are_split_by_how_many_runs_saw_them():
         def __init__(self):
             self.n = 0
 
-        def generate(self, prompt, system_prompt=None):
+        def generate(self, prompt, system_prompt=None, temperature=None):
             self.n += 1
             names = ["solid", "flaky"] if self.n < 3 else ["solid"]
             return json.dumps([_sighting("endpoint", x, 0) for x in names])

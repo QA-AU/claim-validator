@@ -50,6 +50,7 @@ def build_excel_report(result: ValidationResult, path: str) -> None:
     _shape_checks_sheet(wb, result)
     _gaps_sheet(wb, result)
     _quality_sheet(wb, result)
+    _usage_by_phase_sheet(wb, result)
 
     Path(path).parent.mkdir(parents=True, exist_ok=True)
     wb.save(path)
@@ -357,6 +358,8 @@ def _quality_sheet(wb, result: ValidationResult) -> None:
 
     r = 2
     for key, value in result.quality.items():
+        if key == "usage_by_phase":
+            continue  # a dict, not a scalar — its own tab, see _usage_by_phase_sheet
         what, how, verdict = _METRIC_EXPLANATIONS.get(
             key, ("(no description on file for this metric — added since this "
                   "sheet's explanations were last written)",
@@ -373,3 +376,41 @@ def _quality_sheet(wb, result: ValidationResult) -> None:
     write_row(sheet, r, [name, value, what, how, verdict], wrap_all_from=3)
 
     style_sheet(sheet, 1, [22, 12, 34, 42, 12])
+
+
+# Phase order matches the sequence run_validation() actually executes them
+# in, not alphabetical — so the tab reads top-to-bottom the same way the run
+# happened.
+_PHASE_LABELS = [
+    ("ontology", "Ontology (build or reuse)"),
+    ("retrieval", "Retrieval"),
+    ("shape_check", "Shape check"),
+    ("entailment", "Entailment judge"),
+    ("completeness", "Gap report (census)"),
+]
+
+
+def _usage_by_phase_sheet(wb, result: ValidationResult) -> None:
+    """Where the tokens in the Quality tab's aggregate actually went. The
+    same total, broken out by RunTracker phase instead of summed — useful
+    for spotting which step is driving cost on a given document (the census
+    reads the whole document `runs` times over, so it's the usual suspect on
+    a large one; the judge's per-claim calls usually dominate on a small one
+    with many claims)."""
+    sheet = wb.create_sheet("Usage by phase")
+    sheet.append(["Phase", "Calls", "Input tokens", "Output tokens",
+                  "Total tokens", "Cost (cents)"])
+
+    by_phase = result.quality.get("usage_by_phase") or {}
+    r = 2
+    for key, label in _PHASE_LABELS:
+        u = by_phase.get(key)
+        if u is None:
+            continue
+        write_row(sheet, r, [
+            label, u["calls"], u["input_tokens"], u["output_tokens"],
+            u["total_tokens"], u["cost_cents"],
+        ])
+        r += 1
+
+    style_sheet(sheet, 1, [26, 10, 14, 14, 14, 14])

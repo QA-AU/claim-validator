@@ -58,6 +58,15 @@ logger = logging.getLogger(__name__)
 # attention; 10 keeps the prompt well inside a comfortable window.
 CENSUS_BATCH = 10
 
+# A census counts what is stated, it does not compose prose — there is no
+# reason to want variety in the answer. Pinned near zero (not exactly 0: some
+# providers treat 0 as "use the default") to cut the run-to-run sampling
+# variance measured above (294 vs 342 instances on an identical rerun) at the
+# one point that costs nothing to fix. It does not remove the rest of that
+# variance — batching still gives each chunk less attention than reading it
+# alone — only the part sampling itself was responsible for.
+CENSUS_TEMPERATURE = 0.01
+
 # The one knob a census has, and the one worth recording: a census is the
 # expensive path, and "how many calls did that cost" is unanswerable afterwards
 # without knowing the batch size that was in force.
@@ -219,7 +228,9 @@ mentioned twice is one instance. If there are none, return [].
 Return ONLY the JSON array."""
 
         try:
-            sightings = _parse_sightings(llm_client.generate(prompt))
+            sightings = _parse_sightings(
+                llm_client.generate(prompt, temperature=CENSUS_TEMPERATURE)
+            )
         except Exception as e:
             result.failed_batches += 1
             logger.error(f"[Census] Batch {n + 1}/{batches} failed: {e}")
@@ -426,7 +437,9 @@ is overlooked. If a concept has no instances here, simply omit it.
 Return ONLY the JSON array."""
 
         try:
-            sightings = _parse_multi_sightings(llm_client.generate(prompt))
+            sightings = _parse_multi_sightings(
+                llm_client.generate(prompt, temperature=CENSUS_TEMPERATURE)
+            )
         except Exception as e:
             # A failed batch fails it for every concept, since one call covered
             # them all. `complete` then reports False for each, which is right:
