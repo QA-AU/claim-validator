@@ -379,11 +379,41 @@ _AGREEMENT_ROW = (
 )
 
 
+# Which claims a given metric is actually about — so a person reading
+# "contradicted: 2" doesn't have to scan the whole Claims tab to find which
+# two. Only metrics that genuinely partition the claim set are listed here;
+# a whole-run figure (llm_calls, cost_cents, main_model, runs...) has no
+# claim IDs to give and says so explicitly rather than being left blank —
+# the same "no blank cells" rule the rest of this sheet already follows.
+_CLAIM_ID_FILTERS = {
+    "shape_violations": lambda c: not c.shape_ok,
+    "retrieval_found_nothing": lambda c: not c.cited_chunks,
+    "entailed": lambda c: c.verdict == "entails",
+    "mentions_only": lambda c: c.verdict == "mentions_only",
+    "contradicted": lambda c: c.verdict == "contradicts",
+    "no_evidence": lambda c: c.verdict == "no_evidence",
+    "undecided": lambda c: c.judged and not c.decided,
+    "escalated": lambda c: c.escalated,
+    "overturned": lambda c: c.escalated and c.escalated_from and c.escalated_from != c.verdict,
+}
+
+_NOT_PER_CLAIM = "(whole-run figure, not per-claim)"
+
+
+def _claim_ids_for(per_claim, key: str) -> str:
+    filt = _CLAIM_ID_FILTERS.get(key)
+    if filt is None:
+        return _NOT_PER_CLAIM
+    ids = [c.id for c in per_claim if filt(c)]
+    return ", ".join(ids) if ids else "(none)"
+
+
 def _quality_sheet(wb, result: ValidationResult) -> None:
     from openpyxl.styles import Font, PatternFill
 
     sheet = wb.create_sheet("Quality")
-    sheet.append(["Metric", "Value", "What it measures", "How to read it", "Verdict"])
+    sheet.append(["Metric", "Value", "Claim IDs (see Claims tab)", "What it measures",
+                  "How to read it", "Verdict"])
 
     r = 2
     for key, value in result.quality.items():
@@ -394,17 +424,18 @@ def _quality_sheet(wb, result: ValidationResult) -> None:
                   "sheet's explanations were last written)",
                   "Treat as informational until this row is documented above.",
                   "Informational"))
-        write_row(sheet, r, [key, value, what, how, verdict], wrap_all_from=3)
+        claim_ids = _claim_ids_for(result.per_claim, key)
+        write_row(sheet, r, [key, value, claim_ids, what, how, verdict], wrap_all_from=3)
         if verdict in VERDICT_FILL:
-            vcell = sheet.cell(row=r, column=5)
+            vcell = sheet.cell(row=r, column=6)
             vcell.font = Font(name="Arial", size=10, bold=True)
             vcell.fill = PatternFill("solid", fgColor=VERDICT_FILL[verdict])
         r += 1
 
     name, value, what, how, verdict = _AGREEMENT_ROW
-    write_row(sheet, r, [name, value, what, how, verdict], wrap_all_from=3)
+    write_row(sheet, r, [name, value, _NOT_PER_CLAIM, what, how, verdict], wrap_all_from=3)
 
-    style_sheet(sheet, 1, [22, 12, 34, 42, 12])
+    style_sheet(sheet, 1, [22, 12, 24, 34, 42, 12])
 
 
 # Phase order matches the sequence run_validation() actually executes them

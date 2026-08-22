@@ -121,6 +121,13 @@ class ClaimResult:
     # rather than one overloaded to mean either. See EntailmentVerdict.
     judge_method: str = "majority_vote"
     confidence: Optional[float] = None
+    # Did a strict majority of the judge's runs agree on `verdict`? True for
+    # an unjudged claim (there was no split to have) and for a logprob
+    # verdict (one call, nothing to disagree with itself over) — only a
+    # majority-vote claim can actually be False here. Needed so the Quality
+    # tab's `undecided` count can name which claim IDs it means, the same
+    # way `escalated` already can via escalated/escalated_from above.
+    decided: bool = True
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -137,6 +144,7 @@ class ClaimResult:
             "escalation_model": self.escalation_model,
             "judge_method": self.judge_method,
             "confidence": self.confidence,
+            "decided": self.decided,
         }
 
 
@@ -357,6 +365,7 @@ def run_validation(
             escalation_model=(verdict.escalation_model if verdict else ""),
             judge_method=(verdict.method if verdict else "majority_vote"),
             confidence=(verdict.confidence if verdict else None),
+            decided=(verdict.decided if verdict else True),
         ))
 
     completeness_tracker = RunTracker(db_session, workflow_id, name=document_id or "validation",
