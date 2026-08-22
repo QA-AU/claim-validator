@@ -70,6 +70,13 @@ class AnthropicClient(UsageTrackingMixin):
     (todo/14), and the fix was to measure.
     """
 
+    # Class-level, not per-instance: a fresh client is built per background
+    # job (see claimvalidator/config.py), and this warning is about the SDK
+    # itself, not about any one client — logging it once per process is
+    # enough, repeating it on every one of a census run's many batches
+    # would bury the one thing worth noticing under noise.
+    _warned_temperature_unsupported = False
+
     def __init__(self, model: str = None, max_tokens: int = MAX_TOKENS):
         from anthropic import Anthropic
 
@@ -88,7 +95,21 @@ class AnthropicClient(UsageTrackingMixin):
         if system_prompt:
             kwargs["system"] = system_prompt
         if temperature is not None:
-            kwargs["temperature"] = temperature
+            # Found live: the installed anthropic SDK (1.0.0+) removed
+            # temperature from Messages.create() entirely -- introspecting
+            # the real signature turned up no direct replacement either;
+            # output_config.effort controls reasoning depth, not sampling
+            # determinism. A caller asking for a specific temperature
+            # (census.py pins one, to cut sampling variance) would
+            # otherwise get a request that silently ran at whatever the
+            # server's own default is, with no trace anything was dropped.
+            if not AnthropicClient._warned_temperature_unsupported:
+                logger.warning(
+                    f"[Anthropic] temperature={temperature!r} requested but "
+                    f"this SDK/model does not accept it -- running at the "
+                    f"server's own default instead. Logged once per process."
+                )
+                AnthropicClient._warned_temperature_unsupported = True
 
         response = self.client.messages.create(**kwargs)
         # Recorded from the provider's own figures. A response that carries none
