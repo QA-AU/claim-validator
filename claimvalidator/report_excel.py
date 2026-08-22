@@ -267,6 +267,24 @@ _METRIC_EXPLANATIONS = {
         "this run wanted was never actually obtained.",
         "Informational",
     ),
+    "main_model": (
+        "The provider and model that ran ontology extraction, retrieval, and "
+        "the census — the client passed to run_validation() as llm_client.",
+        "A model swap between two runs is the first thing to check before "
+        "reading a difference between them as a real finding.",
+        "Informational",
+    ),
+    "judge_model": (
+        "The provider and model that actually judged the claims. Equal to "
+        "main_model unless run_validation() was given a separate "
+        "judge_llm_client — e.g. a small local instruction-following model "
+        "used only for judging, while main_model handles the heavier "
+        "extraction/census work (see judge_method and the Claims tab's "
+        "Agreement column for what this model actually produced).",
+        "Read this, not main_model, when explaining a specific claim's "
+        "verdict or confidence — the two can legitimately differ.",
+        "Informational",
+    ),
     "judge_method": (
         "Which mechanism produced every verdict in this run — \"majority_vote\" "
         "(3 runs, take the majority) or \"logprob\" (1 call per claim, "

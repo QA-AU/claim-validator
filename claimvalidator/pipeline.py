@@ -52,6 +52,18 @@ def _usage_snapshot(*llm_clients) -> Dict[str, int]:
     return total
 
 
+def _model_label(client) -> str:
+    """"OllamaClient (llama3.2:latest)" — provider inferred from the class
+    rather than a separate field nothing sets, model read from the one
+    attribute both clients already expose. "unknown" for a client that
+    exposes neither (a test stub, typically), rather than raising — a
+    report missing a model name is a smaller problem than a report that
+    can't be built at all."""
+    model = getattr(client, "model", None)
+    provider = client.__class__.__name__
+    return f"{provider} ({model})" if model else provider
+
+
 def _agreement_label(verdict) -> Optional[str]:
     """"2/3" for a majority-vote verdict, "94% confidence (logprob)" for a
     logprob one — a bucketed vote count and a continuous probability are
@@ -401,6 +413,8 @@ def run_validation(
         "escalated": escalated,
         "escalation_failed_batches": entailment_report.escalation_failed_batches,
         "overturned": overturned,
+        "main_model": _model_label(llm_client),
+        "judge_model": _model_label(judge_client),
         "judge_method": "logprob" if use_logprob_judge else "majority_vote",
         "runs": entailment_report.runs,
         "concepts_covered": sum(1 for g in gap.per_concept.values() if g.addressed_count > 0),
