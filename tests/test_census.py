@@ -146,6 +146,32 @@ def test_a_census_is_reported_as_a_range_not_a_count():
     assert "between 1 and 2" in spread.spread
 
 
+def test_a_run_that_fails_completely_does_not_fabricate_a_zero_low_end():
+    """Found live: a rate-limit storm failed every batch of one run out of
+    three; the fake count=0 that produces got folded into the spread's low
+    end, reporting "spread 0-89" as though 0 had actually been measured.
+    A completely failed run must be excluded from counts entirely, not
+    treated as a real (if low) reading."""
+    from phases.census import census_repeated
+
+    class OneRunFails:
+        def __init__(self):
+            self.n = 0
+
+        def generate(self, prompt, system_prompt=None, temperature=None):
+            self.n += 1
+            if self.n == 2:
+                raise RuntimeError("simulated rate limit")
+            return json.dumps([_sighting("endpoint", x, 0) for x in ["a", "b", "c"]])
+
+    spread = census_repeated([("endpoint", "")], ["chunk"], OneRunFails(), runs=3)["endpoint"]
+
+    assert spread.counts == [3, 3]           # the failed run's 0 never entered counts
+    assert spread.low == 3 and spread.high == 3
+    assert spread.complete is False          # still honestly flagged as short a run
+    assert "2 of 3 run(s)" in spread.spread   # and the spread string says so too
+
+
 def test_a_stable_census_says_so_rather_than_implying_a_range():
     from phases.census import census_repeated
 

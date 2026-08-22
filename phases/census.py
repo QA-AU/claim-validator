@@ -564,12 +564,21 @@ class CensusSpread:
 
     @property
     def spread(self) -> str:
-        """How this concept's count should be written down, in words."""
-        if not self.counts:
+        """How this concept's count should be written down, in words.
+
+        Counted over `len(self.counts)`, not `self.runs` — a run whose
+        batches all failed contributes no count at all (see
+        `census_repeated`), so a spread built from fewer complete runs than
+        were requested says so explicitly rather than claiming the full
+        `runs` backed a number some of them never actually produced.
+        """
+        completed = len(self.counts)
+        if not completed:
             return "not measured"
+        of_runs = f"{completed} run(s)" if completed == self.runs else f"{completed} of {self.runs} run(s)"
         if self.low == self.high:
-            return f"{self.low} in every one of {self.runs} run(s)"
-        return f"between {self.low} and {self.high} across {self.runs} runs"
+            return f"{self.low} in every one of {of_runs}"
+        return f"between {self.low} and {self.high} across {of_runs}"
 
     def capture_range(self, sampled_count: int) -> Optional[Tuple[float, float]]:
         """What share of the real total extraction found — as a range.
@@ -630,8 +639,17 @@ def census_repeated(
                               settings=settings, db_session=db_session)
         for name, result in results.items():
             spread = spreads[name]
-            spread.counts.append(result.count)
-            if not result.complete:
+            if result.complete:
+                spread.counts.append(result.count)
+            else:
+                # A run every batch of which failed reports count=0 — not a
+                # real measurement of "nothing there", but the absence of
+                # one. Folding it into counts would let a single rate-limit
+                # storm report a fabricated low end (found live: a 429 storm
+                # on 61 batches produced a reported "spread 0-89" where the
+                # true low was never actually measured at all). `complete`
+                # still records that this spread drew on fewer runs than
+                # requested — see the `spread` property.
                 spread.complete = False
             for instance in result.names:
                 slug = slugify(instance)
