@@ -33,9 +33,27 @@ def _session():
 
 @app.middleware("http")
 async def require_api_token(request, call_next):
-    from phases.api_auth import authorised
+    # Path gating (what's public at all) and token extraction are shared
+    # between the two auth backends; only how the token itself gets
+    # checked differs. azure_auth.enabled() being false is what keeps
+    # local dev and the test suite working exactly as before — nothing
+    # here changes unless CLAIMVAL_AZURE_TENANT_ID is actually set.
+    from phases.api_auth import is_public, presented_token, token_matches
+    from claimvalidator import azure_auth
 
-    if not authorised(request):
+    if is_public(request.url.path):
+        return await call_next(request)
+
+    token = presented_token(request.headers, request.cookies)
+
+    if azure_auth.enabled():
+        if azure_auth.validate(token or "") is None:
+            return JSONResponse(
+                status_code=401,
+                content={"detail": "Invalid or missing Azure AD access token."},
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+    elif not token_matches(token):
         return JSONResponse(
             status_code=401,
             content={

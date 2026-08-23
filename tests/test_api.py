@@ -59,6 +59,69 @@ def test_wrong_token_still_401s():
     assert response.status_code == 401
 
 
+# ---------------------------------------------------------------- azure ad
+
+def test_when_azure_ad_is_enabled_the_shared_secret_no_longer_works(monkeypatch):
+    """The whole point of azure_auth being opt-in: once configured, it's
+    the only thing that decides, not a second acceptable path alongside
+    the old shared secret."""
+    import time
+    import jwt as pyjwt
+    from cryptography.hazmat.primitives.asymmetric import rsa
+    from claimvalidator import azure_auth
+
+    tenant_id = "33333333-3333-3333-3333-333333333333"
+    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+
+    class _FakeSigningKey:
+        key = private_key.public_key()
+
+    class _FakeJWKClient:
+        def get_signing_key_from_jwt(self, token):
+            return _FakeSigningKey()
+
+    monkeypatch.setenv(azure_auth.TENANT_ID_ENV, tenant_id)
+    monkeypatch.delenv(azure_auth.CLIENT_ID_ENV, raising=False)
+    azure_auth.reset_jwks_client(_FakeJWKClient())
+    try:
+        # The old shared secret, still technically valid for api_auth, no
+        # longer works once azure_auth is enabled.
+        response = client.get("/api/ontologies/does-not-exist", headers=AUTH)
+        assert response.status_code == 401
+
+        good_token = pyjwt.encode(
+            {"iss": f"https://login.microsoftonline.com/{tenant_id}/v2.0",
+             "exp": int(time.time()) + 300, "roles": ["Validation.User"]},
+            private_key, algorithm="RS256",
+        )
+        response = client.get(
+            "/api/ontologies/does-not-exist",
+            headers={"Authorization": f"Bearer {good_token}"},
+        )
+        assert response.status_code == 404  # accepted; route just found nothing
+
+        bad_token = pyjwt.encode(
+            {"iss": f"https://login.microsoftonline.com/{tenant_id}/v2.0",
+             "exp": int(time.time()) + 300, "roles": ["WrongRole"]},
+            private_key, algorithm="RS256",
+        )
+        response = client.get(
+            "/api/ontologies/does-not-exist",
+            headers={"Authorization": f"Bearer {bad_token}"},
+        )
+        assert response.status_code == 401
+    finally:
+        azure_auth.reset_jwks_client(None)
+
+
+def test_api_ping_stays_public_regardless_of_which_auth_backend_is_active(monkeypatch):
+    from claimvalidator import azure_auth
+
+    monkeypatch.setenv(azure_auth.TENANT_ID_ENV, "some-tenant")
+    response = client.get("/api/ping")
+    assert response.status_code == 200
+
+
 def test_submit_validation_returns_immediately_with_a_job_id():
     response = client.post(
         "/api/validations",
