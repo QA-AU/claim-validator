@@ -136,6 +136,22 @@ def test_upload_document_rejects_a_file_over_the_configured_limit(monkeypatch):
     assert response.status_code == 413
 
 
+def test_a_rejected_oversized_upload_leaves_no_empty_directory_behind(monkeypatch):
+    """Found live testing this endpoint end to end: the partial file was
+    correctly cleaned up on a 413, but the directory it was created in was
+    not — real, if minor, litter on every rejected upload."""
+    monkeypatch.setattr(config, "MAX_UPLOAD_BYTES", 10)
+    response = client.post(
+        "/api/documents", headers=AUTH,
+        data={"document_id": "rejected-upload-test"},
+        files={"file": ("spec.txt", b"this is well over ten bytes", "text/plain")},
+    )
+    assert response.status_code == 413
+
+    from pathlib import Path
+    assert not (Path(config.SOURCE_DIR) / "rejected-upload-test").exists()
+
+
 # ---------------------------------------------------------------- reports
 
 def _session():

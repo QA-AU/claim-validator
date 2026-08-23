@@ -85,6 +85,14 @@ async def upload_document(file: UploadFile = File(...), document_id: Optional[st
             if size > config.MAX_UPLOAD_BYTES:
                 out.close()
                 dest_path.unlink(missing_ok=True)
+                try:
+                    dest_dir.rmdir()  # only succeeds if empty — leaves a
+                                      # caller-reused document_id's other
+                                      # files alone, only cleans up the
+                                      # directory this rejected upload
+                                      # itself just created
+                except OSError:
+                    pass
                 raise HTTPException(
                     413, f"File exceeds the {config.MAX_UPLOAD_BYTES:,}-byte upload limit"
                 )
