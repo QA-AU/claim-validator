@@ -1,0 +1,478 @@
+<title>Claim Validator Topology</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #f3f4f2;
+    --surface: #ffffff;
+    --surface-2: #eceeec;
+    --ink: #1b2023;
+    --muted: #5b6570;
+    --faint: #8b959c;
+    --line: #d7dbd9;
+    --line-strong: #b7bdba;
+    --accent: #b8672a;
+    --accent-ink: #ffffff;
+    --tenant-a: #3c7a6e;
+    --tenant-b: #7a5a8c;
+    --grid-dot: rgba(27, 32, 35, 0.08);
+    --shadow: 0 1px 2px rgba(20, 24, 26, 0.06);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #15191b;
+      --surface: #1d2225;
+      --surface-2: #242a2d;
+      --ink: #e9eae7;
+      --muted: #9aa5ab;
+      --faint: #6c767c;
+      --line: #313839;
+      --line-strong: #454e50;
+      --accent: #d98a4c;
+      --accent-ink: #191008;
+      --tenant-a: #5fa595;
+      --tenant-b: #a480b8;
+      --grid-dot: rgba(233, 234, 231, 0.06);
+      --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #15191b;
+    --surface: #1d2225;
+    --surface-2: #242a2d;
+    --ink: #e9eae7;
+    --muted: #9aa5ab;
+    --faint: #6c767c;
+    --line: #313839;
+    --line-strong: #454e50;
+    --accent: #d98a4c;
+    --accent-ink: #191008;
+    --tenant-a: #5fa595;
+    --tenant-b: #a480b8;
+    --grid-dot: rgba(233, 234, 231, 0.06);
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background:
+      radial-gradient(circle at 1px 1px, var(--grid-dot) 1px, transparent 0) 0 0 / 22px 22px,
+      var(--bg);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 64px 28px 96px;
+  }
+
+  header.masthead {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-bottom: 28px;
+    margin-bottom: 40px;
+    border-bottom: 2px solid var(--line-strong);
+  }
+
+  .eyebrow {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  h1 {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-weight: 700;
+    font-size: clamp(28px, 4vw, 38px);
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    margin: 0;
+    text-wrap: balance;
+    color: var(--ink);
+  }
+
+  .dek {
+    max-width: 62ch;
+    color: var(--muted);
+    font-size: 16px;
+    margin: 2px 0 0;
+  }
+
+  section.block {
+    margin: 56px 0;
+  }
+
+  h2 {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: -0.005em;
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin: 0 0 6px;
+  }
+
+  h2 .tag {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--faint);
+    letter-spacing: 0.06em;
+  }
+
+  .intro {
+    max-width: 68ch;
+    color: var(--muted);
+    margin: 0 0 24px;
+  }
+
+  .intro code, p code, li code {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.9em;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 0.05em 0.4em;
+    color: var(--ink);
+  }
+
+  figure {
+    margin: 0;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    padding: 22px 22px 18px;
+  }
+
+  .diagram-scroll {
+    overflow-x: auto;
+    margin: 0 -4px;
+    padding: 0 4px;
+  }
+
+  figure svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    min-width: 640px;
+    color: var(--ink);
+  }
+
+  figcaption {
+    font-size: 13.5px;
+    color: var(--muted);
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px dashed var(--line);
+    max-width: 74ch;
+  }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    margin-top: 16px;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .swatch {
+    width: 11px;
+    height: 11px;
+    border-radius: 2px;
+    display: inline-block;
+    flex: none;
+  }
+
+  .notes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 16px;
+    margin-top: 28px;
+  }
+
+  .note {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+    padding: 14px 16px;
+  }
+
+  .note h3 {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--ink);
+    margin: 0 0 6px;
+  }
+
+  .note p {
+    margin: 0;
+    font-size: 13.5px;
+    color: var(--muted);
+  }
+
+  footer.colophon {
+    margin-top: 72px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 12px;
+    color: var(--faint);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  @media (max-width: 620px) {
+    .page { padding: 40px 18px 72px; }
+  }
+</style>
+
+<div class="page">
+
+  <header class="masthead">
+    <span class="eyebrow">Deployment topology · claim-validator</span>
+    <h1>Two Tenants, One Codebase, No Shared Data</h1>
+    <p class="dek">How the silo deployment holds together on Azure, and what actually happens between a client's upload and its downloaded report.</p>
+  </header>
+
+  <section class="block">
+    <h2>Architecture <span class="tag">— infrastructure</span></h2>
+    <p class="intro">Every user gets an identical, independently deployed stack — its own Container App, Key Vault, and file share. Only two things are genuinely shared: the Container Apps environment they run inside, and a single Postgres server that hosts a separate database per tenant. The boundary that actually matters is the database, not the server.</p>
+
+    <figure>
+      <div class="diagram-scroll">
+        <svg viewBox="0 0 900 700" role="img" aria-label="Two isolated tenant stacks, each with its own Container App, Key Vault and storage share, sharing only a Container Apps environment and a Postgres server that hosts one database per tenant; each Container App calls Anthropic independently using its own key.">
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="currentColor" />
+            </marker>
+            <marker id="arrowAccent" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)" />
+            </marker>
+          </defs>
+
+          <!-- clients -->
+          <rect x="90" y="20" width="170" height="44" rx="6" fill="none" stroke="var(--tenant-a)" stroke-width="1.6"/>
+          <text x="175" y="47" text-anchor="middle" font-family="IBM Plex Mono" font-size="13" font-weight="500" fill="var(--tenant-a)">User A</text>
+
+          <rect x="640" y="20" width="170" height="44" rx="6" fill="none" stroke="var(--tenant-b)" stroke-width="1.6"/>
+          <text x="725" y="47" text-anchor="middle" font-family="IBM Plex Mono" font-size="13" font-weight="500" fill="var(--tenant-b)">User B</text>
+
+          <line x1="175" y1="64" x2="175" y2="140" stroke="var(--tenant-a)" stroke-width="1.4" marker-end="url(#arrow)"/>
+          <text x="182" y="105" font-family="IBM Plex Mono" font-size="10.5" fill="var(--tenant-a)">own bearer token</text>
+
+          <line x1="725" y1="64" x2="725" y2="140" stroke="var(--tenant-b)" stroke-width="1.4" marker-end="url(#arrow)"/>
+          <text x="629" y="105" font-family="IBM Plex Mono" font-size="10.5" fill="var(--tenant-b)" text-anchor="end">own bearer token</text>
+
+          <!-- tenant A silo -->
+          <rect x="30" y="100" width="400" height="300" rx="10" fill="none" stroke="var(--tenant-a)" stroke-width="1.4" stroke-dasharray="5 4"/>
+          <text x="46" y="122" font-family="IBM Plex Mono" font-size="11.5" font-weight="500" letter-spacing="0.03em" fill="var(--tenant-a)">TENANT A — ISOLATED</text>
+
+          <rect x="65" y="140" width="175" height="52" rx="6" fill="var(--surface-2)" stroke="var(--line-strong)"/>
+          <text x="152" y="162" text-anchor="middle" font-family="IBM Plex Mono" font-size="12.5" font-weight="500" fill="var(--ink)">Container App</text>
+          <text x="152" y="178" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="var(--muted)">claim-validator</text>
+
+          <rect x="280" y="140" width="130" height="52" rx="6" fill="var(--surface-2)" stroke="var(--line-strong)"/>
+          <text x="345" y="162" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" font-weight="500" fill="var(--ink)">Key Vault</text>
+          <text x="345" y="178" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="var(--muted)">token · key · db url</text>
+
+          <line x1="240" y1="166" x2="278" y2="166" stroke="var(--line-strong)" stroke-width="1.4" marker-end="url(#arrow)"/>
+          <text x="259" y="158" text-anchor="middle" font-family="IBM Plex Mono" font-size="8.5" fill="var(--muted)">reads via</text>
+          <text x="259" y="200" text-anchor="middle" font-family="IBM Plex Mono" font-size="8.5" fill="var(--muted)">managed identity</text>
+
+          <rect x="65" y="235" width="175" height="52" rx="6" fill="var(--surface-2)" stroke="var(--line-strong)"/>
+          <text x="152" y="257" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" font-weight="500" fill="var(--ink)">Azure Files</text>
+          <text x="152" y="273" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="var(--muted)">source · ontology · reports</text>
+
+          <line x1="152" y1="192" x2="152" y2="233" stroke="var(--line-strong)" stroke-width="1.4" marker-end="url(#arrow)"/>
+          <text x="160" y="216" font-family="IBM Plex Mono" font-size="8.5" fill="var(--muted)">mounts /data</text>
+
+          <!-- tenant B silo -->
+          <rect x="470" y="100" width="400" height="300" rx="10" fill="none" stroke="var(--tenant-b)" stroke-width="1.4" stroke-dasharray="5 4"/>
+          <text x="486" y="122" font-family="IBM Plex Mono" font-size="11.5" font-weight="500" letter-spacing="0.03em" fill="var(--tenant-b)">TENANT B — ISOLATED</text>
+
+          <rect x="505" y="140" width="175" height="52" rx="6" fill="var(--surface-2)" stroke="var(--line-strong)"/>
+          <text x="592" y="162" text-anchor="middle" font-family="IBM Plex Mono" font-size="12.5" font-weight="500" fill="var(--ink)">Container App</text>
+          <text x="592" y="178" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="var(--muted)">claim-validator</text>
+
+          <rect x="720" y="140" width="130" height="52" rx="6" fill="var(--surface-2)" stroke="var(--line-strong)"/>
+          <text x="785" y="162" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" font-weight="500" fill="var(--ink)">Key Vault</text>
+          <text x="785" y="178" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="var(--muted)">token · key · db url</text>
+
+          <line x1="680" y1="166" x2="718" y2="166" stroke="var(--line-strong)" stroke-width="1.4" marker-end="url(#arrow)"/>
+
+          <rect x="505" y="235" width="175" height="52" rx="6" fill="var(--surface-2)" stroke="var(--line-strong)"/>
+          <text x="592" y="257" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" font-weight="500" fill="var(--ink)">Azure Files</text>
+          <text x="592" y="273" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="var(--muted)">source · ontology · reports</text>
+
+          <line x1="592" y1="192" x2="592" y2="233" stroke="var(--line-strong)" stroke-width="1.4" marker-end="url(#arrow)"/>
+
+          <!-- shared band -->
+          <rect x="30" y="430" width="840" height="150" rx="10" fill="var(--surface-2)" stroke="var(--accent)" stroke-width="1.4" stroke-dasharray="5 4"/>
+          <text x="46" y="452" font-family="IBM Plex Mono" font-size="11.5" font-weight="500" letter-spacing="0.03em" fill="var(--accent)">SHARED — CONTAINER APPS ENVIRONMENT</text>
+
+          <rect x="300" y="470" width="300" height="90" rx="6" fill="var(--surface)" stroke="var(--line-strong)"/>
+          <text x="450" y="488" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" font-weight="500" fill="var(--ink)">PostgreSQL Flexible Server</text>
+          <line x1="450" y1="498" x2="450" y2="552" stroke="var(--line)" stroke-width="1"/>
+          <text x="375" y="520" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="var(--tenant-a)">db: usera</text>
+          <text x="525" y="520" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="var(--tenant-b)">db: userb</text>
+          <text x="375" y="540" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="var(--muted)">separate database,</text>
+          <text x="525" y="540" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="var(--muted)">not just a table</text>
+
+          <path d="M 152 287 L 152 400 L 375 400 L 375 468" fill="none" stroke="var(--tenant-a)" stroke-width="1.5" marker-end="url(#arrow)"/>
+          <path d="M 592 287 L 592 400 L 525 400 L 525 468" fill="none" stroke="var(--tenant-b)" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+          <!-- anthropic -->
+          <rect x="350" y="625" width="200" height="50" rx="8" fill="none" stroke="var(--accent)" stroke-width="1.6"/>
+          <text x="450" y="655" text-anchor="middle" font-family="IBM Plex Mono" font-size="12.5" font-weight="500" fill="var(--accent)">Anthropic API</text>
+
+          <path d="M 152 287 L 152 610 L 348 645" fill="none" stroke="var(--accent)" stroke-width="1.4" stroke-dasharray="3 3" marker-end="url(#arrowAccent)"/>
+          <path d="M 592 287 L 592 610 L 552 645" fill="none" stroke="var(--accent)" stroke-width="1.4" stroke-dasharray="3 3" marker-end="url(#arrowAccent)"/>
+          <text x="90" y="605" font-family="IBM Plex Mono" font-size="9" fill="var(--accent)">own key</text>
+          <text x="655" y="605" font-family="IBM Plex Mono" font-size="9" fill="var(--accent)">own key</text>
+        </svg>
+      </div>
+      <figcaption>Two structurally identical stacks with no connection between them. The only lines that cross a tenant's own dashed boundary are the ones reaching the shared Postgres server (into that tenant's own database only) and Anthropic (using that tenant's own key only) — everything else stays inside the silo.</figcaption>
+      <div class="legend">
+        <span><span class="swatch" style="background:var(--tenant-a)"></span>Tenant A</span>
+        <span><span class="swatch" style="background:var(--tenant-b)"></span>Tenant B</span>
+        <span><span class="swatch" style="background:var(--accent)"></span>Shared / boundary-crossing</span>
+      </div>
+    </figure>
+  </section>
+
+  <section class="block">
+    <h2>Request Flow <span class="tag">— one validation job</span></h2>
+    <p class="intro">The submit call returns in well under a second — everything expensive happens after that response has already gone back to the caller. This is the actual mechanism <code>jobs.py</code> exists to guarantee: not "eventually async," but genuinely decoupled from the first response.</p>
+
+    <figure>
+      <div class="diagram-scroll">
+        <svg viewBox="0 0 720 940" role="img" aria-label="Sequence: client uploads a document and submits a validation job, receiving a job id immediately; the API then runs ontology resolution, retrieval, shape check, entailment judging and the gap report in the background before writing a report the client later polls for and downloads.">
+          <defs>
+            <marker id="arrow2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="currentColor" />
+            </marker>
+          </defs>
+
+          <line x1="110" y1="46" x2="110" y2="900" stroke="var(--line)" stroke-width="1.2" stroke-dasharray="2 4"/>
+          <line x1="560" y1="46" x2="560" y2="900" stroke="var(--line)" stroke-width="1.2" stroke-dasharray="2 4"/>
+          <text x="110" y="26" text-anchor="middle" font-family="IBM Plex Mono" font-size="13" font-weight="500" fill="var(--ink)">Client</text>
+          <text x="560" y="26" text-anchor="middle" font-family="IBM Plex Mono" font-size="13" font-weight="500" fill="var(--ink)">API container</text>
+
+          <!-- step 1 upload -->
+          <line x1="110" y1="70" x2="555" y2="70" stroke="currentColor" stroke-width="1.3" marker-end="url(#arrow2)"/>
+          <text x="330" y="62" text-anchor="middle" font-family="IBM Plex Mono" font-size="11">POST /api/documents (file)</text>
+          <line x1="560" y1="94" x2="115" y2="94" stroke="var(--muted)" stroke-width="1.1" stroke-dasharray="3 3" marker-end="url(#arrow2)"/>
+          <text x="330" y="88" text-anchor="middle" font-family="IBM Plex Mono" font-size="10.5" fill="var(--muted)">201 { document_id }</text>
+
+          <!-- step 2 submit -->
+          <line x1="110" y1="140" x2="555" y2="140" stroke="currentColor" stroke-width="1.3" marker-end="url(#arrow2)"/>
+          <text x="330" y="132" text-anchor="middle" font-family="IBM Plex Mono" font-size="11">POST /api/validations (claims + doc ref)</text>
+
+          <rect x="480" y="160" width="160" height="34" rx="5" fill="var(--surface-2)" stroke="var(--line-strong)"/>
+          <text x="560" y="181" text-anchor="middle" font-family="IBM Plex Mono" font-size="10">Job row: queued</text>
+
+          <line x1="560" y1="212" x2="115" y2="212" stroke="var(--accent)" stroke-width="1.6" marker-end="url(#arrow2)"/>
+          <text x="330" y="206" text-anchor="middle" font-family="IBM Plex Mono" font-size="11.5" font-weight="500" fill="var(--accent)">202 { job_id } — returned immediately</text>
+
+          <!-- divider -->
+          <line x1="40" y1="248" x2="680" y2="248" stroke="var(--accent)" stroke-width="1.6"/>
+          <text x="360" y="270" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" font-weight="500" fill="var(--accent)">response already sent — everything below runs in the background</text>
+
+          <!-- background steps -->
+          <g font-family="IBM Plex Mono" font-size="11.5">
+            <rect x="410" y="300" width="230" height="46" rx="6" fill="var(--surface)" stroke="var(--line-strong)"/>
+            <text x="525" y="328" text-anchor="middle" fill="var(--ink)">resolve ontology (cache hit or build)</text>
+
+            <line x1="525" y1="346" x2="525" y2="372" stroke="var(--line-strong)" marker-end="url(#arrow2)"/>
+            <rect x="410" y="372" width="230" height="46" rx="6" fill="var(--surface)" stroke="var(--line-strong)"/>
+            <text x="525" y="400" text-anchor="middle" fill="var(--ink)">retrieve + shape check</text>
+
+            <line x1="525" y1="418" x2="525" y2="444" stroke="var(--line-strong)" marker-end="url(#arrow2)"/>
+            <rect x="410" y="444" width="230" height="46" rx="6" fill="var(--surface)" stroke="var(--line-strong)"/>
+            <text x="525" y="466" text-anchor="middle" fill="var(--ink)">entailment judge</text>
+            <text x="525" y="480" text-anchor="middle" font-size="9.5" fill="var(--muted)">3-run majority vote — LLM calls</text>
+
+            <line x1="525" y1="490" x2="525" y2="516" stroke="var(--line-strong)" marker-end="url(#arrow2)"/>
+            <rect x="410" y="516" width="230" height="46" rx="6" fill="var(--surface)" stroke="var(--line-strong)"/>
+            <text x="525" y="544" text-anchor="middle" fill="var(--ink)">gap report (census)</text>
+
+            <line x1="525" y1="562" x2="525" y2="588" stroke="var(--line-strong)" marker-end="url(#arrow2)"/>
+            <rect x="410" y="588" width="230" height="46" rx="6" fill="var(--surface-2)" stroke="var(--line-strong)"/>
+            <text x="525" y="611" text-anchor="middle" fill="var(--ink)">write .xlsx → Files share</text>
+            <text x="525" y="625" text-anchor="middle" font-size="9.5" fill="var(--muted)">job marked done · webhook fires</text>
+          </g>
+
+          <!-- poll -->
+          <line x1="110" y1="700" x2="555" y2="700" stroke="currentColor" stroke-width="1.3" marker-end="url(#arrow2)"/>
+          <text x="330" y="692" text-anchor="middle" font-family="IBM Plex Mono" font-size="11">GET /api/validations/{job_id}</text>
+          <line x1="560" y1="724" x2="115" y2="724" stroke="var(--muted)" stroke-width="1.1" stroke-dasharray="3 3" marker-end="url(#arrow2)"/>
+          <text x="330" y="718" text-anchor="middle" font-family="IBM Plex Mono" font-size="10.5" fill="var(--muted)">{ status: done, report_url }</text>
+
+          <!-- download -->
+          <line x1="110" y1="780" x2="555" y2="780" stroke="currentColor" stroke-width="1.3" marker-end="url(#arrow2)"/>
+          <text x="330" y="772" text-anchor="middle" font-family="IBM Plex Mono" font-size="11">GET /api/validations/{job_id}/report</text>
+          <line x1="560" y1="804" x2="115" y2="804" stroke="var(--ink)" stroke-width="1.4" marker-end="url(#arrow2)"/>
+          <text x="330" y="798" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" font-weight="500">200 — the .xlsx, streamed</text>
+
+          <text x="330" y="850" text-anchor="middle" font-family="IBM Plex Sans" font-size="11.5" fill="var(--muted)">poll repeats on whatever interval the client chooses;</text>
+          <text x="330" y="868" text-anchor="middle" font-family="IBM Plex Sans" font-size="11.5" fill="var(--muted)">a configured webhook makes this last poll unnecessary</text>
+        </svg>
+      </div>
+      <figcaption>Only two response paths are the point of this diagram: the accent line at 202 — the request returns before any model has been called — and the divider marking where synchronous handling ends and the actual work begins.</figcaption>
+    </figure>
+  </section>
+
+  <section class="block">
+    <h2>Reading Notes</h2>
+    <div class="notes">
+      <div class="note">
+        <h3>Why a database, not a server, per tenant</h3>
+        <p>A separate Postgres server per user would double the isolation guarantee at real ongoing cost. A separate database on one shared server keeps data fully partitioned — different name, different connection string — without paying for N servers.</p>
+      </div>
+      <div class="note">
+        <h3>Why the 202 line matters</h3>
+        <p>Nothing about the response depends on the entailment judge, the census, or the report actually finishing. A slow document doesn't make the API call slow — only the polling does.</p>
+      </div>
+      <div class="note">
+        <h3>What crosses a silo boundary</h3>
+        <p>Exactly two things: a database connection into that tenant's own database, and an outbound call to Anthropic using that tenant's own key. Nothing else — no shared cache, no shared queue, no shared file path.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="colophon">
+    <span>claim-validator · deployment topology</span>
+    <span>generated from the actual Bicep + FastAPI implementation, not a proposal</span>
+  </footer>
+
+</div>

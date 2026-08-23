@@ -11,6 +11,54 @@ from db.models import Base
 
 logger = logging.getLogger(__name__)
 
+AZURE_POSTGRES_SCOPE = "https://ossrdbms-aad.database.windows.net/.default"
+
+
+def _use_azure_ad_auth() -> bool:
+    """Whether the Postgres connection authenticates via Azure AD (the
+    Container App's own managed identity) instead of a password.
+
+    Opt-in and separate from CLAIMVAL_DB_URL itself: infra/tenant.bicep's
+    Azure AD mode gives the app a connection string with a username and
+    no password (there is no password to have — the server has
+    passwordAuth disabled entirely), so this needs an explicit signal
+    rather than inferring it from the URL's shape.
+    """
+    return os.getenv("CLAIMVAL_DB_AAD_AUTH", "").strip().lower() in ("1", "true", "yes")
+
+
+def _apply_azure_ad_token(credential, cparams: dict) -> None:
+    """Sets a freshly fetched access token as the connection password.
+
+    Split out from the do_connect listener below so the actual
+    fetch-and-inject step is testable without SQLAlchemy's engine and
+    event machinery in the way — this is the one line that matters, and
+    the one line worth being able to call directly with a fake credential.
+    """
+    cparams["password"] = credential.get_token(AZURE_POSTGRES_SCOPE).token
+
+
+def _install_azure_ad_token_provider(engine) -> None:
+    """Fetches a fresh Azure AD access token on every new physical
+    connection, not once at engine-creation time — a pooled connection
+    can easily outlive a token issued when the engine was built (Azure AD
+    Postgres tokens last roughly an hour), and Postgres accepts the token
+    as a plain password at connect time, so intercepting SQLAlchemy's
+    do_connect event is the only hook this needs.
+
+    DefaultAzureCredential resolves to the Container App's own
+    system-assigned managed identity in Azure, and falls back to
+    `az login` locally for anyone testing this path by hand.
+    """
+    from azure.identity import DefaultAzureCredential
+    from sqlalchemy import event
+
+    credential = DefaultAzureCredential()
+
+    @event.listens_for(engine, "do_connect")
+    def _provide_token(dialect, conn_rec, cargs, cparams):
+        _apply_azure_ad_token(credential, cparams)
+
 
 def get_database_url(env: str = "local") -> str:
     """Get database URL based on environment.
@@ -97,6 +145,15 @@ def init_database(env: str = "local") -> tuple[sessionmaker, object]:
     # Create engine
     if db_url.startswith("sqlite"):
         engine = create_engine(db_url, echo=False)
+    elif _use_azure_ad_auth():
+        # pool_recycle keeps a connection from outliving its own token by
+        # more than half the ~60-minute lifetime Azure AD Postgres tokens
+        # get — do_connect (below) already self-heals on the next
+        # reconnect regardless, since pool_pre_ping's liveness check fails
+        # a connection whose token expired and SQLAlchemy discards it;
+        # this just makes the refresh proactive rather than failure-driven.
+        engine = create_engine(db_url, echo=False, pool_pre_ping=True, pool_recycle=1800)
+        _install_azure_ad_token_provider(engine)
     else:
         engine = create_engine(db_url, echo=False, pool_pre_ping=True)
 

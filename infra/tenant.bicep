@@ -3,11 +3,21 @@
 // server from shared.bicep), its own Key Vault, and its own Container App,
 // so one user's data is never reachable through another's credentials.
 //
+// Database access is Azure AD only, matching shared.bicep's server
+// (passwordAuth disabled there) — there is no DB password anywhere in
+// this file, in Key Vault, or in the Container App's own configuration.
+// A deployment script (below) grants the Container App's own
+// system-assigned identity a Postgres role, using shared.bicep's admin
+// identity to do it; at runtime, db/database.py's Azure AD auth path
+// fetches a fresh access token per connection through that same identity.
+//
 //   az deployment group create -g <rg> -f infra/tenant.bicep \
 //     --parameters tenantName=usera \
 //                  containerAppsEnvName=<from shared.bicep output> \
 //                  postgresServerName=<from shared.bicep output> \
-//                  postgresAdminPassword=<same one used in shared.bicep> \
+//                  pgAdminIdentityId=<from pg-admin-identity.bicep output, "id"> \
+//                  pgAdminIdentityClientId=<same, "clientId" output> \
+//                  pgAdminIdentityName=<same, "name" output> \
 //                  anthropicApiKey=<this tenant's own key> \
 //                  containerImage=<registry>/claim-validator:<tag>
 
@@ -25,12 +35,14 @@ param containerAppsEnvName string
 @description('Name of the PostgreSQL Flexible Server created by shared.bicep.')
 param postgresServerName string
 
-@description('Admin login used when shared.bicep provisioned the Postgres server.')
-param postgresAdminLogin string = 'claimval_admin'
+@description('Resource ID of the Postgres AAD admin identity (pg-admin-identity.bicep\'s "id" output) — used here only to run the role-granting deployment script below.')
+param pgAdminIdentityId string
 
-@secure()
-@description('Admin password used when shared.bicep provisioned the Postgres server — needed here once, to create this tenant\'s own database and role.')
-param postgresAdminPassword string
+@description('Client ID of that same identity (its "clientId" output) — the deployment script logs in as it explicitly.')
+param pgAdminIdentityClientId string
+
+@description('Name of that same identity (its "name" output) — the Postgres role the script connects as.')
+param pgAdminIdentityName string
 
 @secure()
 @description('This tenant\'s own Anthropic API key — kept separate per tenant by design (see the shared-vs-separate-keys discussion this was built from).')
@@ -59,8 +71,11 @@ var keyVaultName = toLower('${take(resourceName, 9)}kv${uniqueString(resourceGro
 var containerAppName = '${tenantName}-claimval'
 var apiTokenSecretName = 'claimval-api-token'
 var anthropicKeySecretName = 'anthropic-api-key'
-var dbUrlSecretName = 'claimval-db-url'
 var generatedApiToken = uniqueString(resourceGroup().id, tenantName, deployment().name)
+// No password anywhere in this string — CLAIMVAL_DB_AAD_AUTH=true (set
+// on the Container App below) tells db/database.py to supply a fresh
+// Azure AD token as the password at connect time instead.
+var dbUrl = 'postgresql://${containerAppName}@${postgresServer.properties.fullyQualifiedDomainName}:5432/${tenantName}?sslmode=require'
 
 resource containerAppsEnv 'Microsoft.App/managedEnvironments@2024-03-01' existing = {
   name: containerAppsEnvName
@@ -147,14 +162,6 @@ resource anthropicKeySecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
   }
 }
 
-resource dbUrlSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
-  parent: keyVault
-  name: dbUrlSecretName
-  properties: {
-    value: 'postgresql://${postgresAdminLogin}:${postgresAdminPassword}@${postgresServer.properties.fullyQualifiedDomainName}:5432/${tenantName}'
-  }
-}
-
 resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
   name: containerAppName
   location: location
@@ -180,11 +187,6 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
           keyVaultUrl: anthropicKeySecret.properties.secretUri
           identity: 'System'
         }
-        {
-          name: dbUrlSecretName
-          keyVaultUrl: dbUrlSecret.properties.secretUri
-          identity: 'System'
-        }
       ]
     }
     template: {
@@ -206,8 +208,14 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
               secretRef: anthropicKeySecretName
             }
             {
+              // Not a secret — see dbUrl's own comment above. No
+              // password lives in this value at all.
               name: 'CLAIMVAL_DB_URL'
-              secretRef: dbUrlSecretName
+              value: dbUrl
+            }
+            {
+              name: 'CLAIMVAL_DB_AAD_AUTH'
+              value: 'true'
             }
             {
               name: 'CLAIMVAL_PROVIDER'
@@ -269,7 +277,9 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
 }
 
 // "Key Vault Secrets User" — read-only access to secret values, nothing
-// else. Scoped to this tenant's own vault only.
+// else. Scoped to this tenant's own vault only. (This is Azure RBAC, for
+// Key Vault; the Postgres grant below is a separate mechanism — see its
+// own comment.)
 resource keyVaultSecretsUserRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: guid(keyVault.id, containerApp.id, 'Key Vault Secrets User')
   scope: keyVault
@@ -281,6 +291,78 @@ resource keyVaultSecretsUserRole 'Microsoft.Authorization/roleAssignments@2022-0
     principalId: containerApp.identity.principalId
     principalType: 'ServicePrincipal'
   }
+}
+
+// Grants the Container App's own identity a Postgres role and access to
+// only this tenant's database — run once, at deploy time, using the
+// shared AAD admin identity (never the Container App's own identity,
+// which has no admin rights on the server and shouldn't). Not
+// Azure RBAC: Postgres Flexible Server's AAD integration uses its own
+// role system, bridged to an AAD object via a special server-side
+// function, not an Azure roleAssignment the way Key Vault access above
+// is.
+//
+// pgaadauth_create_principal_with_oid's exact signature is the one piece
+// of this whole file not verified against a live server — no Azure
+// subscription was available to actually run this deployment script.
+// Confirm the current signature against Microsoft's own Azure AD
+// Postgres Flexible Server documentation before the first real deploy.
+resource grantContainerAppDbAccess 'Microsoft.Resources/deploymentScripts@2023-08-01' = {
+  name: '${tenantName}-grant-db-access'
+  location: location
+  kind: 'AzureCLI'
+  identity: {
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${pgAdminIdentityId}': {}
+    }
+  }
+  properties: {
+    azCliVersion: '2.60.0'
+    retentionInterval: 'PT1H'
+    timeout: 'PT15M'
+    cleanupPreference: 'OnSuccess'
+    environmentVariables: [
+      { name: 'PG_HOST', value: postgresServer.properties.fullyQualifiedDomainName }
+      { name: 'PG_ADMIN_NAME', value: pgAdminIdentityName }
+      { name: 'PG_ADMIN_CLIENT_ID', value: pgAdminIdentityClientId }
+      { name: 'APP_PRINCIPAL_ID', value: containerApp.identity.principalId }
+      { name: 'APP_ROLE_NAME', value: containerAppName }
+      { name: 'TENANT_DB', value: tenantName }
+    ]
+    // The linter flags ossrdbms-aad.database.windows.net inside the script
+    // content below as a hardcoded environment URL — correct, and
+    // deliberate: this project targets Azure Public Cloud only, nothing
+    // here has ever assumed Azure Government or China cloud support, and
+    // parameterizing a cloud-specific endpoint nobody asked for would be
+    // speculative generality, not a real fix.
+    #disable-next-line no-hardcoded-env-urls
+    scriptContent: '''
+      set -euo pipefail
+      apt-get update -qq && apt-get install -y -qq postgresql-client >/dev/null
+
+      az login --identity --username "$PG_ADMIN_CLIENT_ID" >/dev/null
+
+      export PGPASSWORD=$(az account get-access-token \
+        --resource https://ossrdbms-aad.database.windows.net \
+        --query accessToken -o tsv)
+
+      CONN="host=$PG_HOST port=5432 dbname=postgres user=$PG_ADMIN_NAME sslmode=require"
+
+      psql "$CONN" -v ON_ERROR_STOP=1 -c \
+        "SELECT * FROM pgaadauth_create_principal_with_oid('$APP_PRINCIPAL_ID', '$APP_ROLE_NAME', false, false);"
+
+      psql "$CONN" -v ON_ERROR_STOP=1 -c \
+        "GRANT ALL PRIVILEGES ON DATABASE \"$TENANT_DB\" TO \"$APP_ROLE_NAME\";"
+
+      psql "host=$PG_HOST port=5432 dbname=$TENANT_DB user=$PG_ADMIN_NAME sslmode=require" \
+        -v ON_ERROR_STOP=1 -c \
+        "GRANT ALL ON SCHEMA public TO \"$APP_ROLE_NAME\";"
+    '''
+  }
+  dependsOn: [
+    tenantDatabase
+  ]
 }
 
 output containerAppFqdn string = containerApp.properties.configuration.ingress.fqdn
