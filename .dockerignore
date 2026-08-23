@@ -1,0 +1,12 @@
+.git
+.venv
+__pycache__
+*.pyc
+.pytest_cache
+.DS_Store
+~$*
+.data
+reports
+docs/node_modules
+*.xlsx
+.env.local
