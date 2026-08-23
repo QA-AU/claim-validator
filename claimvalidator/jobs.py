@@ -113,7 +113,12 @@ def run_validation_job(job_id: str, SessionLocal, llm_client_factory) -> None:
         result_dict = result.to_dict()
         result_dict["job_id"] = job_id
         result_dict["duration_seconds"] = round(duration_s, 1)
+        # excel_report is the server's own local (or mounted-share) path —
+        # a caller can't do anything with it directly. report_url is the
+        # one a caller should actually use; kept both since the download
+        # endpoint itself reads excel_report server-side to find the file.
         result_dict["excel_report"] = excel_path
+        result_dict["report_url"] = f"/api/validations/{job_id}/report"
         mark_done(session, job_id, result_dict)
 
         if job.webhook_url:

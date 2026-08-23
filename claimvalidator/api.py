@@ -5,11 +5,12 @@ equivalent route actually does instead.
 """
 
 import logging
+import uuid
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
-from fastapi import BackgroundTasks, FastAPI, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi import BackgroundTasks, FastAPI, File, Form, HTTPException, UploadFile
+from fastapi.responses import FileResponse, JSONResponse
 
 from db.database import get_session, init_database
 from db.models import Job
@@ -49,6 +50,48 @@ async def require_api_token(request, call_next):
 @app.get("/api/ping")
 def ping():
     return {"status": "ok"}
+
+
+# ---------------------------------------------------------------- documents
+
+@app.post("/api/documents", status_code=201)
+async def upload_document(file: UploadFile = File(...), document_id: Optional[str] = Form(None)):
+    """Upload a reference document, get back a document_id to pass as
+    document.files in POST /api/validations. Writes to config.SOURCE_DIR —
+    a local path in dev, a mounted Azure Files share in production, with no
+    code difference between the two.
+
+    document_id is a caller-supplied label, not the real identity key —
+    resolve_ontology_key already hashes document content for that, the same
+    way it does for the ontology-build path. Two uploads of the same bytes
+    under different document_ids still share one cached ontology.
+    """
+    from phases.phase1_document_loader import validate_file_type
+
+    if not file.filename or not validate_file_type(file.filename):
+        suffix = Path(file.filename or "").suffix.lower()
+        raise HTTPException(400, f"Unsupported file type: {suffix or '(none)'}. "
+                                  f"See phases/phase1_document_loader.py for supported formats.")
+
+    doc_id = document_id or f"doc_{uuid.uuid4().hex[:12]}"
+    dest_dir = Path(config.SOURCE_DIR) / doc_id
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    dest_path = dest_dir / file.filename
+
+    size = 0
+    with open(dest_path, "wb") as out:
+        while chunk := await file.read(1024 * 1024):
+            size += len(chunk)
+            if size > config.MAX_UPLOAD_BYTES:
+                out.close()
+                dest_path.unlink(missing_ok=True)
+                raise HTTPException(
+                    413, f"File exceeds the {config.MAX_UPLOAD_BYTES:,}-byte upload limit"
+                )
+            out.write(chunk)
+
+    return {"document_id": doc_id, "filename": file.filename, "path": str(dest_path),
+            "size_bytes": size}
 
 
 # ---------------------------------------------------------------- ontologies
@@ -201,5 +244,32 @@ def get_validation_events(job_id: str):
                         "severity": ev.severity, "details": ev.details}
                        for ev in events],
         }
+    finally:
+        session.close()
+
+
+@app.get("/api/validations/{job_id}/report")
+def get_validation_report(job_id: str):
+    """Streams the report from wherever it actually lives (local disk in
+    dev, a mounted Azure Files share in production) — the caller never
+    needs to know that path, only this URL, which is what result_json's
+    report_url now points at instead of the bare local path it used to be."""
+    session = _session()
+    try:
+        job = get_job(session, job_id)
+        if not job:
+            raise HTTPException(404, f"No job {job_id!r}")
+        if job.status != "done":
+            raise HTTPException(409, f"Job {job_id!r} is {job.status!r}, not done yet")
+
+        report_path = (job.result_json or {}).get("excel_report")
+        if not report_path or not Path(report_path).exists():
+            raise HTTPException(404, f"No report file found for job {job_id!r}")
+
+        return FileResponse(
+            report_path,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            filename=f"{job_id}.xlsx",
+        )
     finally:
         session.close()

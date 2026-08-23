@@ -10,6 +10,17 @@ OUTPUT_DIR = os.getenv("CLAIMVAL_OUTPUT_DIR", "./.data/phase1_output")
 # somewhere Finder/Explorer shows without toggling hidden files — still
 # gitignored, just not hidden from the person it's for.
 REPORTS_DIR = os.getenv("CLAIMVAL_REPORTS_DIR", "./reports")
+# Uploaded reference documents, one subdirectory per document_id. Same
+# pattern as the two paths above — a local path in dev, a mounted Azure
+# Files share in production, with no code difference between the two.
+SOURCE_DIR = os.getenv("CLAIMVAL_SOURCE_DIR", "./.data/source")
+
+# Enforced in the upload endpoint itself, not left to whatever the platform's
+# own (and for Azure Container Apps, undocumented) ingress limit happens to
+# be — a deliberate, known ceiling beats an assumed one. 25 MB comfortably
+# covers the reference documents this project has actually been tested
+# against (RFC 6749 is under 200 KB); raise it if a real document needs more.
+MAX_UPLOAD_BYTES = int(os.getenv("CLAIMVAL_MAX_UPLOAD_BYTES", str(25 * 1024 * 1024)))
 
 
 def llm_client_factory():
