@@ -1,3 +1,16 @@
+# Build and push with the platform pinned explicitly:
+#
+#   docker buildx build --platform linux/amd64 \
+#     -t <registry>.azurecr.io/claim-validator:latest --push .
+#
+# Azure Container Apps requires linux/amd64. A bare `docker build` (no
+# --platform) defaults to the host's own architecture — on an Apple
+# Silicon Mac that's linux/arm64, and the build and push both "succeed"
+# regardless. The mismatch only surfaces later, at pull time in Azure,
+# and — found live, cost a long investigation — as a misleading
+# "unauthorized" pull error, not an obvious platform error: see
+# infra/README.md's "Resolved: usera tenant's image pull failure".
+#
 # Runs the app as a plain source checkout, not an installed wheel — the
 # same way it has been run and tested throughout this project (README's
 # own instructions are `uvicorn claimvalidator.api:app` from the repo

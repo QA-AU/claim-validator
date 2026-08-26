@@ -8,53 +8,52 @@ There is no Postgres admin password anywhere in this project, in Key
 Vault, or in any Container App's configuration — `passwordAuth` is
 disabled on the server entirely.
 
-## Known open issue: `usera` tenant can't pull its image
+## Resolved: `usera` tenant's image pull failure
 
-The `usera` tenant deployed successfully in every other respect (DB,
-storage, Key Vault, secrets, the Postgres AAD grant) but its Container
-App cannot currently serve traffic — `ImagePullBackOff` against
-`cvacr8b4cb977.azurecr.io/claim-validator:latest`, persistently, with a
-401 from ACR's own token-exchange endpoint. This was investigated
-exhaustively and the cause is **not** in this repo's IaC or app config:
+For an extended stretch, `usera-claimval`'s Container App could not pull
+`cvacr8b4cb977.azurecr.io/claim-validator:latest` — `ImagePullBackOff`,
+persistently, with a 401 from ACR's own token-exchange endpoint. RBAC,
+identity, and network configuration were all confirmed correct (the
+`AcrPull` role assignment was right on three separate identity
+incarnations including a full remove/re-add; a genuinely new revision
+failed identically; plain ACR admin username/password also failed from
+inside Container Apps despite those same credentials succeeding when
+tested directly against ACR's token endpoint from outside; no VNet
+restriction existed). All of that investigation was real, but pointed at
+the wrong layer.
 
-- The `AcrPull` role assignment was confirmed correct (right role
-  definition ID, right scope, right principal) on three separate
-  identity incarnations, including a completely fresh one created via
-  identity remove/re-add.
-- A genuinely new revision (forced via `revisionSuffix`, not reusing any
-  cached per-revision state) failed identically.
-- Plain ACR admin username/password (no managed identity, no RBAC,
-  bypassing Azure AD entirely) **also** failed with the same
-  "unauthorized" pull error from inside Container Apps.
-- Those same admin credentials, tested directly against
-  `https://cvacr8b4cb977.azurecr.io/oauth2/token` from outside Container
-  Apps entirely, returned a valid pull-scoped token (HTTP 200) — proving
-  the registry, the image, and the credentials are all genuinely
-  healthy, and isolating the fault specifically to Container Apps'
-  own pull path to this registry/environment/region.
-- The Container Apps Environment has no VNet integration and
-  `publicNetworkAccess: Enabled` — nothing found there that would
-  explain a network-level block either.
+**The actual cause: the pushed image was `linux/arm64`-only.** It was
+built on an Apple Silicon Mac with a bare `docker build`/`docker buildx
+build`, which defaults to the host's own architecture — never
+cross-compiled for `linux/amd64`, which is what Container Apps requires.
+Confirmed by creating a disposable second Container Apps Environment
+(`cv-env-diag`, since deleted) and pulling the identical image there with
+the identical managed-identity mechanism: it failed too, but with a
+*different*, far more legible error — `no child with platform
+linux/amd64 in index` — instead of the misleading "unauthorized" `cv-env`
+had been reporting the whole time for what was apparently the same
+underlying problem. Rebuilding with `docker buildx build --platform
+linux/amd64 --push` and forcing a new revision
+(`az containerapp update --revision-suffix ...`) fixed both the
+throwaway environment and `usera-claimval` immediately — pull, Key Vault
+secret sync, and the app's own `/api/ping` all confirmed working within
+the same minute.
 
-This looks like a genuine Azure platform-side issue, most likely needing
-a Microsoft support ticket (server-side telemetry this repo's tooling
-can't see) rather than a client-side config fix. Current state:
-reverted to the secure, managed-identity pull config (ACR admin auth
-disabled again, no password secret on the Container App) — correct per
-this project's design, but non-functional until the underlying platform
-issue is understood. Don't re-run the identity remove/re-add or
-admin-credential diagnostic again without new information; both were
-already tried and ruled out the client side conclusively.
+**Lesson carried into the Dockerfile below**: never `docker build`/`push`
+for this project from an Apple Silicon Mac (or any non-amd64 host)
+without `--platform linux/amd64` — the build succeeds and pushes
+"successfully" either way, and the platform mismatch only surfaces later,
+at pull time, as a confusing and seemingly unrelated auth-shaped error.
 
 ## What's verified
 
 All three templates compile cleanly with `az bicep build`, and all three
 have been deployed for real against a live subscription, in order
 (`pg-admin-identity.bicep` → `shared.bicep` → `tenant.bicep`), ending in
-a running Container App reachable over HTTPS (before the pull issue
-above reappeared on a later cold start). Real problems surfaced only at
-the real-deployment stage — neither `az bicep build` nor
-`az deployment group what-if` caught any of them:
+a running Container App confirmed reachable over HTTPS, with Key Vault
+secret sync and the Postgres AAD grant both confirmed working end to
+end. Real problems surfaced only at the real-deployment stage — neither
+`az bicep build` nor `az deployment group what-if` caught any of them:
 
 - `australiacentral` (this resource group's default region) doesn't
   support `Microsoft.App/managedEnvironments` — `shared.bicep` and
