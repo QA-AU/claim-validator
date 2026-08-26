@@ -106,6 +106,8 @@ def run_validation_job(job_id: str, SessionLocal, llm_client_factory) -> None:
             claims_input=[c.model_dump() for c in request.claims],
             llm_client=llm_client,
             document_id=request.document.document_id,
+            store_root=config.STORE_ROOT,
+            output_dir=config.OUTPUT_DIR,
             db_session=session,
             shape_rule_overrides=request.options.shape_rules,
             census_max_chunks=request.options.census_max_chunks,
