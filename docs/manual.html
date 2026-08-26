@@ -1,0 +1,872 @@
+<title>Claim Validator Manual</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #f3f4f2;
+    --surface: #ffffff;
+    --surface-2: #eceeec;
+    --surface-3: #e2e5e2;
+    --ink: #1b2023;
+    --muted: #5b6570;
+    --faint: #8b959c;
+    --line: #d7dbd9;
+    --line-strong: #b7bdba;
+    --accent: #b8672a;
+    --accent-ink: #ffffff;
+    --code-bg: #1b2023;
+    --code-ink: #e9eae7;
+    --code-muted: #8b959c;
+    --code-accent: #e0a06a;
+    --entails: #3c7a6e;
+    --entails-bg: #e4efec;
+    --contradicts: #a8433a;
+    --contradicts-bg: #f5e6e4;
+    --mentions: #9c7a1f;
+    --mentions-bg: #f3ecd8;
+    --noev: #6c757d;
+    --noev-bg: #eceeec;
+    --grid-dot: rgba(27, 32, 35, 0.08);
+    --shadow: 0 1px 2px rgba(20, 24, 26, 0.06);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #15191b;
+      --surface: #1d2225;
+      --surface-2: #242a2d;
+      --surface-3: #2b3134;
+      --ink: #e9eae7;
+      --muted: #9aa5ab;
+      --faint: #6c767c;
+      --line: #313839;
+      --line-strong: #454e50;
+      --accent: #d98a4c;
+      --accent-ink: #191008;
+      --code-bg: #101315;
+      --code-ink: #e9eae7;
+      --code-muted: #7c868c;
+      --code-accent: #e0a06a;
+      --entails: #6fb5a3;
+      --entails-bg: #1c2e29;
+      --contradicts: #d9847a;
+      --contradicts-bg: #332120;
+      --mentions: #d4b563;
+      --mentions-bg: #322c1a;
+      --noev: #9aa5ab;
+      --noev-bg: #242a2d;
+      --grid-dot: rgba(233, 234, 231, 0.06);
+      --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #15191b;
+    --surface: #1d2225;
+    --surface-2: #242a2d;
+    --surface-3: #2b3134;
+    --ink: #e9eae7;
+    --muted: #9aa5ab;
+    --faint: #6c767c;
+    --line: #313839;
+    --line-strong: #454e50;
+    --accent: #d98a4c;
+    --accent-ink: #191008;
+    --code-bg: #101315;
+    --code-ink: #e9eae7;
+    --code-muted: #7c868c;
+    --code-accent: #e0a06a;
+    --entails: #6fb5a3;
+    --entails-bg: #1c2e29;
+    --contradicts: #d9847a;
+    --contradicts-bg: #332120;
+    --mentions: #d4b563;
+    --mentions-bg: #322c1a;
+    --noev: #9aa5ab;
+    --noev-bg: #242a2d;
+    --grid-dot: rgba(233, 234, 231, 0.06);
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background:
+      radial-gradient(circle at 1px 1px, var(--grid-dot) 1px, transparent 0) 0 0 / 22px 22px,
+      var(--bg);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .shell {
+    max-width: 1180px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 250px minmax(0, 1fr);
+    gap: 56px;
+    padding: 48px 28px 96px;
+  }
+
+  /* -------------------------------------------------- sidebar */
+
+  aside {
+    position: sticky;
+    top: 32px;
+    align-self: start;
+    max-height: calc(100vh - 64px);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+
+  .brand {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .brand .eyebrow {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .brand h1 {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-weight: 700;
+    font-size: 20px;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+
+  nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  nav .group-label {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin: 16px 0 6px;
+  }
+
+  nav .group-label:first-child { margin-top: 0; }
+
+  nav a {
+    display: block;
+    font-size: 13.5px;
+    color: var(--muted);
+    text-decoration: none;
+    padding: 5px 10px;
+    border-radius: 6px;
+    border-left: 2px solid transparent;
+  }
+
+  nav a:hover {
+    color: var(--ink);
+    background: var(--surface-2);
+  }
+
+  /* -------------------------------------------------- main content */
+
+  main { min-width: 0; }
+
+  .lede {
+    padding-bottom: 32px;
+    margin-bottom: 40px;
+    border-bottom: 2px solid var(--line-strong);
+  }
+
+  .lede h1 {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-weight: 700;
+    font-size: clamp(28px, 3.6vw, 36px);
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    margin: 0 0 12px;
+    text-wrap: balance;
+  }
+
+  .lede p {
+    max-width: 66ch;
+    color: var(--muted);
+    font-size: 16.5px;
+    margin: 0;
+  }
+
+  .lede .pills {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 18px;
+  }
+
+  .pill {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 11.5px;
+    color: var(--muted);
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 100px;
+    padding: 4px 12px;
+  }
+
+  section.block { margin: 0 0 56px; scroll-margin-top: 24px; }
+
+  section.block h2 {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-weight: 700;
+    font-size: 21px;
+    letter-spacing: -0.005em;
+    margin: 0 0 6px;
+    scroll-margin-top: 24px;
+  }
+
+  section.block > .dek {
+    max-width: 68ch;
+    color: var(--muted);
+    margin: 0 0 22px;
+    font-size: 15px;
+  }
+
+  h3.sub {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 13.5px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: var(--ink);
+    margin: 28px 0 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  h3.sub .step-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 5px;
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-size: 11px;
+    font-weight: 700;
+    flex: none;
+  }
+
+  p { margin: 0 0 14px; max-width: 70ch; }
+  p:last-child { margin-bottom: 0; }
+
+  code {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.88em;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 0.05em 0.42em;
+    color: var(--ink);
+  }
+
+  pre {
+    margin: 0 0 16px;
+    background: var(--code-bg);
+    color: var(--code-ink);
+    border-radius: 10px;
+    padding: 16px 18px;
+    overflow-x: auto;
+    box-shadow: var(--shadow);
+  }
+
+  pre code {
+    background: none;
+    border: none;
+    padding: 0;
+    color: inherit;
+    font-size: 13px;
+    line-height: 1.6;
+    white-space: pre;
+  }
+
+  .tok-key { color: var(--code-accent); }
+  .tok-str { color: #a3c586; }
+  .tok-com { color: var(--code-muted); font-style: italic; }
+  .tok-flag { color: #7fb0d9; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    padding: 20px 22px;
+    margin-bottom: 16px;
+  }
+
+  .callout {
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    background: var(--surface);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 4px 0 20px;
+    font-size: 14.5px;
+    color: var(--muted);
+  }
+
+  .callout strong { color: var(--ink); }
+
+  /* -------------------------------------------------- tables */
+
+  .table-scroll {
+    overflow-x: auto;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.8px;
+  }
+
+  th, td {
+    text-align: left;
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+
+  tr:last-child td { border-bottom: none; }
+
+  th {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--faint);
+    background: var(--surface-2);
+  }
+
+  td.mono, td code.endpoint {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 12.8px;
+    white-space: nowrap;
+  }
+
+  .method {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    padding: 2px 7px;
+    border-radius: 4px;
+    margin-right: 8px;
+  }
+
+  .method.get { background: var(--entails-bg); color: var(--entails); }
+  .method.post { background: var(--mentions-bg); color: var(--mentions); }
+
+  /* -------------------------------------------------- verdict chips */
+
+  .verdict-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 3px 10px 3px 8px;
+    border-radius: 100px;
+  }
+
+  .verdict-chip::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .v-entails { background: var(--entails-bg); color: var(--entails); }
+  .v-contradicts { background: var(--contradicts-bg); color: var(--contradicts); }
+  .v-mentions { background: var(--mentions-bg); color: var(--mentions); }
+  .v-noev { background: var(--noev-bg); color: var(--noev); }
+
+  /* -------------------------------------------------- flow steps */
+
+  .flow {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-bottom: 24px;
+  }
+
+  .flow-step {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .flow-rail {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .flow-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-weight: 700;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+  }
+
+  .flow-line {
+    width: 2px;
+    flex: 1;
+    background: var(--line-strong);
+    margin: 4px 0;
+  }
+
+  .flow-step:last-child .flow-line { display: none; }
+
+  .flow-body { padding-bottom: 28px; }
+
+  .flow-body h3 {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 15px;
+    margin: 2px 0 6px;
+  }
+
+  .flow-body p { font-size: 14.5px; color: var(--muted); margin-bottom: 10px; }
+
+  /* -------------------------------------------------- report sheets */
+
+  .sheet-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .sheet-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--accent);
+    border-radius: 8px;
+    padding: 16px 18px;
+  }
+
+  .sheet-card h4 {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 13px;
+    font-weight: 500;
+    margin: 0 0 6px;
+  }
+
+  .sheet-card p { font-size: 13px; color: var(--muted); margin: 0; }
+
+  footer.colophon {
+    margin-top: 64px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 12px;
+    color: var(--faint);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  @media (max-width: 880px) {
+    .shell { grid-template-columns: 1fr; }
+    aside { position: static; max-height: none; }
+  }
+</style>
+
+<div class="shell">
+
+  <aside>
+    <div class="brand">
+      <span class="eyebrow">Reference manual</span>
+      <h1>Claim Validator</h1>
+    </div>
+    <nav>
+      <div class="group-label">Start here</div>
+      <ul>
+        <li><a href="#overview">Overview</a></li>
+        <li><a href="#auth">Authentication</a></li>
+        <li><a href="#quickstart">Quick start</a></li>
+      </ul>
+      <div class="group-label">Reference</div>
+      <ul>
+        <li><a href="#endpoints">Endpoints</a></li>
+        <li><a href="#verdicts">Verdicts</a></li>
+        <li><a href="#gaps">Gap report</a></li>
+        <li><a href="#ontologies">Reusing ontologies</a></li>
+        <li><a href="#report">The Excel report</a></li>
+      </ul>
+      <div class="group-label">Operating notes</div>
+      <ul>
+        <li><a href="#errors">Errors</a></li>
+        <li><a href="#tenancy">Tenancy &amp; isolation</a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <main>
+
+    <div class="lede">
+      <h1 id="overview">Check what a claim actually says against what a document actually says</h1>
+      <p>Claim Validator takes a reference document and a list of claims about it, and
+      independently judges whether each claim is actually supported — not by trusting
+      the claim, and not by re-generating the document, but by retrieving the exact
+      passages and asking a model to judge entailment three times before it agrees
+      with itself. It also reports what your claims never touched at all.</p>
+      <div class="pills">
+        <span class="pill">async job API</span>
+        <span class="pill">Excel + JSON reports</span>
+        <span class="pill">shared, reusable ontologies</span>
+        <span class="pill">per-tenant isolation</span>
+      </div>
+    </div>
+
+    <section class="block" id="auth">
+      <h2>Authentication</h2>
+      <p class="dek">Every request under <code>/api/</code> needs a bearer token, except
+      the health check.</p>
+
+      <pre><code><span class="tok-flag">Authorization:</span> Bearer &lt;your-token&gt;</code></pre>
+
+      <p>Your token was issued when your tenant was set up — it's a fixed shared
+      secret, not something you generate yourself. If a tenant is configured for
+      Entra ID (Azure AD) instead, send a valid Entra ID access token in the same
+      header; ask whoever set up your deployment which mode you're on.</p>
+
+      <div class="callout">
+        <strong>A wrong or missing token always returns <code>401</code></strong> —
+        including on routes that would otherwise 404, so a failed request never
+        confirms or denies whether something exists before you're authenticated.
+      </div>
+    </section>
+
+    <section class="block" id="quickstart">
+      <h2>Quick start</h2>
+      <p class="dek">The whole workflow, start to finish. <code>POST /api/validations</code>
+      returns in well under a second regardless of how long the actual judging takes —
+      everything expensive happens after that response, in the background.</p>
+
+      <div class="flow">
+        <div class="flow-step">
+          <div class="flow-rail"><div class="flow-dot">1</div><div class="flow-line"></div></div>
+          <div class="flow-body">
+            <h3>Upload your reference document</h3>
+            <p>Get back a <code>document_id</code> to reference in the next step.</p>
+            <pre><code><span class="tok-flag">curl</span> -H <span class="tok-str">"Authorization: Bearer $TOKEN"</span> \
+  -F <span class="tok-str">"file=@policy.txt"</span> \
+  https://&lt;your-tenant&gt;.azurecontainerapps.io/api/documents</code></pre>
+            <pre><code>{<span class="tok-key">"document_id"</span>: <span class="tok-str">"doc_e172825ccd7d"</span>, <span class="tok-key">"filename"</span>: <span class="tok-str">"policy.txt"</span>, <span class="tok-key">"size_bytes"</span>: 626}</code></pre>
+          </div>
+        </div>
+
+        <div class="flow-step">
+          <div class="flow-rail"><div class="flow-dot">2</div><div class="flow-line"></div></div>
+          <div class="flow-body">
+            <h3>Submit your claims</h3>
+            <p>Each claim needs just an <code>id</code> and its <code>text</code> — no
+            schema, no metadata. You get a <code>job_id</code> back immediately.</p>
+            <pre><code><span class="tok-flag">curl</span> -X POST -H <span class="tok-str">"Authorization: Bearer $TOKEN"</span> \
+  -H <span class="tok-str">"Content-Type: application/json"</span> \
+  -d <span class="tok-str">'{
+    "document": {"document_id": "policy", "files": ["/data/source/doc_e172825ccd7d/policy.txt"]},
+    "claims": [
+      {"id": "C1", "text": "A password reset link is valid for 15 minutes."},
+      {"id": "C2", "text": "A user can request up to 5 reset emails per hour."}
+    ]
+  }'</span> \
+  .../api/validations</code></pre>
+            <pre><code>{<span class="tok-key">"job_id"</span>: <span class="tok-str">"job_c5aecef628c1"</span>, <span class="tok-key">"status"</span>: <span class="tok-str">"queued"</span>}</code></pre>
+          </div>
+        </div>
+
+        <div class="flow-step">
+          <div class="flow-rail"><div class="flow-dot">3</div><div class="flow-line"></div></div>
+          <div class="flow-body">
+            <h3>Poll until it's done</h3>
+            <p>Poll on whatever interval suits you — a typical claim set finishes in
+            30–90 seconds. <code>status</code> moves <code>queued</code> →
+            <code>running</code> → <code>done</code> (or <code>failed</code>).</p>
+            <pre><code><span class="tok-flag">curl</span> -H <span class="tok-str">"Authorization: Bearer $TOKEN"</span> \
+  .../api/validations/job_c5aecef628c1</code></pre>
+          </div>
+        </div>
+
+        <div class="flow-step">
+          <div class="flow-rail"><div class="flow-dot">4</div></div>
+          <div class="flow-body">
+            <h3>Read the verdicts, or download the report</h3>
+            <p>The same <code>GET</code> above already returns every verdict as JSON
+            once the job is done. For a document you can hand to someone else, download
+            the Excel report from the URL it points you to.</p>
+            <pre><code><span class="tok-flag">curl</span> -H <span class="tok-str">"Authorization: Bearer $TOKEN"</span> \
+  -o report.xlsx \
+  .../api/validations/job_c5aecef628c1/report</code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="block" id="endpoints">
+      <h2>Endpoints</h2>
+      <p class="dek">Everything under <code>/api/</code>, grouped by what it operates on.</p>
+
+      <h3 class="sub">Documents</h3>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th style="width:46%">Endpoint</th><th>What it does</th></tr></thead>
+          <tbody>
+            <tr><td class="mono"><span class="method post">POST</span>/api/documents</td>
+                <td>Upload a reference document (multipart). Returns a <code>document_id</code>
+                to pass as <code>document.files</code> in a validation request. Capped at
+                25&nbsp;MB by default.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 class="sub">Validations</h3>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th style="width:46%">Endpoint</th><th>What it does</th></tr></thead>
+          <tbody>
+            <tr><td class="mono"><span class="method post">POST</span>/api/validations</td>
+                <td>Submit claims for judging against a document — or against an existing
+                ontology directly via <code>ontology_key</code> (see
+                <a href="#ontologies">Reusing ontologies</a>). Returns <code>202</code>
+                immediately with a <code>job_id</code>.</td></tr>
+            <tr><td class="mono"><span class="method get">GET</span>/api/validations/&#123;job_id&#125;</td>
+                <td>Status while running; the full result — every verdict, the gap report,
+                quality metrics — once done. Only visible to whoever submitted it.</td></tr>
+            <tr><td class="mono"><span class="method get">GET</span>/api/validations/&#123;job_id&#125;/report</td>
+                <td>Streams the <code>.xlsx</code> report. <code>409</code> if the job
+                isn't done yet.</td></tr>
+            <tr><td class="mono"><span class="method get">GET</span>/api/validations/&#123;job_id&#125;/events</td>
+                <td>Step-by-step phase trail (ontology resolution, retrieval, judging,
+                completeness) — useful for seeing where time or tokens went.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 class="sub">Ontologies</h3>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th style="width:46%">Endpoint</th><th>What it does</th></tr></thead>
+          <tbody>
+            <tr><td class="mono"><span class="method get">GET</span>/api/ontologies</td>
+                <td>List every ontology that exists — shared across everyone on your
+                tenant, browsable to pick one for reuse.</td></tr>
+            <tr><td class="mono"><span class="method post">POST</span>/api/ontologies</td>
+                <td>Build one explicitly, ahead of submitting any claims — useful for
+                pre-warming before a batch of validations that will all reuse it.</td></tr>
+            <tr><td class="mono"><span class="method get">GET</span>/api/ontologies/&#123;key&#125;</td>
+                <td>Detail view — concept types discovered, whether it's fully indexed.</td></tr>
+            <tr><td class="mono"><span class="method get">GET</span>/api/ontologies/&#123;key&#125;/status</td>
+                <td>Build progress for one in flight.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout">
+        Ontologies are <strong>immutable and shared</strong> once built — permanent,
+        listed, reusable by anyone on the tenant, never edited or deleted through the
+        API. If a document set needs more content added, that's a new ontology, not a
+        patch to an existing one.
+      </div>
+    </section>
+
+    <section class="block" id="verdicts">
+      <h2>Understanding verdicts</h2>
+      <p class="dek">Every claim gets judged three times; the majority verdict is what's
+      reported, alongside the agreement count so you can see when the judge wasn't
+      unanimous with itself.</p>
+
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th style="width:22%">Verdict</th><th>Means</th><th style="width:26%">What to do with it</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><span class="verdict-chip v-entails">entails</span></td>
+              <td>The cited passage actually supports the claim.</td>
+              <td>Nothing — this is the claim working as intended.</td>
+            </tr>
+            <tr>
+              <td><span class="verdict-chip v-contradicts">contradicts</span></td>
+              <td>The cited passage says something that conflicts with the claim.</td>
+              <td>The most actionable finding this tool produces — read it first.</td>
+            </tr>
+            <tr>
+              <td><span class="verdict-chip v-mentions">mentions_only</span></td>
+              <td>An on-topic passage exists, but it's silent on the specific thing the
+                  claim asserts.</td>
+              <td>Not automatically wrong — often means the claim is more specific than
+                  the document. Worth a human look.</td>
+            </tr>
+            <tr>
+              <td><span class="verdict-chip v-noev">no_evidence</span></td>
+              <td>Nothing in the document supports or contradicts it — retrieval found
+                  no relevant passage at all.</td>
+              <td>A plausible-sounding claim the document never actually makes. Exactly
+                  what this tool exists to catch.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>Each verdict also carries <code>agreement</code> (e.g. <code>"3/3"</code>) and a
+      one-line <code>reason</code> quoting or paraphrasing the passage the judge based its
+      decision on — never take a verdict without reading the reason next to it.</p>
+    </section>
+
+    <section class="block" id="gaps">
+      <h2>The gap report</h2>
+      <p class="dek">A separate statement from the per-claim verdicts — about the
+      <em>document</em>, not the claims. Even a claim set that's 100% correct can still
+      leave most of a document untouched.</p>
+
+      <p>For every concept type the document's own ontology discovered — grant types,
+      error codes, whatever categories the document actually contains — the gap report
+      says how many probable instances exist and how many your claims ever cited. A
+      concept with <code>addressed_count: 0</code> means none of your claims reference
+      it at all, named explicitly in <code>claims_never_addressed</code>.</p>
+
+      <div class="callout">
+        Three perfectly-entailed claims can still leave a gap report showing your claim
+        set only actually reaches a fraction of what the document says. Read both
+        reports — one tells you if your claims are <em>correct</em>, the other tells you
+        if they're <em>complete</em>.
+      </div>
+    </section>
+
+    <section class="block" id="ontologies">
+      <h2>Reusing ontologies</h2>
+      <p class="dek">Building an ontology — reading the document, discovering its
+      concepts, indexing it for retrieval — is the expensive part of a validation. Two
+      ways to skip paying for it twice.</p>
+
+      <h3 class="sub">Automatic, by content</h3>
+      <p>Submit the identical document bytes again — under any <code>document_id</code>,
+      or none — and it's detected by content hash and reused automatically. No action
+      needed on your part; this happens by default on every submission.</p>
+
+      <h3 class="sub">Explicit, by picking from the list</h3>
+      <p>Already know which ontology you want? Skip the document upload entirely and
+      reference it directly:</p>
+      <pre><code><span class="tok-flag">curl</span> -X POST -H <span class="tok-str">"Authorization: Bearer $TOKEN"</span> \
+  -H <span class="tok-str">"Content-Type: application/json"</span> \
+  -d <span class="tok-str">'{
+    "document": {"files": []},
+    "ontology_key": "policy-1a2b",
+    "claims": [{"id": "C1", "text": "..."}]
+  }'</span> \
+  .../api/validations</code></pre>
+      <p>Browse <code>GET /api/ontologies</code> first to find the <code>key</code> you
+      want — every entry lists who built it, when, and how many concept types it
+      discovered, so you can tell one apart from another before committing to it.</p>
+    </section>
+
+    <section class="block" id="report">
+      <h2>The Excel report</h2>
+      <p class="dek">Written alongside the JSON result from the same in-memory data, so
+      the two formats never drift apart from each other. Three sheets:</p>
+
+      <div class="sheet-grid">
+        <div class="sheet-card">
+          <h4>Claims</h4>
+          <p>Every claim, its verdict, agreement, cited passages, and the judge's reason
+          — side by side, reviewable in one pass.</p>
+        </div>
+        <div class="sheet-card">
+          <h4>Gaps</h4>
+          <p>The gap report in tabular form — concept, probable instance count, which
+          ones your claims addressed, which they never touched.</p>
+        </div>
+        <div class="sheet-card">
+          <h4>Quality</h4>
+          <p>Aggregate metrics — <code>entailed</code>, <code>contradicted</code>,
+          <code>no_evidence</code> counts, token spend by phase, judge agreement — each
+          with what it measures and how to read it, not just a bare number.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="block" id="errors">
+      <h2>Errors</h2>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th style="width:14%">Code</th><th>Means</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">400</td><td>Malformed request — most commonly, a
+                validation submitted with neither <code>document.files</code> nor
+                <code>ontology_key</code>. Provide one or the other.</td></tr>
+            <tr><td class="mono">401</td><td>Missing or invalid token. Also returned —
+                deliberately, not <code>403</code> — for a job that exists but belongs
+                to someone else, so a guessed <code>job_id</code> never confirms it
+                exists.</td></tr>
+            <tr><td class="mono">404</td><td>No such job, document, or ontology key —
+                or one that exists but isn't yours.</td></tr>
+            <tr><td class="mono">409</td><td>The report isn't ready yet — the job hasn't
+                reached <code>done</code>.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="block" id="tenancy">
+      <h2>Tenancy &amp; isolation</h2>
+      <p class="dek">Each tenant is a fully independent deployment: its own token, its
+      own database, its own Anthropic key, its own storage. Nothing about how the API
+      behaves changes between tenants — only the URL and the token do.</p>
+      <p>Within one tenant, job and report privacy is scoped to the identity your
+      request authenticates as — but what that identity <em>is</em> depends on how your
+      tenant is configured. With Entra ID (Azure AD) auth configured, that's genuinely
+      per-signed-in-person: your jobs are invisible to a colleague on the same tenant
+      with their own token. With the default shared-secret token, everyone holding that
+      one token is treated as a single identity — jobs submitted by anyone with the
+      token are visible to anyone else with it. Ask whoever set up your deployment
+      which mode you're on before assuming the stronger guarantee. Ontologies are
+      shared either way: built once, listed for everyone on the tenant, reused by
+      anyone who picks them.</p>
+    </section>
+
+  </main>
+</div>
