@@ -103,6 +103,21 @@ end. Real problems surfaced only at the real-deployment stage — neither
   (`'r${deployTimestamp}'`, fed by a `utcNow()`-defaulted parameter) on
   every deploy specifically to force a new revision and rule this out as
   a cause when debugging pull/secret failures.
+- A second, independent tenant (`userb`) was deployed against the same
+  shared environment and registry, confirming the silo pattern actually
+  holds for more than one tenant. It reproduced the first-deploy
+  chicken-and-egg pull race above exactly — same fix, same recovery. It
+  also hit a *different*, previously unseen failure on the retry: KEDA
+  (the scaler behind scale-to-zero) got stuck unable to resolve an
+  internal secret reference, repeatedly assigning and discarding
+  replicas with `containers: []` — no image pull attempted at all — and
+  no application code ever ran. Almost certainly leftover internal state
+  from the first, failed deployment attempt on that same Container App
+  name. Fixed the same way as the credential-staleness issues above:
+  `az containerapp update --revision-suffix <anything>` to force a
+  genuinely new revision, which cleared it immediately. If a fresh
+  tenant's replicas keep cycling with no container ever starting, this
+  is the fix to try before assuming anything about RBAC or the image.
 
 Each of these is documented inline at its fix site in the relevant
 `.bicep` file, not just here.
