@@ -19,7 +19,8 @@
 //                  pgAdminIdentityClientId=<same, "clientId" output> \
 //                  pgAdminIdentityName=<same, "name" output> \
 //                  anthropicApiKey=<this tenant's own key> \
-//                  containerImage=<registry>/claim-validator:<tag>
+//                  containerImage=<registry>/claim-validator:<tag> \
+//                  containerRegistryName=<registry name, e.g. "cvacr8b4cb977">
 
 @description('Short, unique identifier for this tenant (e.g. "usera") — prefixes every resource name and becomes the database name.')
 @minLength(3)
@@ -51,11 +52,17 @@ param anthropicApiKey string
 @description('Container image, e.g. myregistry.azurecr.io/claim-validator:latest.')
 param containerImage string
 
+@description('Name (not login server) of the Azure Container Registry containerImage is hosted in — the Container App pulls from it using its own system-assigned identity, granted AcrPull below, since the registry has admin auth disabled.')
+param containerRegistryName string
+
 @description('Azure AD tenant ID, if this tenant should use Entra ID auth instead of the shared-secret fallback. Leave empty to use the generated CLAIMVAL_API_TOKEN instead.')
 param azureAdTenantId string = ''
 
 @description('Azure AD app (client) ID — this tenant\'s own app registration, required if azureAdTenantId is set.')
 param azureAdClientId string = ''
+
+@description('Not intended to be passed explicitly — utcNow() is only valid as a parameter default. Feeds template.revisionSuffix so every deploy forces a genuinely new revision; see that property\'s own comment for why.')
+param deployTimestamp string = utcNow('yyyyMMddHHmmss')
 
 var resourceName = '${tenantName}cv'
 // Storage accounts and Key Vaults both cap names at 24 characters —
@@ -83,6 +90,10 @@ resource containerAppsEnv 'Microsoft.App/managedEnvironments@2024-03-01' existin
 
 resource postgresServer 'Microsoft.DBforPostgreSQL/flexibleServers@2024-08-01' existing = {
   name: postgresServerName
+}
+
+resource containerRegistry 'Microsoft.ContainerRegistry/registries@2023-07-01' existing = {
+  name: containerRegistryName
 }
 
 // A separate database per tenant on the one shared server — not a separate
@@ -176,6 +187,12 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
         targetPort: 8000
         allowInsecure: false
       }
+      registries: [
+        {
+          server: containerRegistry.properties.loginServer
+          identity: 'System'
+        }
+      ]
       secrets: [
         {
           name: apiTokenSecretName
@@ -190,6 +207,18 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
       ]
     }
     template: {
+      // Forces a genuinely new revision on every deploy. Found live: an
+      // identity change (or a registries/secrets config change) doesn't
+      // by itself create a new revision, since those live outside
+      // `template` — Container Apps revisions are keyed off changes to
+      // `template` specifically. Without this, an existing revision keeps
+      // resolving pull/Key-Vault-secret credentials against whatever
+      // identity was current when *that revision* was first created,
+      // even after the app's identity has since changed underneath it —
+      // confirmed by an ACR pull and a Key Vault secret sync both still
+      // showing the old, already-deleted identity's oid in their auth
+      // failures, well after the app-level identity had moved on.
+      revisionSuffix: 'r${deployTimestamp}'
       containers: [
         {
           name: 'claim-validator'
@@ -293,6 +322,28 @@ resource keyVaultSecretsUserRole 'Microsoft.Authorization/roleAssignments@2022-0
   }
 }
 
+// "AcrPull" — lets the Container App's own system-assigned identity pull
+// containerImage from the registry, since the registry has admin auth
+// disabled entirely (no username/password to leak). Scoped to just this
+// one registry. Known ordering caveat: on a first-ever deploy, the
+// Container App's initial revision can attempt its first image pull
+// before this role assignment has finished propagating (both resources
+// deploy in the same operation, and Azure RBAC propagation isn't
+// instant) — if that happens, the fix is re-issuing this same deployment
+// once the role assignment exists, not a code change.
+resource acrPullRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(containerRegistry.id, containerApp.id, 'AcrPull')
+  scope: containerRegistry
+  properties: {
+    roleDefinitionId: subscriptionResourceId(
+      'Microsoft.Authorization/roleDefinitions',
+      '7f951dda-4ed3-4680-a7ca-43fe172d538d'
+    )
+    principalId: containerApp.identity.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
 // Grants the Container App's own identity a Postgres role and access to
 // only this tenant's database — run once, at deploy time, using the
 // shared AAD admin identity (never the Container App's own identity,
@@ -302,11 +353,14 @@ resource keyVaultSecretsUserRole 'Microsoft.Authorization/roleAssignments@2022-0
 // function, not an Azure roleAssignment the way Key Vault access above
 // is.
 //
-// pgaadauth_create_principal_with_oid's exact signature is the one piece
-// of this whole file not verified against a live server — no Azure
-// subscription was available to actually run this deployment script.
-// Confirm the current signature against Microsoft's own Azure AD
-// Postgres Flexible Server documentation before the first real deploy.
+// pgaadauth_create_principal_with_oid(roleName, objectId, objectType,
+// isAdmin, isMfa) — role name first, object ID second, plus a required
+// objectType ('service' here, for a managed identity). Verified live
+// against a real deployment and against Microsoft's current docs
+// (learn.microsoft.com/azure/postgresql/security/security-manage-entra-users):
+// the first version of this script had it wrong on both counts (object
+// ID first, objectType missing entirely) and failed with "function ...
+// does not exist" until corrected.
 resource grantContainerAppDbAccess 'Microsoft.Resources/deploymentScripts@2023-08-01' = {
   name: '${tenantName}-grant-db-access'
   location: location
@@ -339,9 +393,31 @@ resource grantContainerAppDbAccess 'Microsoft.Resources/deploymentScripts@2023-0
     #disable-next-line no-hardcoded-env-urls
     scriptContent: '''
       set -euo pipefail
-      apt-get update -qq && apt-get install -y -qq postgresql-client >/dev/null
 
-      az login --identity --username "$PG_ADMIN_CLIENT_ID" >/dev/null
+      # The AzureCLI deployment-script container's base OS isn't fixed
+      # across CLI versions (found live: azCliVersion 2.60.0 runs on
+      # Azure Linux/tdnf, not Debian/apt-get, which the first version of
+      # this script assumed and failed on) — detect the package manager
+      # instead of hardcoding one.
+      if command -v tdnf >/dev/null 2>&1; then
+        tdnf install -y postgresql >/dev/null
+      elif command -v apk >/dev/null 2>&1; then
+        apk add --no-cache postgresql-client >/dev/null
+      elif command -v apt-get >/dev/null 2>&1; then
+        apt-get update -qq && apt-get install -y -qq postgresql-client >/dev/null
+      else
+        echo "No supported package manager found (tried tdnf, apk, apt-get)" >&2
+        exit 1
+      fi
+
+      # --allow-no-subscriptions: this identity is deliberately not
+      # granted any Azure RBAC role (it only needs Postgres data-plane
+      # AAD admin rights, granted via administrators@2024-08-01 in
+      # shared.bicep, not an ARM roleAssignment) — az login otherwise
+      # treats "0 subscriptions visible to this identity" as an error
+      # (found live: this was the actual failure, not the earlier
+      # apk/tdnf output bundled alongside it in Azure's error report).
+      az login --identity --username "$PG_ADMIN_CLIENT_ID" --allow-no-subscriptions >/dev/null
 
       export PGPASSWORD=$(az account get-access-token \
         --resource https://ossrdbms-aad.database.windows.net \
@@ -349,8 +425,26 @@ resource grantContainerAppDbAccess 'Microsoft.Resources/deploymentScripts@2023-0
 
       CONN="host=$PG_HOST port=5432 dbname=postgres user=$PG_ADMIN_NAME sslmode=require"
 
-      psql "$CONN" -v ON_ERROR_STOP=1 -c \
-        "SELECT * FROM pgaadauth_create_principal_with_oid('$APP_PRINCIPAL_ID', '$APP_ROLE_NAME', false, false);"
+      # Idempotent against identity churn: a Container App's system-assigned
+      # identity's principalId is not permanently stable — it was observed
+      # live to change after an identity remove/re-add cycle, orphaning the
+      # previous AAD-to-role mapping. pgaadauth_create_principal_with_oid
+      # does an unconditional CREATE ROLE and fails on a role name that
+      # already exists (as it will on every redeploy after the first, or
+      # after any identity change), so branch: create fresh only if the
+      # role doesn't exist yet, otherwise just re-point its AAD object-ID
+      # mapping at the current identity via the SECURITY LABEL form
+      # documented for exactly this case (see infra/README.md).
+      ROLE_EXISTS=$(psql "$CONN" -tA -v ON_ERROR_STOP=1 -c \
+        "SELECT 1 FROM pg_roles WHERE rolname = '$APP_ROLE_NAME';")
+
+      if [ -z "$ROLE_EXISTS" ]; then
+        psql "$CONN" -v ON_ERROR_STOP=1 -c \
+          "SELECT * FROM pgaadauth_create_principal_with_oid('$APP_ROLE_NAME', '$APP_PRINCIPAL_ID', 'service', false, false);"
+      else
+        psql "$CONN" -v ON_ERROR_STOP=1 -c \
+          "SECURITY LABEL for \"pgaadauth\" on role \"$APP_ROLE_NAME\" is 'aadauth,oid=$APP_PRINCIPAL_ID,type=service';"
+      fi
 
       psql "$CONN" -v ON_ERROR_STOP=1 -c \
         "GRANT ALL PRIVILEGES ON DATABASE \"$TENANT_DB\" TO \"$APP_ROLE_NAME\";"

@@ -8,28 +8,105 @@ There is no Postgres admin password anywhere in this project, in Key
 Vault, or in any Container App's configuration — `passwordAuth` is
 disabled on the server entirely.
 
-## What's verified, and what isn't
+## Known open issue: `usera` tenant can't pull its image
 
-All three templates compile cleanly with `az bicep build` — real
-type-checking against the actual Azure resource schemas for each API
-version used, which catches a meaningful class of real mistakes (an
-invalid property name, a resource-name length that exceeds Azure's own
-limit — `storageAccountName` and `keyVaultName` were both sized by hand
-after `az bicep build` flagged the storage account case; a resource
-`name` that can't reference another resource's runtime output within the
-same deployment — `pg-admin-identity.bicep` exists as its own template
-specifically because of this, found by hitting BCP120 twice).
+The `usera` tenant deployed successfully in every other respect (DB,
+storage, Key Vault, secrets, the Postgres AAD grant) but its Container
+App cannot currently serve traffic — `ImagePullBackOff` against
+`cvacr8b4cb977.azurecr.io/claim-validator:latest`, persistently, with a
+401 from ACR's own token-exchange endpoint. This was investigated
+exhaustively and the cause is **not** in this repo's IaC or app config:
 
-What that check can't do: verify an actual deployment succeeds. No Azure
-subscription was available to run this against — no real resource has
-been created, no `what-if` diff has been run against a live resource
-group, and the deployment script's SQL (below) has not run against a
-real Postgres server. Run `az deployment group what-if` before the first
-real deploy of any of these, and treat the deployment script's exact
-`pgaadauth_create_principal_with_oid` signature as the one piece of this
-whole setup that needs confirming against Microsoft's current Azure AD
-Postgres Flexible Server documentation before relying on it — it's
-annotated in `tenant.bicep` as the one thing here that isn't verified.
+- The `AcrPull` role assignment was confirmed correct (right role
+  definition ID, right scope, right principal) on three separate
+  identity incarnations, including a completely fresh one created via
+  identity remove/re-add.
+- A genuinely new revision (forced via `revisionSuffix`, not reusing any
+  cached per-revision state) failed identically.
+- Plain ACR admin username/password (no managed identity, no RBAC,
+  bypassing Azure AD entirely) **also** failed with the same
+  "unauthorized" pull error from inside Container Apps.
+- Those same admin credentials, tested directly against
+  `https://cvacr8b4cb977.azurecr.io/oauth2/token` from outside Container
+  Apps entirely, returned a valid pull-scoped token (HTTP 200) — proving
+  the registry, the image, and the credentials are all genuinely
+  healthy, and isolating the fault specifically to Container Apps'
+  own pull path to this registry/environment/region.
+- The Container Apps Environment has no VNet integration and
+  `publicNetworkAccess: Enabled` — nothing found there that would
+  explain a network-level block either.
+
+This looks like a genuine Azure platform-side issue, most likely needing
+a Microsoft support ticket (server-side telemetry this repo's tooling
+can't see) rather than a client-side config fix. Current state:
+reverted to the secure, managed-identity pull config (ACR admin auth
+disabled again, no password secret on the Container App) — correct per
+this project's design, but non-functional until the underlying platform
+issue is understood. Don't re-run the identity remove/re-add or
+admin-credential diagnostic again without new information; both were
+already tried and ruled out the client side conclusively.
+
+## What's verified
+
+All three templates compile cleanly with `az bicep build`, and all three
+have been deployed for real against a live subscription, in order
+(`pg-admin-identity.bicep` → `shared.bicep` → `tenant.bicep`), ending in
+a running Container App reachable over HTTPS (before the pull issue
+above reappeared on a later cold start). Real problems surfaced only at
+the real-deployment stage — neither `az bicep build` nor
+`az deployment group what-if` caught any of them:
+
+- `australiacentral` (this resource group's default region) doesn't
+  support `Microsoft.App/managedEnvironments` — `shared.bicep` and
+  `tenant.bicep` both take an explicit `location` parameter rather than
+  relying on `resourceGroup().location`; pass a region that supports
+  Container Apps (`australiaeast` was used here).
+- First-deploy chicken-and-egg on the registry pull: the Container App's
+  own `AcrPull` role assignment can't exist until the Container App
+  itself exists (its `principalId` isn't known before then), but the
+  Container App's first revision needs that role assignment to pull the
+  image — a first-ever tenant deploy can fail its initial revision with
+  "Operation expired" while waiting on a pull it doesn't have permission
+  for yet. Fix: re-run the same `az deployment group create` — the
+  Container App resource itself will already exist from the failed
+  attempt (just in a `Failed` provisioning state), and the retry's own
+  `AcrPull` grant will exist in time for the second pull attempt.
+- The `grantContainerAppDbAccess` deployment script's container image
+  isn't a fixed OS across `azCliVersion`s — `2.60.0` runs on Azure
+  Linux (`tdnf`), not Debian (`apt-get`); the script now detects
+  `tdnf`/`apk`/`apt-get` in that order instead of assuming one.
+- `az login --identity` errors by default when the identity has zero
+  Azure RBAC (ARM) role assignments — expected here, since this
+  identity only ever needs Postgres data-plane AAD admin rights, not an
+  ARM role. Fixed with `--allow-no-subscriptions`.
+- `pgaadauth_create_principal_with_oid`'s real signature is
+  `(roleName, objectId, objectType, isAdmin, isMfa)` — role name first,
+  then object ID, then a required `objectType` (`'service'` for a
+  managed identity). The first version of this script had the first two
+  arguments swapped and `objectType` missing entirely, confirmed wrong
+  by a live "function ... does not exist" error and then corrected
+  against [Microsoft's own docs](https://learn.microsoft.com/en-us/azure/postgresql/security/security-manage-entra-users).
+- A Container App's system-assigned identity's `principalId` is **not**
+  permanently stable — confirmed live: removing and re-adding the
+  identity (or, apparently, certain platform-side events) changes it.
+  This orphans any AAD-to-role mapping keyed to the old value.
+  `grantContainerAppDbAccess` is now idempotent against this: it only
+  calls `pgaadauth_create_principal_with_oid` (which does an
+  unconditional `CREATE ROLE` and fails if the role already exists) for
+  a genuinely new role, and re-points an existing role's AAD mapping via
+  `SECURITY LABEL for "pgaadauth" on role ... is 'aadauth,oid=...'`
+  otherwise.
+- Identity changes and `registries`/`secrets` config changes don't by
+  themselves force a new Container Apps revision, since they live
+  outside `properties.template` — an *existing* revision can keep
+  resolving pull/secret credentials against stale state indefinitely.
+  `template.revisionSuffix` is now set to a fresh value
+  (`'r${deployTimestamp}'`, fed by a `utcNow()`-defaulted parameter) on
+  every deploy specifically to force a new revision and rule this out as
+  a cause when debugging pull/secret failures.
+
+Each of these is documented inline at its fix site in the relevant
+`.bicep` file, not just here.
 
 One cosmetic, understood warning: `az bicep build` flags
 `ossrdbms-aad.database.windows.net` (the Azure AD auth endpoint the
@@ -97,8 +174,20 @@ az deployment group create -g <resource-group> -f infra/tenant.bicep \
                pgAdminIdentityClientId=<same, "clientId" output> \
                pgAdminIdentityName=<same, "name" output> \
                anthropicApiKey=<this tenant's own key> \
-               containerImage=<registry>/claim-validator:<tag>
+               containerImage=<registry>/claim-validator:<tag> \
+               containerRegistryName=<registry name, e.g. "cvacr8b4cb977">
 ```
+
+`containerRegistryName` is the registry's short name, not its login server —
+the template looks up `loginServer` itself via an `existing` resource
+reference, and grants the Container App's own system-assigned identity
+`AcrPull` on that registry (scoped to just it), since the registry has admin
+auth disabled and there's no username/password to configure. One caveat:
+on a first-ever deploy, the Container App's first revision can attempt its
+image pull before that role assignment has finished propagating — if the
+first deploy fails on the initial pull, re-run the same `az deployment
+group create` once the role assignment exists; nothing else needs to
+change.
 
 Repeat for each additional user with a different `tenantName` and a
 different `anthropicApiKey` — per the separate-keys-per-user decision.
@@ -124,8 +213,9 @@ built once.
 
 ## What isn't automated yet
 
-- Pushing the container image to a registry the Container App can pull
-  from — `containerImage` assumes one already exists.
+- Pushing the container image to the registry — `docker push` is still a
+  manual step before the first deploy (or a CI job); Bicep only wires up
+  pulling an image that already exists there.
 - Creating the tenant's own Azure AD app registration, if using Entra ID
   *API* auth — that's a separate `az ad app create` step per tenant, not
   something Bicep provisions.
