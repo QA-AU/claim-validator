@@ -118,6 +118,22 @@ end. Real problems surfaced only at the real-deployment stage — neither
   genuinely new revision, which cleared it immediately. If a fresh
   tenant's replicas keep cycling with no container ever starting, this
   is the fix to try before assuming anything about RBAC or the image.
+- An ontology directory `usera`'s own Container App had written vanished
+  from its file share with no explanation findable anywhere — confirmed
+  gone via a direct `az storage file list` against the real share, not
+  an API-layer bug (the same job's report and source-document files, in
+  sibling directories, were untouched). No root cause was found: no
+  audit trail existed for file-share operations at the time (the
+  standard Activity Log only covers ARM/control-plane calls), and a
+  deliberate reproduction attempt — building a fresh ontology, then
+  forcing the same kind of revision update that preceded the original
+  loss — did **not** reproduce it, ruling out "any revision update" as a
+  reliable cause. Most likely a one-off, transient Azure Files anomaly.
+  Since ontologies are immutable and insert-only by design, the worst
+  case is a wasted rebuild, not corruption — but the missing audit trail
+  itself was a real gap, closed by the `fileServiceDiagnostics` resource
+  now in `tenant.bicep` (see "Auditing file share activity" below), so a
+  recurrence would have an actual answer next time.
 
 Each of these is documented inline at its fix site in the relevant
 `.bicep` file, not just here.
@@ -164,8 +180,9 @@ az deployment group create -g <resource-group> -f infra/shared.bicep \
                pgAdminIdentityName=<same, "name" output>
 ```
 
-Note the `containerAppsEnvName` and `postgresServerName` outputs — both
-are needed by every `tenant.bicep` deployment that follows.
+Note the `containerAppsEnvName`, `postgresServerName`, and
+`logAnalyticsWorkspaceId` outputs — all three are needed by every
+`tenant.bicep` deployment that follows.
 
 ## 3. `tenant.bicep` — once per user
 
@@ -175,15 +192,20 @@ container), a dedicated Key Vault holding that tenant's own Anthropic key
 and API token (no DB credential — there isn't one), the Container App
 itself (scaled to zero when idle, system-assigned managed identity
 granted read-only "Key Vault Secrets User" access to only its own
-vault), and a deployment script that grants that same identity a
-Postgres role and access to only this tenant's database — run using the
-shared AAD admin identity from step 1, never the tenant's own.
+vault), a deployment script that grants that same identity a Postgres
+role and access to only this tenant's database — run using the shared
+AAD admin identity from step 1, never the tenant's own — and a
+diagnostic setting that streams the file share's own read/write/delete
+operations to the shared Log Analytics workspace, so a question like
+"what happened to this file" has an actual answer (see "Auditing file
+share activity" below).
 
 ```bash
 az deployment group create -g <resource-group> -f infra/tenant.bicep \
   --parameters tenantName=usera \
                containerAppsEnvName=<from shared.bicep output> \
                postgresServerName=<from shared.bicep output> \
+               logAnalyticsWorkspaceId=<from shared.bicep output> \
                pgAdminIdentityId=<from pg-admin-identity.bicep, "id"> \
                pgAdminIdentityClientId=<same, "clientId" output> \
                pgAdminIdentityName=<same, "name" output> \
@@ -211,6 +233,28 @@ generated shared-secret token (`claimvalidator/azure_auth.py` — a
 separate concern from the *database* RBAC this file is about), also pass
 `azureAdTenantId` and `azureAdClientId` for that tenant's own app
 registration.
+
+## Auditing file share activity
+
+Every read, write, and delete against a tenant's file share lands in the
+shared `cv-logs` Log Analytics workspace, in the `StorageFileLogs` table
+(the `fileServiceDiagnostics` resource in `tenant.bicep` is what wires
+this up — see its own comment for why it exists). Query with:
+
+```bash
+WORKSPACE_ID=$(az monitor log-analytics workspace show -g <rg> -n cv-logs --query customerId -o tsv)
+az monitor log-analytics query \
+  --workspace "$WORKSPACE_ID" \
+  --analytics-query "StorageFileLogs | where TimeGenerated > ago(1h) | where OperationName in ('DeleteFile','DeleteDirectory') | order by TimeGenerated desc" \
+  -o table
+```
+
+Drop the `OperationName` filter to see everything, including reads and
+writes — useful for confirming an ontology build actually persisted, not
+just that the app claimed it did. Diagnostic settings only capture
+activity from the point they're created onward, so this has no
+retroactive value for anything that happened before a given tenant's
+`tenant.bicep` deployment first included this resource.
 
 ## How runtime DB auth actually works
 

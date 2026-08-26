@@ -134,3 +134,6 @@ output containerAppsEnvId string = containerAppsEnv.id
 output containerAppsEnvName string = containerAppsEnv.name
 output postgresServerName string = postgresServer.name
 output postgresServerFqdn string = postgresServer.properties.fullyQualifiedDomainName
+// Needed by tenant.bicep to wire up Storage Analytics diagnostic logging on
+// each tenant's own file share — see that file's own comment for why.
+output logAnalyticsWorkspaceId string = logAnalytics.id

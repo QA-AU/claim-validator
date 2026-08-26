@@ -15,6 +15,7 @@
 //     --parameters tenantName=usera \
 //                  containerAppsEnvName=<from shared.bicep output> \
 //                  postgresServerName=<from shared.bicep output> \
+//                  logAnalyticsWorkspaceId=<from shared.bicep output> \
 //                  pgAdminIdentityId=<from pg-admin-identity.bicep output, "id"> \
 //                  pgAdminIdentityClientId=<same, "clientId" output> \
 //                  pgAdminIdentityName=<same, "name" output> \
@@ -35,6 +36,9 @@ param containerAppsEnvName string
 
 @description('Name of the PostgreSQL Flexible Server created by shared.bicep.')
 param postgresServerName string
+
+@description('Resource ID of the Log Analytics workspace created by shared.bicep (its "logAnalyticsWorkspaceId" output) — file-share operations are logged here.')
+param logAnalyticsWorkspaceId string
 
 @description('Resource ID of the Postgres AAD admin identity (pg-admin-identity.bicep\'s "id" output) — used here only to run the role-granting deployment script below.')
 param pgAdminIdentityId string
@@ -126,6 +130,28 @@ resource fileShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2023-0
   name: fileShareName
   properties: {
     shareQuota: 100
+  }
+}
+
+// File-share data-plane operations (reads, writes, deletes) have no audit
+// trail at all without this — the standard Activity Log only records
+// ARM/control-plane operations, never SMB file operations. Found live: an
+// ontology directory this tenant's own Container App had written vanished
+// from the share with no explanation findable anywhere, because this
+// diagnostic setting didn't exist yet. Scoped to the fileServices
+// sub-resource specifically, since that's where file-share request logs
+// are actually emitted — a diagnostic setting on the storage account
+// itself doesn't capture them.
+resource fileServiceDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  scope: fileService
+  name: '${tenantName}-file-audit'
+  properties: {
+    workspaceId: logAnalyticsWorkspaceId
+    logs: [
+      { category: 'StorageRead', enabled: true }
+      { category: 'StorageWrite', enabled: true }
+      { category: 'StorageDelete', enabled: true }
+    ]
   }
 }
 
