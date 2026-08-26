@@ -81,3 +81,21 @@ def test_missing_document_id_gets_a_generated_name(store, tmp_path):
     key, _ = resolve_ontology_key(store, [doc], document_id=None)
     meta = store.load_meta(key)
     assert meta.name.startswith("doc-")
+
+
+def test_created_by_is_recorded_on_a_fresh_build(store, tmp_path):
+    doc = _write(tmp_path, "doc.txt", "some document text")
+    key, _ = resolve_ontology_key(store, [doc], document_id="my-doc", created_by="user-a-oid")
+    assert store.load_meta(key).created_by == "user-a-oid"
+
+
+def test_reuse_by_a_different_user_does_not_reassign_created_by(store, tmp_path):
+    doc = _write(tmp_path, "doc.txt", "identical bytes")
+    key1, _ = resolve_ontology_key(store, [doc], document_id="name-one", created_by="user-a-oid")
+
+    key2, reused2 = resolve_ontology_key(
+        store, [doc], document_id="name-two", created_by="user-b-oid"
+    )
+    assert reused2 is True
+    assert key2 == key1
+    assert store.load_meta(key1).created_by == "user-a-oid"

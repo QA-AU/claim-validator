@@ -25,7 +25,8 @@ def new_job_id() -> str:
 
 
 def create_job(session: Session, kind: str, request_json: Dict[str, Any],
-               webhook_url: Optional[str] = None) -> Job:
+               webhook_url: Optional[str] = None,
+               owner_user_id: Optional[str] = None) -> Job:
     job = Job(
         job_id=new_job_id(),
         workflow_id=f"{kind}-{uuid.uuid4().hex[:10]}",
@@ -33,6 +34,7 @@ def create_job(session: Session, kind: str, request_json: Dict[str, Any],
         status="queued",
         request_json=request_json,
         webhook_url=webhook_url,
+        owner_user_id=owner_user_id,
     )
     session.add(job)
     session.commit()
@@ -40,8 +42,17 @@ def create_job(session: Session, kind: str, request_json: Dict[str, Any],
     return job
 
 
-def get_job(session: Session, job_id: str) -> Optional[Job]:
-    return session.query(Job).filter(Job.job_id == job_id).first()
+def get_job(session: Session, job_id: str,
+            owner_user_id: Optional[str] = None) -> Optional[Job]:
+    """A job by id — scoped to `owner_user_id` when given, so one user's
+    request can never resolve to another user's job, whatever the caller
+    passed as job_id (see the authorization-bug discussion this was built
+    from: without this filter, a valid token plus a guessed/leaked job_id
+    is enough to read someone else's private job and report)."""
+    query = session.query(Job).filter(Job.job_id == job_id)
+    if owner_user_id is not None:
+        query = query.filter(Job.owner_user_id == owner_user_id)
+    return query.first()
 
 
 def mark_running(session: Session, job_id: str) -> None:
@@ -99,6 +110,8 @@ def run_validation_job(job_id: str, SessionLocal, llm_client_factory) -> None:
             shape_rule_overrides=request.options.shape_rules,
             census_max_chunks=request.options.census_max_chunks,
             force_census=request.options.force_census,
+            ontology_key=request.ontology_key,
+            created_by=job.owner_user_id or "",
         )
         duration_s = time.monotonic() - started
 

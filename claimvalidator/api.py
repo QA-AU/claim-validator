@@ -9,7 +9,7 @@ import uuid
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-from fastapi import BackgroundTasks, FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import BackgroundTasks, FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 
 from db.database import get_session, init_database
@@ -47,12 +47,18 @@ async def require_api_token(request, call_next):
     token = presented_token(request.headers, request.cookies)
 
     if azure_auth.enabled():
-        if azure_auth.validate(token or "") is None:
+        claims = azure_auth.validate(token or "")
+        if claims is None:
             return JSONResponse(
                 status_code=401,
                 content={"detail": "Invalid or missing Azure AD access token."},
                 headers={"WWW-Authenticate": "Bearer"},
             )
+        # `oid` is the stable per-user Entra ID identifier; `sub` as a
+        # fallback for a token shape that omits it. This is what every job
+        # and freshly-built ontology gets attributed to below — see
+        # jobs.py::get_job and ontology_store.py's created_by field.
+        request.state.user_id = claims.get("oid") or claims.get("sub") or "unknown"
     elif not token_matches(token):
         return JSONResponse(
             status_code=401,
@@ -62,6 +68,11 @@ async def require_api_token(request, call_next):
             },
             headers={"WWW-Authenticate": "Bearer"},
         )
+    else:
+        # No per-user identity exists in shared-secret mode — one fixed
+        # sentinel, so job/ontology ownership filtering stays a plain
+        # equality check either way rather than needing a NULL special case.
+        request.state.user_id = "local"
     return await call_next(request)
 
 
@@ -123,16 +134,19 @@ async def upload_document(file: UploadFile = File(...), document_id: Optional[st
 # ---------------------------------------------------------------- ontologies
 
 @app.post("/api/ontologies", status_code=202)
-def build_ontology(request: OntologyBuildRequest, background: BackgroundTasks):
+def build_ontology(request: OntologyBuildRequest, http_request: Request, background: BackgroundTasks):
     from phases.ontology_store import OntologyStore
 
     store = OntologyStore(root=config.STORE_ROOT)
-    key, reused = resolve_ontology_key(store, request.files, request.document_id)
+    owner_user_id = http_request.state.user_id
+    key, reused = resolve_ontology_key(
+        store, request.files, request.document_id, created_by=owner_user_id
+    )
     if reused or store.has_index(key):
         return {"key": key, "reused": True}
 
     session = _session()
-    job = create_job(session, "ontology_build", request.model_dump())
+    job = create_job(session, "ontology_build", request.model_dump(), owner_user_id=owner_user_id)
     session.close()
 
     def _build():
@@ -163,6 +177,35 @@ def build_ontology(request: OntologyBuildRequest, background: BackgroundTasks):
 
     background.add_task(_build)
     return {"key": key, "reused": False, "job_id": job.job_id}
+
+
+@app.get("/api/ontologies")
+def list_ontologies():
+    """Every ontology that exists — shared and browsable by any
+    authenticated user, since ontologies aren't scoped to whoever built
+    them (only jobs and reports are private; see get_validation below).
+
+    Reads each ontology's current.json to report concept_types, the same
+    way GET /api/ontologies/{key} already does for one. Fine at the scale
+    this is meant for (tens of ontologies, not thousands) — not paginated
+    or cached in this pass.
+    """
+    from phases.ontology_store import OntologyStore
+
+    store = OntologyStore(root=config.STORE_ROOT)
+    ontologies = []
+    for meta in store.list():
+        current = store.load_current(meta.key)
+        ontologies.append({
+            "key": meta.key,
+            "name": meta.name,
+            "created_by": meta.created_by,
+            "created_at": meta.created_at,
+            "content_hash": meta.content_hash,
+            "has_index": store.has_index(meta.key),
+            "concept_types": len((current or {}).get("concept_types", [])),
+        })
+    return {"ontologies": ontologies}
 
 
 @app.get("/api/ontologies/{key}")
@@ -203,23 +246,27 @@ def ontology_status(key: str):
         session.close()
 
 
-@app.delete("/api/ontologies/{key}")
-def delete_ontology(key: str):
-    from phases.ontology_store import OntologyStore
-
-    store = OntologyStore(root=config.STORE_ROOT)
-    if not store.load_meta(key):
-        raise HTTPException(404, f"No ontology {key!r}")
-    store.delete(key)
-    return {"deleted": key}
+# Deliberately no DELETE /api/ontologies/{key} in the shared model: an
+# ontology is a shared, immutable asset once built, and one authenticated
+# user shouldn't be able to destroy something another user has started
+# relying on. OntologyStore.delete() still exists as a lower-level method
+# for operator/migration use — only the HTTP route is gone.
 
 
 # ---------------------------------------------------------------- validations
 
 @app.post("/api/validations", status_code=202)
-def submit_validation(request: ValidationRequest, background: BackgroundTasks):
+def submit_validation(request: ValidationRequest, http_request: Request, background: BackgroundTasks):
+    if not request.ontology_key and not request.document.files:
+        raise HTTPException(
+            400, "Provide either document.files (to build or auto-reuse an ontology) "
+                 "or ontology_key (to validate against an existing one directly)."
+        )
+
+    owner_user_id = http_request.state.user_id
     session = _session()
-    job = create_job(session, "validation", request.model_dump(), request.webhook_url)
+    job = create_job(session, "validation", request.model_dump(), request.webhook_url,
+                      owner_user_id=owner_user_id)
     session.close()
 
     background.add_task(
@@ -229,10 +276,10 @@ def submit_validation(request: ValidationRequest, background: BackgroundTasks):
 
 
 @app.get("/api/validations/{job_id}")
-def get_validation(job_id: str):
+def get_validation(job_id: str, http_request: Request):
     session = _session()
     try:
-        job = get_job(session, job_id)
+        job = get_job(session, job_id, owner_user_id=http_request.state.user_id)
         if not job:
             raise HTTPException(404, f"No job {job_id!r}")
         response: Dict[str, Any] = {"job_id": job_id, "status": job.status}
@@ -246,12 +293,12 @@ def get_validation(job_id: str):
 
 
 @app.get("/api/validations/{job_id}/events")
-def get_validation_events(job_id: str):
+def get_validation_events(job_id: str, http_request: Request):
     from db.models import PhaseEvent, PhaseExecution
 
     session = _session()
     try:
-        job = get_job(session, job_id)
+        job = get_job(session, job_id, owner_user_id=http_request.state.user_id)
         if not job:
             raise HTTPException(404, f"No job {job_id!r}")
         executions = (session.query(PhaseExecution)
@@ -275,14 +322,14 @@ def get_validation_events(job_id: str):
 
 
 @app.get("/api/validations/{job_id}/report")
-def get_validation_report(job_id: str):
+def get_validation_report(job_id: str, http_request: Request):
     """Streams the report from wherever it actually lives (local disk in
     dev, a mounted Azure Files share in production) — the caller never
     needs to know that path, only this URL, which is what result_json's
     report_url now points at instead of the bare local path it used to be."""
     session = _session()
     try:
-        job = get_job(session, job_id)
+        job = get_job(session, job_id, owner_user_id=http_request.state.user_id)
         if not job:
             raise HTTPException(404, f"No job {job_id!r}")
         if job.status != "done":

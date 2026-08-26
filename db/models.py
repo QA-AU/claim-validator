@@ -2,6 +2,8 @@
 
 from datetime import datetime, timezone
 
+from typing import Optional
+
 from sqlalchemy import JSON, Boolean, DateTime, Integer, String, Text, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
@@ -290,6 +292,13 @@ class Job(Base):
     workflow_id: Mapped[str] = mapped_column(String(100), index=True)
     kind: Mapped[str] = mapped_column(String(20))  # "validation" | "ontology_build"
     status: Mapped[str] = mapped_column(String(20), default="queued")  # queued/running/done/failed
+    # Who this job's results are private to. Nullable rather than required —
+    # matches azure_auth.py's opt-in pattern: a deployment without Azure AD
+    # configured has no per-user identity to record, and the API middleware
+    # sets a fixed "local" sentinel in that case rather than leaving this
+    # unset, so lookups stay a plain equality filter either way (see
+    # jobs.py::get_job).
+    owner_user_id: Mapped[Optional[str]] = mapped_column(String(200), nullable=True, index=True)
 
     request_json: Mapped[dict] = mapped_column(JSON, default=dict)
     result_json: Mapped[dict] = mapped_column(JSON, nullable=True)

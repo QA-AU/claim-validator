@@ -20,10 +20,17 @@ has no actual use for yet — see CLAIMVAL_AZURE_REQUIRED_ROLE below.
 ### What is and isn't verified here
 
 Signature, issuer, audience, expiry, and the required role claim — the
-things that make a token trustworthy at all. Not verified: anything about
-*who* the token was issued to beyond that (no per-user identity is tracked
-downstream), since the silo model already puts that boundary at the
-deployment level, not inside application code.
+things that make a token trustworthy at all.
+
+`validate()` returns the full decoded claims, including `oid` — the
+stable per-user Entra ID identifier. In the silo model that identity was
+decoded and then discarded, since the deployment-level boundary already
+did the isolation job. It stops being discarded once a shared deployment
+exists: api.py's middleware reads `claims["oid"]` off this return value
+and records it on every job and freshly-built ontology (see
+jobs.py::get_job and phases/ontology_store.py's created_by), since a
+shared Container App and shared database have no other way to tell one
+caller's data from another's.
 """
 
 import logging

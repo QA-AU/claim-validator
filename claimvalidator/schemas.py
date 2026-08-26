@@ -26,6 +26,11 @@ class ValidationRequest(BaseModel):
     claims: List[ClaimInput]
     webhook_url: Optional[str] = None
     options: ValidationOptions = Field(default_factory=ValidationOptions)
+    # Picks an existing, already-built ontology directly — the shared-list
+    # reuse path. When set, document.files may be left empty; the API
+    # rejects a request that has neither this nor document.files (see
+    # api.py::submit_validation).
+    ontology_key: Optional[str] = None
 
 
 class OntologyBuildRequest(BaseModel):

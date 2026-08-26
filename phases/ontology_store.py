@@ -86,6 +86,11 @@ class OntologyMeta:
     # question — "have I already built this, byte-for-byte" — for automatic
     # cache reuse, never for identity.
     content_hash: str = ""
+    # Added for the shared multi-user model — who built this ontology.
+    # Set once, at creation, and never overwritten by a later reuse (see
+    # get_or_create()): the ontology is immutable and shared, but who
+    # originally paid to build it stays attributable.
+    created_by: str = ""
     created_at: str = field(default_factory=lambda: datetime.now().isoformat())
     updated_at: str = field(default_factory=lambda: datetime.now().isoformat())
 
@@ -103,6 +108,7 @@ class OntologyMeta:
             "profile": self.profile,
             "brief": self.brief,
             "content_hash": self.content_hash,
+            "created_by": self.created_by,
             "created_at": self.created_at,
             "updated_at": self.updated_at,
         }
@@ -117,6 +123,7 @@ class OntologyMeta:
             profile=data.get("profile", "generic"),
             brief=data.get("brief", {}) or {},
             content_hash=data.get("content_hash", ""),
+            created_by=data.get("created_by", ""),
             created_at=data.get("created_at", datetime.now().isoformat()),
             updated_at=data.get("updated_at", datetime.now().isoformat()),
         )
@@ -134,7 +141,9 @@ class OntologyStore:
     def path_for(self, key: str) -> Path:
         return self.root / key
 
-    def create(self, name: str, background_description: str = "") -> OntologyMeta:
+    def create(
+        self, name: str, background_description: str = "", created_by: str = ""
+    ) -> OntologyMeta:
         """Create a new ontology. The short_id is assigned once, here.
 
         Deliberately not derived from content: a content hash would change on
@@ -148,6 +157,7 @@ class OntologyStore:
             name=name.strip(),
             short_id=secrets.token_hex(_SHORT_ID_BYTES),
             background_description=background_description,
+            created_by=created_by,
         )
         directory = self.path_for(meta.key)
         (directory / VERSIONS_DIR).mkdir(parents=True, exist_ok=True)
@@ -179,15 +189,22 @@ class OntologyStore:
                 return meta
         return None
 
-    def get_or_create(self, name: str, background_description: str = "") -> OntologyMeta:
-        """Resolve a name to an ontology, creating it on first use."""
+    def get_or_create(
+        self, name: str, background_description: str = "", created_by: str = ""
+    ) -> OntologyMeta:
+        """Resolve a name to an ontology, creating it on first use.
+
+        `created_by` only ever applies to a fresh creation — reusing an
+        existing ontology never reassigns who originally built it, even
+        when a different user's request is what resolved to it.
+        """
         existing = self.find_by_name(name)
         if existing:
             if background_description and background_description != existing.background_description:
                 existing.background_description = background_description
                 self._write_meta(existing)
             return existing
-        return self.create(name, background_description)
+        return self.create(name, background_description, created_by=created_by)
 
     def list(self) -> List[OntologyMeta]:
         """Every ontology that exists, newest first."""

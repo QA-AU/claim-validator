@@ -27,13 +27,15 @@ def resolve_ontology_key(
     store: OntologyStore,
     document_paths: List[str],
     document_id: Optional[str] = None,
+    created_by: str = "",
 ) -> Tuple[str, bool]:
     """The ontology key for this document set, and whether it was reused.
 
     Content hash is the automatic, primary key. `document_id` is an optional
     human label layered on top for a fresh ontology's name — never required
     for reuse to work: resubmitting identical bytes under a different (or
-    missing) document_id still hits the cache.
+    missing) document_id still hits the cache. `created_by` only applies to
+    a fresh build — see OntologyStore.get_or_create.
     """
     digest = content_hash(document_paths)
     existing = store.find_by_content_hash(digest)
@@ -41,7 +43,7 @@ def resolve_ontology_key(
         return existing.key, True
 
     name = document_id or f"doc-{digest[:8]}"
-    meta = store.get_or_create(name)
+    meta = store.get_or_create(name, created_by=created_by)
     meta.content_hash = digest
     store._write_meta(meta)
     return meta.key, False

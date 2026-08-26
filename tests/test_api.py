@@ -114,6 +114,60 @@ def test_when_azure_ad_is_enabled_the_shared_secret_no_longer_works(monkeypatch)
         azure_auth.reset_jwks_client(None)
 
 
+def test_a_users_job_is_invisible_to_a_different_authenticated_user(monkeypatch):
+    """The concrete fix for the authorization-bug scenario this was built
+    from: a valid token from a *different* user must not be able to read
+    someone else's job or report, even knowing the exact job_id."""
+    import time
+    import jwt as pyjwt
+    from cryptography.hazmat.primitives.asymmetric import rsa
+    from claimvalidator import azure_auth
+
+    tenant_id = "44444444-4444-4444-4444-444444444444"
+    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+
+    class _FakeSigningKey:
+        key = private_key.public_key()
+
+    class _FakeJWKClient:
+        def get_signing_key_from_jwt(self, token):
+            return _FakeSigningKey()
+
+    def _token_for(oid: str) -> str:
+        return pyjwt.encode(
+            {"iss": f"https://login.microsoftonline.com/{tenant_id}/v2.0",
+             "exp": int(time.time()) + 300, "roles": ["Validation.User"], "oid": oid},
+            private_key, algorithm="RS256",
+        )
+
+    monkeypatch.setenv(azure_auth.TENANT_ID_ENV, tenant_id)
+    monkeypatch.delenv(azure_auth.CLIENT_ID_ENV, raising=False)
+    azure_auth.reset_jwks_client(_FakeJWKClient())
+    try:
+        user_a = {"Authorization": f"Bearer {_token_for('user-a-oid')}"}
+        user_b = {"Authorization": f"Bearer {_token_for('user-b-oid')}"}
+
+        submit = client.post(
+            "/api/validations", headers=user_a,
+            json={
+                "document": {"document_id": "test-doc", "files": ["does/not/exist.txt"]},
+                "claims": [{"id": "C1", "text": "a claim"}],
+            },
+        )
+        assert submit.status_code == 202
+        job_id = submit.json()["job_id"]
+
+        # The owner can see their own job.
+        assert client.get(f"/api/validations/{job_id}", headers=user_a).status_code == 200
+
+        # A different authenticated user, with a perfectly valid token,
+        # cannot — 404, not 403, so existence isn't confirmed either.
+        assert client.get(f"/api/validations/{job_id}", headers=user_b).status_code == 404
+        assert client.get(f"/api/validations/{job_id}/report", headers=user_b).status_code == 404
+    finally:
+        azure_auth.reset_jwks_client(None)
+
+
 def test_api_ping_stays_public_regardless_of_which_auth_backend_is_active(monkeypatch):
     from claimvalidator import azure_auth
 
@@ -127,7 +181,7 @@ def test_submit_validation_returns_immediately_with_a_job_id():
         "/api/validations",
         headers={"Authorization": "Bearer test-suite-token"},
         json={
-            "document": {"document_id": "test-doc", "files": []},
+            "document": {"document_id": "test-doc", "files": ["does/not/exist.txt"]},
             "claims": [{"id": "C1", "text": "a claim"}],
         },
     )
@@ -135,6 +189,45 @@ def test_submit_validation_returns_immediately_with_a_job_id():
     body = response.json()
     assert body["status"] == "queued"
     assert body["job_id"].startswith("job_")
+
+
+def test_submit_validation_with_neither_files_nor_ontology_key_is_rejected():
+    response = client.post(
+        "/api/validations",
+        headers={"Authorization": "Bearer test-suite-token"},
+        json={
+            "document": {"document_id": "test-doc", "files": []},
+            "claims": [{"id": "C1", "text": "a claim"}],
+        },
+    )
+    assert response.status_code == 400
+
+
+def test_list_ontologies_includes_a_freshly_created_one(monkeypatch, tmp_path):
+    from phases.ontology_store import OntologyStore
+
+    monkeypatch.setattr(config, "STORE_ROOT", str(tmp_path))
+    store = OntologyStore(root=str(tmp_path))
+    meta = store.create("RFC 6749", created_by="user-a-oid")
+    meta.content_hash = "abc123"
+    store._write_meta(meta)
+
+    response = client.get("/api/ontologies", headers=AUTH)
+    assert response.status_code == 200
+    ontologies = response.json()["ontologies"]
+    assert len(ontologies) == 1
+    assert ontologies[0]["key"] == meta.key
+    assert ontologies[0]["name"] == "RFC 6749"
+    assert ontologies[0]["created_by"] == "user-a-oid"
+    assert ontologies[0]["content_hash"] == "abc123"
+    assert ontologies[0]["has_index"] is False
+
+
+def test_delete_ontology_route_no_longer_exists():
+    """Ontologies are shared and immutable in the multi-user model — no
+    authenticated caller can destroy one via the API any more."""
+    response = client.delete("/api/ontologies/does-not-exist", headers=AUTH)
+    assert response.status_code == 405
 
 
 def test_get_unknown_validation_job_404s():
@@ -230,7 +323,7 @@ def test_report_download_404s_for_an_unknown_job():
 
 def test_report_download_409s_while_the_job_is_still_running():
     session = _session()
-    job = create_job(session, "validation", {})
+    job = create_job(session, "validation", {}, owner_user_id="local")
     mark_running(session, job.job_id)
     session.close()
 
@@ -243,7 +336,7 @@ def test_report_download_streams_the_real_file(tmp_path):
     fake_report.write_bytes(b"fake xlsx bytes")
 
     session = _session()
-    job = create_job(session, "validation", {})
+    job = create_job(session, "validation", {}, owner_user_id="local")
     mark_done(session, job.job_id, {"excel_report": str(fake_report),
                                      "report_url": f"/api/validations/{job.job_id}/report"})
     session.close()
@@ -258,7 +351,7 @@ def test_report_download_streams_the_real_file(tmp_path):
 
 def test_report_download_404s_if_the_file_is_missing_despite_a_done_job():
     session = _session()
-    job = create_job(session, "validation", {})
+    job = create_job(session, "validation", {}, owner_user_id="local")
     mark_done(session, job.job_id, {"excel_report": "/nonexistent/path/report.xlsx"})
     session.close()
 
@@ -268,7 +361,7 @@ def test_report_download_404s_if_the_file_is_missing_despite_a_done_job():
 
 def test_report_url_in_a_completed_job_points_at_the_download_endpoint():
     session = _session()
-    job = create_job(session, "validation", {})
+    job = create_job(session, "validation", {}, owner_user_id="local")
     mark_done(session, job.job_id, {"excel_report": "/x.xlsx",
                                      "report_url": f"/api/validations/{job.job_id}/report"})
     session.close()

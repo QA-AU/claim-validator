@@ -182,8 +182,19 @@ def run_validation(
     census_runs: int = 3,
     judge_method: str = "auto",
     judge_llm_client=None,
+    ontology_key: Optional[str] = None,
+    created_by: str = "",
 ) -> ValidationResult:
     """
+    `ontology_key`: when given, skips document-based ontology resolution
+    entirely and validates against this existing, already-built ontology
+    directly — the "pick from the shared list" path (see
+    claimvalidator/document_identity.py's own resolution path for the
+    default, content-hash-based one). `document_paths` may be empty in
+    this case: nothing after ontology resolution reads from it, only from
+    the resolved ontology's own persisted chunks. Raises `ValueError` if
+    no ontology exists under this key.
+
     `judge_method`: "auto" uses the one-call, logprob-confidence judge
     (`claimvalidator/logprob_judge.py`) when the judging client supports it
     (currently Ollama only — Anthropic's API does not expose token
@@ -221,7 +232,16 @@ def run_validation(
 
     store = OntologyStore(root=store_root)
     tracker.step_start("resolve_ontology")
-    ontology_key, reused = resolve_ontology_key(store, document_paths, document_id)
+    if ontology_key is not None:
+        # Explicit pick-from-list path — the caller already knows which
+        # ontology it wants, so there's nothing to resolve from documents.
+        if store.load_meta(ontology_key) is None:
+            raise ValueError(f"No such ontology: {ontology_key}")
+        reused = True
+    else:
+        ontology_key, reused = resolve_ontology_key(
+            store, document_paths, document_id, created_by=created_by
+        )
     tracker.step_complete("resolve_ontology", ontology_key=ontology_key, reused=reused)
 
     ontology_usage_before = _usage_snapshot(llm_client)
