@@ -130,6 +130,26 @@ resource postgresFirewallAzure 'Microsoft.DBforPostgreSQL/flexibleServers/firewa
   }
 }
 
+// Same reasoning as tenant.bicep's fileServiceDiagnostics: without this,
+// there's no audit trail at all for what happened at the database level
+// — no record of who connected, when, or whether an auth attempt failed.
+// PostgreSQLLogs is the server's own log stream (connections, auth
+// events, errors); PostgreSQLFlexSessions is per-session connection
+// detail. Server-wide rather than per-tenant, since it's one shared
+// Postgres server — a query's tenant is identifiable from which
+// database/role it ran against, already visible in these logs.
+resource postgresDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  scope: postgresServer
+  name: 'postgres-audit'
+  properties: {
+    workspaceId: logAnalytics.id
+    logs: [
+      { category: 'PostgreSQLLogs', enabled: true }
+      { category: 'PostgreSQLFlexSessions', enabled: true }
+    ]
+  }
+}
+
 output containerAppsEnvId string = containerAppsEnv.id
 output containerAppsEnvName string = containerAppsEnv.name
 output postgresServerName string = postgresServer.name

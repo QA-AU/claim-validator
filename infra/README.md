@@ -256,6 +256,27 @@ activity from the point they're created onward, so this has no
 retroactive value for anything that happened before a given tenant's
 `tenant.bicep` deployment first included this resource.
 
+## Auditing database activity
+
+Same gap, same fix, at the Postgres layer — `shared.bicep`'s
+`postgresDiagnostics` resource streams the server's own log stream and
+per-session connection detail to the same `cv-logs` workspace, since the
+server is shared across tenants rather than per-tenant like the file
+share is.
+
+```bash
+WORKSPACE_ID=$(az monitor log-analytics workspace show -g <rg> -n cv-logs --query customerId -o tsv)
+az monitor log-analytics query \
+  --workspace "$WORKSPACE_ID" \
+  --analytics-query "AzureDiagnostics | where Category in ('PostgreSQLLogs', 'PostgreSQLFlexSessions') | where TimeGenerated > ago(1h) | order by TimeGenerated desc" \
+  -o table
+```
+
+A query's tenant is identifiable from which database or role it ran
+against — already visible in these logs — so one shared diagnostic
+setting on the server covers every tenant, unlike the per-tenant file
+share setting above.
+
 ## How runtime DB auth actually works
 
 At connect time, `db/database.py` (when `CLAIMVAL_DB_AAD_AUTH=true`, set
