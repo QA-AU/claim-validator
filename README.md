@@ -14,8 +14,10 @@ here as a library rather than rewritten. See
 for the design this repo was originally built from.
 
 For the API itself — endpoints, request/response shapes, verdict types,
-the gap report, the Excel report's sheets — see
-**[docs/manual.html](docs/manual.html)**. This file covers what the manual
+the gap report, the Excel report's sheets — see the
+**[user manual](https://qa-au.github.io/claim-validator/manual.html)**
+(source: [docs/manual.html](docs/manual.html), GitHub shows `.html` files as
+source rather than rendering them). This file covers what the manual
 doesn't: how the pieces fit together, how it's deployed, and what's tested.
 
 ## What it does
@@ -92,7 +94,9 @@ within a tenant: built once, immutable, listed for anyone on the tenant to
 browse and reuse (`GET /api/ontologies`), never edited or deleted through
 the API.
 
-See **[docs/architecture-diagrams.html](docs/architecture-diagrams.html)**
+See the
+**[deployment topology diagram](https://qa-au.github.io/claim-validator/architecture-diagrams.html)**
+(source: [docs/architecture-diagrams.html](docs/architecture-diagrams.html))
 for the topology diagram and the request-flow sequence, and
 **[infra/README.md](infra/README.md)** for the actual Bicep-as-code
 deployment: three templates (`pg-admin-identity.bicep` → `shared.bicep` →
