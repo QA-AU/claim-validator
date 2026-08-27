@@ -292,6 +292,34 @@ def test_upload_document_rejects_a_file_over_the_configured_limit(monkeypatch):
     assert response.status_code == 413
 
 
+def test_upload_document_strips_path_traversal_from_the_filename():
+    """A malicious filename ("../../evil.txt") must never land outside
+    the document_id directory it was uploaded into — found in a
+    vulnerability scan: file.filename reached the filesystem unsanitized."""
+    response = client.post(
+        "/api/documents", headers=AUTH,
+        data={"document_id": "traversal-test"},
+        files={"file": ("../../../tmp/evil.txt", b"payload", "text/plain")},
+    )
+    assert response.status_code == 201
+    body = response.json()
+    assert body["filename"] == "evil.txt"
+
+    from pathlib import Path
+    written = Path(body["path"])
+    assert written.parent.name == "traversal-test"
+    assert written.parent == Path(config.SOURCE_DIR) / "traversal-test"
+
+
+def test_upload_document_rejects_a_document_id_with_path_separators():
+    response = client.post(
+        "/api/documents", headers=AUTH,
+        data={"document_id": "../../etc"},
+        files={"file": ("spec.txt", b"x", "text/plain")},
+    )
+    assert response.status_code == 400
+
+
 def test_a_rejected_oversized_upload_leaves_no_empty_directory_behind(monkeypatch):
     """Found live testing this endpoint end to end: the partial file was
     correctly cleaned up on a 413, but the directory it was created in was

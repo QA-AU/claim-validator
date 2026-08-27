@@ -22,6 +22,26 @@ class TestIdentity:
         b = store.create("Orders API")
         assert a.key != b.key
 
+
+class TestPathTraversal:
+    """`path_for` is the single choke point every lookup goes through
+    (load_meta, load_current, load_index, has_index...), and `key` reaches
+    it straight from an API caller on two routes (GET /api/ontologies/{key},
+    and ValidationRequest.ontology_key) with no other validation in front
+    of it — found in a vulnerability scan."""
+
+    def test_rejects_a_key_containing_path_separators(self, store):
+        with pytest.raises(ValueError):
+            store.path_for("../../etc")
+
+    def test_rejects_an_absolute_path_as_a_key(self, store):
+        with pytest.raises(ValueError):
+            store.path_for("/etc/passwd")
+
+    def test_accepts_a_real_generated_key(self, store):
+        meta = store.create("Orders API")
+        assert store.path_for(meta.key) == store.root / meta.key
+
     def test_name_normalisation(self):
         assert slugify("Orders API") == slugify("orders   api") == "orders-api"
         assert slugify("") == "ontology"

@@ -25,6 +25,7 @@ See todo/08-ontology-lifecycle-and-switching.md for the agreed design.
 
 import json
 import logging
+import re
 import secrets
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -54,6 +55,12 @@ EMBEDDINGS_FILE = "embeddings.npy"
 # document does not — it is the denominator for every later run.
 CENSUS_FILE = "census.json"
 VERSIONS_DIR = "versions"
+
+# What OntologyMeta.key ever actually looks like: slugify() output
+# ([a-z0-9-]+) plus a hex short_id. Kept permissive of case/underscore
+# rather than pinned to that exact shape, since the point is blocking path
+# separators and ".." — not re-deriving the key format here.
+_SAFE_KEY = re.compile(r"^[A-Za-z0-9_-]{1,128}$")
 
 _SHORT_ID_BYTES = 2  # 4 hex chars — enough to separate same-named projects
 
@@ -139,6 +146,15 @@ class OntologyStore:
     # -- identity ---------------------------------------------------------
 
     def path_for(self, key: str) -> Path:
+        # `key` always comes out of OntologyMeta.key (slugify() + a hex
+        # short_id — see the class docstring below) for anything this store
+        # created itself, but it also arrives here straight from an API
+        # caller: GET /api/ontologies/{key} and POST /api/validations'
+        # ontology_key both reach this unchanged. Reject anything outside
+        # that safe charset before it becomes a path, so a key like
+        # "../../etc" can't walk this lookup outside self.root.
+        if not _SAFE_KEY.match(key):
+            raise ValueError(f"Invalid ontology key: {key!r}")
         return self.root / key
 
     def create(

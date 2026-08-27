@@ -59,13 +59,26 @@ def style_sheet(ws, header_row: int, widths: List[int]) -> None:
     ws.freeze_panes = ws.cell(row=header_row + 1, column=1)
 
 
+# Formula-injection guard (CWE-1236): a string cell starting with any of
+# these gets evaluated as a formula by Excel/LibreOffice/Sheets once the
+# file is opened. Every row through here can carry untrusted API input —
+# claim.text and claim.id are caller-supplied — so this isn't optional.
+_FORMULA_TRIGGER_CHARS = ("=", "+", "-", "@", "\t", "\r")
+
+
+def _defuse(value: Any) -> Any:
+    if isinstance(value, str) and value.startswith(_FORMULA_TRIGGER_CHARS):
+        return "'" + value
+    return value
+
+
 def write_row(ws, row: int, values: List[Any], wrap_last: bool = False,
               wrap_all_from: "int | None" = None) -> None:
     """`wrap_all_from` wraps every column from that index on, for prose columns."""
     from openpyxl.styles import Alignment, Font
 
     for col, value in enumerate(values, start=1):
-        cell = ws.cell(row=row, column=col, value=value)
+        cell = ws.cell(row=row, column=col, value=_defuse(value))
         cell.font = Font(name=FONT, size=10)
         wrap = (wrap_last and col == len(values)) or (
             wrap_all_from is not None and col >= wrap_all_from

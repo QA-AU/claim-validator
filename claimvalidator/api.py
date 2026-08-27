@@ -5,6 +5,7 @@ equivalent route actually does instead.
 """
 
 import logging
+import re
 import uuid
 from pathlib import Path
 from typing import Any, Dict, Optional
@@ -23,6 +24,11 @@ from claimvalidator.schemas import OntologyBuildRequest, ValidationRequest
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Claim Validator")
+
+# Caller-supplied document_id becomes a directory name (see upload_document
+# below) — restricted to a safe charset so it can never carry a path
+# separator or ".." out of config.SOURCE_DIR.
+_SAFE_DOCUMENT_ID = re.compile(r"^[A-Za-z0-9_-]{1,128}$")
 
 _SessionLocal, _engine = init_database()
 
@@ -102,10 +108,21 @@ async def upload_document(file: UploadFile = File(...), document_id: Optional[st
         raise HTTPException(400, f"Unsupported file type: {suffix or '(none)'}. "
                                   f"See phases/phase1_document_loader.py for supported formats.")
 
+    if document_id is not None and not _SAFE_DOCUMENT_ID.match(document_id):
+        raise HTTPException(400, "document_id may only contain letters, digits, "
+                                  "underscores, and hyphens.")
+
+    # file.filename is caller-supplied and untrusted — .name strips any
+    # directory component (including "../" traversal or an absolute path)
+    # so only ever the bare filename reaches the filesystem.
+    safe_filename = Path(file.filename).name
+    if not safe_filename:
+        raise HTTPException(400, "Invalid filename.")
+
     doc_id = document_id or f"doc_{uuid.uuid4().hex[:12]}"
     dest_dir = Path(config.SOURCE_DIR) / doc_id
     dest_dir.mkdir(parents=True, exist_ok=True)
-    dest_path = dest_dir / file.filename
+    dest_path = dest_dir / safe_filename
 
     size = 0
     with open(dest_path, "wb") as out:
@@ -127,7 +144,7 @@ async def upload_document(file: UploadFile = File(...), document_id: Optional[st
                 )
             out.write(chunk)
 
-    return {"document_id": doc_id, "filename": file.filename, "path": str(dest_path),
+    return {"document_id": doc_id, "filename": safe_filename, "path": str(dest_path),
             "size_bytes": size}
 
 
@@ -213,7 +230,13 @@ def get_ontology(key: str):
     from phases.ontology_store import OntologyStore
 
     store = OntologyStore(root=config.STORE_ROOT)
-    meta = store.load_meta(key)
+    try:
+        meta = store.load_meta(key)
+    except ValueError:
+        # A malformed key (path.for()'s charset check) is just as
+        # not-found as one that's well-formed but unknown — same response
+        # either way, so a caller learns nothing about why it failed.
+        meta = None
     if not meta:
         raise HTTPException(404, f"No ontology {key!r}")
     current = store.load_current(key)
@@ -239,7 +262,11 @@ def ontology_status(key: str):
 
         from phases.ontology_store import OntologyStore
         store = OntologyStore(root=config.STORE_ROOT)
-        if store.has_index(key):
+        try:
+            has_index = store.has_index(key)
+        except ValueError:
+            has_index = False
+        if has_index:
             return {"status": "done", "reused": True}
         raise HTTPException(404, f"No build job found for {key!r}")
     finally:
