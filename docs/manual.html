@@ -526,6 +526,7 @@
       <div class="group-label">Start here</div>
       <ul>
         <li><a href="#overview">Overview</a></li>
+        <li><a href="#deepeval">vs. DeepEval</a></li>
         <li><a href="#auth">Authentication</a></li>
         <li><a href="#quickstart">Quick start</a></li>
       </ul>
@@ -563,6 +564,65 @@
         <span class="pill">per-tenant isolation</span>
       </div>
     </div>
+
+    <section class="block" id="deepeval">
+      <h2>Compared to DeepEval</h2>
+      <p class="dek"><a href="https://github.com/confident-ai/deepeval">DeepEval</a> and
+      this tool both use an LLM as judge to check whether text is actually backed
+      by a source — DeepEval's <code>Faithfulness</code>/<code>Hallucination</code>
+      metrics answer close to the same question this tool's entailment judge
+      does. Where they differ:</p>
+
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th></th>
+              <th>DeepEval</th>
+              <th>Claim Validator</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>What you bring to it</strong></td>
+              <td>A Pytest-style library — write test cases, pick metrics, run
+              them in your own suite.</td>
+              <td>A hosted API — <code>POST</code> a document and a bare list of
+              <code>id + text</code> claims, poll for the report. No
+              test-writing step.</td>
+            </tr>
+            <tr>
+              <td><strong>Grounding</strong></td>
+              <td>Scores against whatever context you hand it at eval time.</td>
+              <td>Builds its own ontology + RAG index from the document first
+              (cached by content hash, reused across submissions — see
+              <a href="#ontologies">Reusing ontologies</a>).</td>
+            </tr>
+            <tr>
+              <td><strong>Coverage, not just correctness</strong></td>
+              <td>Scores the claims you give it.</td>
+              <td>Separately runs a <a href="#gaps">gap report</a> — what no
+              claim's citation ever touches — a question per-claim metrics
+              don't ask.</td>
+            </tr>
+            <tr>
+              <td><strong>Deployment</strong></td>
+              <td>Runs in your own environment or CI.</td>
+              <td>Ships as actual infrastructure — per-tenant Container Apps,
+              Key Vault, Postgres isolation, audit logging.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout">
+        Reach for DeepEval to test your own LLM application's output during
+        development. Reach for this tool when you already have a finished set
+        of claims from an external tool or person and need an independent,
+        auditable judgment on whether a specific document actually supports
+        them.
+      </div>
+    </section>
 
     <section class="block" id="auth">
       <h2>Authentication</h2>
