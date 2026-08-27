@@ -21,7 +21,7 @@
 //                  pgAdminIdentityName=<same, "name" output> \
 //                  anthropicApiKey=<this tenant's own key> \
 //                  containerImage=<registry>/claim-validator:<tag> \
-//                  containerRegistryName=<registry name, e.g. "cvacr8b4cb977">
+//                  containerRegistryName=<registry name, e.g. "myregistry">
 
 @description('Short, unique identifier for this tenant (e.g. "usera") — prefixes every resource name and becomes the database name.')
 @minLength(3)

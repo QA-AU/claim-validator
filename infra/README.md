@@ -11,7 +11,7 @@ disabled on the server entirely.
 ## Resolved: `usera` tenant's image pull failure
 
 For an extended stretch, `usera-claimval`'s Container App could not pull
-`cvacr8b4cb977.azurecr.io/claim-validator:latest` — `ImagePullBackOff`,
+`<registry-name>.azurecr.io/claim-validator:latest` — `ImagePullBackOff`,
 persistently, with a 401 from ACR's own token-exchange endpoint. RBAC,
 identity, and network configuration were all confirmed correct (the
 `AcrPull` role assignment was right on three separate identity
@@ -211,7 +211,7 @@ az deployment group create -g <resource-group> -f infra/tenant.bicep \
                pgAdminIdentityName=<same, "name" output> \
                anthropicApiKey=<this tenant's own key> \
                containerImage=<registry>/claim-validator:<tag> \
-               containerRegistryName=<registry name, e.g. "cvacr8b4cb977">
+               containerRegistryName=<registry name, e.g. "myregistry">
 ```
 
 `containerRegistryName` is the registry's short name, not its login server —
