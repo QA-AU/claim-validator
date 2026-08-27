@@ -651,6 +651,16 @@
       <h2>Endpoints</h2>
       <p class="dek">Everything under <code>/api/</code>, grouped by what it operates on.</p>
 
+      <div class="callout">
+        <strong>Interactive reference: <code>/docs</code></strong> — every
+        deployment serves a live, auto-generated Swagger UI at
+        <code>https://&lt;your-tenant&gt;.azurecontainerapps.io/docs</code>,
+        always in sync with whatever's actually deployed. It sits outside
+        <code>/api/</code>, so it's reachable without a token — a quick way
+        to try a request or double-check a shape without leaving the
+        browser.
+      </div>
+
       <h3 class="sub">Documents</h3>
       <div class="table-scroll">
         <table>
