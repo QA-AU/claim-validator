@@ -1,5 +1,7 @@
 # Claim Validator
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 Given a reference document and an external tool's or person's output — a
 bare list of claims, just `id` + text — independently judges whether each
 claim is actually supported by the document, and separately reports what
