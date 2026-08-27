@@ -40,6 +40,40 @@ doesn't: how the pieces fit together, how it's deployed, and what's tested.
 What it explicitly does not do: generate requirements or claims (validate-
 only), or execute anything against a real system.
 
+## Compared to DeepEval
+
+[DeepEval](https://github.com/confident-ai/deepeval) and this tool both use
+an LLM as judge to check whether text is actually backed by a source —
+DeepEval's `Faithfulness`/`Hallucination` metrics answer close to the same
+question this tool's entailment judge does (`entails` / `contradicts` /
+`no_evidence`). Where they differ:
+
+- **What you bring to it.** DeepEval is a Pytest-style testing library —
+  you write test cases, pick metrics, and run them locally as part of your
+  own suite. This tool is a hosted, multi-tenant API: `POST` a document and
+  a bare list of `id + text` claims, poll for the report. There's no
+  test-writing step; the claims themselves are the input, not code.
+- **Grounding.** DeepEval's RAG metrics score against whatever context you
+  hand them at eval time. This tool builds its own ontology + RAG index
+  from the document first (cached by content hash, reused across
+  submissions — see [Ontologies](#ontologies)), so retrieval is grounded in
+  a structured extraction of the document itself, not raw chunks supplied
+  per test run.
+- **Coverage, not just correctness.** DeepEval scores the claims you give
+  it. This tool separately runs a gap report — an exhaustive concept
+  census used as ground truth for what no claim's citation ever touches —
+  a question DeepEval's per-claim metrics don't ask at all.
+- **Deployment.** DeepEval runs in your own environment or CI; this tool
+  ships as actual infrastructure — Bicep-defined Azure Container Apps,
+  per-tenant Key Vault/Postgres isolation, audit logging (see
+  [infra/README.md](infra/README.md)) — the deployable service, not just
+  the evaluation logic.
+
+Reach for DeepEval to test your own LLM application's output during
+development. Reach for this tool when you already have a finished set of
+claims from an external tool or person and need an independent, auditable
+judgment on whether a specific document actually supports them.
+
 ## Architecture
 
 Every deployment is a **silo**: one Container App, one database, one Key
