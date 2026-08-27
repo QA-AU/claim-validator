@@ -201,7 +201,7 @@ operations to the shared Log Analytics workspace, so a question like
 share activity" below).
 
 ```bash
-az deployment group create -g <resource-group> -f infra/tenant.bicep \
+az deployment group create -g <resource-group> --name tenant-usera -f infra/tenant.bicep \
   --parameters tenantName=usera \
                containerAppsEnvName=<from shared.bicep output> \
                postgresServerName=<from shared.bicep output> \
@@ -213,6 +213,16 @@ az deployment group create -g <resource-group> -f infra/tenant.bicep \
                containerImage=<registry>/claim-validator:<tag> \
                containerRegistryName=<registry name, e.g. "myregistry">
 ```
+
+**Always pass an explicit `--name`, unique per tenant** (`tenant-usera`,
+`tenant-userb`, ...) — found live: `az deployment group create` defaults
+the deployment's own name to the template's filename (`tenant`), so
+deploying two tenants at the same time in the same resource group without
+`--name` collides on that shared default and the second one fails with
+`DeploymentActive`, even though the two deployments touch completely
+disjoint resources. Sequential deploys without `--name` don't hit this
+(each finishes before the next starts), but there's no reason to leave
+the footgun in place for anyone who *does* run them in parallel.
 
 `containerRegistryName` is the registry's short name, not its login server —
 the template looks up `loginServer` itself via an `existing` resource
