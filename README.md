@@ -2,10 +2,17 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Given a reference document and an external tool's or person's output — a
-bare list of claims, just `id` + text — independently judges whether each
-claim is actually supported by the document, and separately reports what
-the claims never address at all.
+Runs an LLM's output — a batch of claims it made about a reference
+document, just `id` + text — back through an independent check: is each
+one actually supported by the document, or does it just sound right? This
+exists to answer that question at scale, so you can decide whether to
+trust a given LLM's output on a document before anyone acts on it, rather
+than spot-checking a few claims by hand. Also works on claims from any
+other tool or a person — the check doesn't care where the claims came
+from, only whether the document backs them up.
+
+It separately reports what the claims never address at all, since a
+claim set can be perfectly accurate and still leave real gaps.
 
 Built on top of the ontology + RAG + entailment-judge machinery from
 [llm-rag-ontology-eval-scaffold](../llm-rag-ontology-eval-scaffold), reused

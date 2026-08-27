@@ -548,12 +548,15 @@
   <main>
 
     <div class="lede">
-      <h1 id="overview">Check what a claim actually says against what a document actually says</h1>
-      <p>Claim Validator takes a reference document and a list of claims about it, and
-      independently judges whether each claim is actually supported — not by trusting
-      the claim, and not by re-generating the document, but by retrieving the exact
-      passages and asking a model to judge entailment three times before it agrees
-      with itself. It also reports what your claims never touched at all.</p>
+      <h1 id="overview">Know whether you can trust what an LLM told you about a document</h1>
+      <p>Claim Validator takes a batch of claims an LLM (or any other tool, or a
+      person) made about a reference document, and independently judges whether
+      each one is actually supported — not by trusting the claim, and not by
+      re-generating the document, but by retrieving the exact passages and asking
+      a model to judge entailment three times before it agrees with itself. Run
+      at batch scale, so you're not spot-checking a handful of claims by hand to
+      decide whether a given LLM's output on a document is trustworthy. It also
+      reports what your claims never touched at all.</p>
       <div class="pills">
         <span class="pill">async job API</span>
         <span class="pill">Excel + JSON reports</span>
