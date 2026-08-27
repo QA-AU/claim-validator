@@ -654,11 +654,12 @@
           <div class="flow-rail"><div class="flow-dot">1</div><div class="flow-line"></div></div>
           <div class="flow-body">
             <h3>Upload your reference document</h3>
-            <p>Get back a <code>document_id</code> to reference in the next step.</p>
+            <p>Keep both <code>document_id</code> and <code>path</code> from the
+            response — the next step needs both, not just the id.</p>
             <pre><code><span class="tok-flag">curl</span> -H <span class="tok-str">"Authorization: Bearer $TOKEN"</span> \
   -F <span class="tok-str">"file=@policy.txt"</span> \
   https://&lt;your-tenant&gt;.azurecontainerapps.io/api/documents</code></pre>
-            <pre><code>{<span class="tok-key">"document_id"</span>: <span class="tok-str">"doc_e172825ccd7d"</span>, <span class="tok-key">"filename"</span>: <span class="tok-str">"policy.txt"</span>, <span class="tok-key">"size_bytes"</span>: 626}</code></pre>
+            <pre><code>{<span class="tok-key">"document_id"</span>: <span class="tok-str">"doc_e172825ccd7d"</span>, <span class="tok-key">"filename"</span>: <span class="tok-str">"policy.txt"</span>, <span class="tok-key">"path"</span>: <span class="tok-str">"/data/source/doc_e172825ccd7d/policy.txt"</span>, <span class="tok-key">"size_bytes"</span>: 626}</code></pre>
           </div>
         </div>
 
@@ -667,7 +668,11 @@
           <div class="flow-body">
             <h3>Submit your claims</h3>
             <p>Each claim needs just an <code>id</code> and its <code>text</code> — no
-            schema, no metadata. You get a <code>job_id</code> back immediately.</p>
+            schema, no metadata. <code>document.files</code> takes the <code>path</code>
+            from step 1, not the bare <code>document_id</code> — leaving it out is
+            rejected with a 400 (<a href="#errors">Errors</a>), and <code>document_id</code>
+            alone in the request isn't enough on its own to find the uploaded file. You
+            get a <code>job_id</code> back immediately.</p>
             <pre><code><span class="tok-flag">curl</span> -X POST -H <span class="tok-str">"Authorization: Bearer $TOKEN"</span> \
   -H <span class="tok-str">"Content-Type: application/json"</span> \
   -d <span class="tok-str">'{
@@ -729,8 +734,9 @@
           <thead><tr><th style="width:46%">Endpoint</th><th>What it does</th></tr></thead>
           <tbody>
             <tr><td class="mono"><span class="method post">POST</span>/api/documents</td>
-                <td>Upload a reference document (multipart). Returns a <code>document_id</code>
-                to pass as <code>document.files</code> in a validation request. Capped at
+                <td>Upload a reference document (multipart). Returns a <code>path</code> —
+                that's what goes in <code>document.files</code> on a validation request,
+                not the <code>document_id</code> alongside it. Capped at
                 25&nbsp;MB by default.</td></tr>
           </tbody>
         </table>
