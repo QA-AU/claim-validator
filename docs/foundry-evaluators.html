@@ -1,0 +1,677 @@
+<title>Foundry Evaluator Catalog</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg: #f3f4f2;
+    --surface: #ffffff;
+    --surface-2: #eceeec;
+    --surface-3: #e2e5e2;
+    --ink: #1b2023;
+    --muted: #5b6570;
+    --faint: #8b959c;
+    --line: #d7dbd9;
+    --line-strong: #b7bdba;
+    --accent: #b8672a;
+    --accent-ink: #ffffff;
+    --foundry: #2f6db3;
+    --foundry-bg: #e6edf6;
+    --preview: #9c7a1f;
+    --preview-bg: #f3ecd8;
+    --code-bg: #1b2023;
+    --code-ink: #e9eae7;
+    --code-muted: #8b959c;
+    --code-accent: #e0a06a;
+    --grid-dot: rgba(27, 32, 35, 0.08);
+    --shadow: 0 1px 2px rgba(20, 24, 26, 0.06);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #15191b;
+      --surface: #1d2225;
+      --surface-2: #242a2d;
+      --surface-3: #2b3134;
+      --ink: #e9eae7;
+      --muted: #9aa5ab;
+      --faint: #6c767c;
+      --line: #313839;
+      --line-strong: #454e50;
+      --accent: #d98a4c;
+      --accent-ink: #191008;
+      --foundry: #7aa8d9;
+      --foundry-bg: #1b2632;
+      --preview: #d4b563;
+      --preview-bg: #322c1a;
+      --code-bg: #101315;
+      --code-ink: #e9eae7;
+      --code-muted: #7c868c;
+      --code-accent: #e0a06a;
+      --grid-dot: rgba(233, 234, 231, 0.06);
+      --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #15191b;
+    --surface: #1d2225;
+    --surface-2: #242a2d;
+    --surface-3: #2b3134;
+    --ink: #e9eae7;
+    --muted: #9aa5ab;
+    --faint: #6c767c;
+    --line: #313839;
+    --line-strong: #454e50;
+    --accent: #d98a4c;
+    --accent-ink: #191008;
+    --foundry: #7aa8d9;
+    --foundry-bg: #1b2632;
+    --preview: #d4b563;
+    --preview-bg: #322c1a;
+    --code-bg: #101315;
+    --code-ink: #e9eae7;
+    --code-muted: #7c868c;
+    --code-accent: #e0a06a;
+    --grid-dot: rgba(233, 234, 231, 0.06);
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background:
+      radial-gradient(circle at 1px 1px, var(--grid-dot) 1px, transparent 0) 0 0 / 22px 22px,
+      var(--bg);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .shell {
+    max-width: 1180px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 250px minmax(0, 1fr);
+    gap: 56px;
+    padding: 48px 28px 96px;
+  }
+
+  aside {
+    position: sticky;
+    top: 32px;
+    align-self: start;
+    max-height: calc(100vh - 64px);
+    overflow-y: auto;
+  }
+
+  .brand { margin-bottom: 28px; }
+
+  .brand .eyebrow {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 11.5px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--foundry);
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .brand h1 {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 19px;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+
+  nav .group-label {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin: 20px 0 6px;
+  }
+
+  nav ul { list-style: none; margin: 0; padding: 0; }
+
+  nav a {
+    display: block;
+    padding: 4px 0;
+    font-size: 13.6px;
+    color: var(--muted);
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    padding-left: 10px;
+    margin-left: -10px;
+  }
+
+  nav a:hover { color: var(--ink); }
+  nav a.compare { color: var(--accent); font-weight: 500; }
+
+  main { min-width: 0; }
+
+  .lede { margin-bottom: 44px; }
+
+  .lede h1 {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-weight: 700;
+    font-size: clamp(28px, 4vw, 37px);
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    margin: 0 0 14px;
+    text-wrap: balance;
+  }
+
+  .lede p {
+    max-width: 68ch;
+    color: var(--muted);
+    font-size: 16px;
+    margin: 0 0 8px;
+  }
+
+  .source-note {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 12px;
+    color: var(--faint);
+    margin-top: 16px;
+  }
+
+  .source-note a { color: var(--faint); }
+
+  section.block { margin: 0 0 52px; scroll-margin-top: 24px; }
+
+  section.block h2 {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-weight: 700;
+    font-size: 19px;
+    letter-spacing: -0.005em;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin: 0 0 6px;
+  }
+
+  section.block h2 .tag {
+    font-size: 11.5px;
+    font-weight: 500;
+    color: var(--faint);
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+  }
+
+  section.block > .dek {
+    max-width: 68ch;
+    color: var(--muted);
+    margin: 0 0 20px;
+    font-size: 14.8px;
+  }
+
+  .table-scroll {
+    overflow-x: auto;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    margin-bottom: 8px;
+  }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13.6px; }
+
+  th, td {
+    text-align: left;
+    padding: 10px 15px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+
+  tr:last-child td { border-bottom: none; }
+
+  th {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 10.2px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--faint);
+    background: var(--surface-2);
+  }
+
+  td.name {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    color: var(--ink);
+  }
+
+  td.output {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 11.8px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .badge {
+    display: inline-block;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 9.5px;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    padding: 1px 6px;
+    border-radius: 4px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+
+  .badge.preview { background: var(--preview-bg); color: var(--preview); }
+
+  code {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.9em;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 0.05em 0.4em;
+    color: var(--ink);
+  }
+
+  .callout {
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--foundry);
+    background: var(--foundry-bg);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 4px 0 20px;
+    font-size: 14px;
+    color: var(--ink);
+  }
+
+  .callout.accent { border-left-color: var(--accent); background: var(--surface); }
+
+  /* -------------------------------------------------- comparison */
+
+  #compare { margin-top: 8px; }
+
+  #compare h2 { font-size: 22px; }
+
+  .vs-header {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .vs-card {
+    border-radius: 10px;
+    padding: 16px 18px;
+    border: 1px solid var(--line);
+  }
+
+  .vs-card.foundry { background: var(--foundry-bg); border-color: var(--foundry); }
+  .vs-card.cv { background: var(--surface); border-left: 3px solid var(--accent); }
+
+  .vs-card h4 {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 12px;
+    letter-spacing: 0.03em;
+    margin: 0 0 6px;
+    text-transform: uppercase;
+  }
+
+  .vs-card.foundry h4 { color: var(--foundry); }
+  .vs-card.cv h4 { color: var(--accent); }
+
+  .vs-card p { margin: 0; font-size: 13.6px; color: var(--muted); }
+
+  .closest-analogue {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    padding: 18px 20px;
+    margin: 20px 0 28px;
+  }
+
+  .closest-analogue h3 {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 14.5px;
+    margin: 0 0 8px;
+  }
+
+  .closest-analogue p { font-size: 14px; color: var(--muted); margin: 0 0 8px; }
+
+  .verdict-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+
+  .vchip {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 11.5px;
+    padding: 3px 9px;
+    border-radius: 5px;
+    background: var(--surface-2);
+    color: var(--muted);
+  }
+
+  .vchip.cv { background: var(--accent); color: var(--accent-ink); }
+
+  footer.colophon {
+    margin-top: 64px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 11.5px;
+    color: var(--faint);
+  }
+
+  @media (max-width: 860px) {
+    .shell { grid-template-columns: 1fr; gap: 24px; }
+    aside { position: static; max-height: none; }
+    .vs-header { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="shell">
+
+  <aside>
+    <div class="brand">
+      <span class="eyebrow">Reference catalog</span>
+      <h1>Foundry Evaluators</h1>
+    </div>
+    <nav>
+      <div class="group-label">Start here</div>
+      <ul>
+        <li><a href="#overview">Overview</a></li>
+      </ul>
+      <div class="group-label">Catalog</div>
+      <ul>
+        <li><a href="#general">General purpose</a></li>
+        <li><a href="#similarity">Textual similarity</a></li>
+        <li><a href="#rag">RAG evaluators</a></li>
+        <li><a href="#safety">Risk &amp; safety</a></li>
+        <li><a href="#agent">Agent evaluators</a></li>
+        <li><a href="#rubric">Rubric &amp; graders</a></li>
+      </ul>
+      <div class="group-label">Analysis</div>
+      <ul>
+        <li><a href="#compare" class="compare">vs. Claim Validator</a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <main>
+
+    <div class="lede">
+      <h1 id="overview">Every evaluator in Microsoft Foundry, in one table</h1>
+      <p>Microsoft Foundry (formerly Azure AI Foundry) ships roughly three dozen
+      built-in evaluators spanning general response quality, translation-style
+      textual similarity, RAG groundedness/relevance, content-safety risk
+      detection, and AI-agent behavior — assembled per-project from a shared
+      SDK rather than being one tool. This catalogs all of them, then compares
+      the closest ones to what Claim Validator does.</p>
+      <div class="source-note">
+        Sourced from Microsoft's own reference docs, fetched live —
+        <a href="https://learn.microsoft.com/en-us/azure/foundry/concepts/built-in-evaluators">Built-in Evaluators Reference</a>
+        and
+        <a href="https://learn.microsoft.com/en-us/azure/foundry/concepts/evaluation-evaluators/rag-evaluators">RAG Evaluators</a>
+        (Microsoft Learn, last updated late August 2026). Entries marked
+        <span class="badge preview">PREVIEW</span> are in public preview per Microsoft's own docs —
+        not GA, no SLA.
+      </div>
+    </div>
+
+    <section class="block" id="general">
+      <h2>General purpose evaluators</h2>
+      <p class="dek">Response quality independent of any grounding source — the two
+      dimensions every generated response has regardless of task.</p>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th style="width:22%">Evaluator</th><th>Purpose</th><th style="width:16%">Output</th></tr></thead>
+          <tbody>
+            <tr><td class="name">Coherence</td><td>Logical consistency and flow of the response.</td><td class="output">1–5 score</td></tr>
+            <tr><td class="name">Fluency</td><td>Natural language quality and readability.</td><td class="output">1–5 score</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="block" id="similarity">
+      <h2>Textual similarity evaluators</h2>
+      <p class="dek">How close a response is to a known-correct reference answer —
+      mostly the classic machine-translation metrics, repurposed.</p>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th style="width:22%">Evaluator</th><th>Purpose</th><th style="width:20%">Output</th></tr></thead>
+          <tbody>
+            <tr><td class="name">Similarity</td><td>AI-assisted (model-judged) textual similarity to a reference.</td><td class="output">1–5 score</td></tr>
+            <tr><td class="name">F1 Score</td><td>Harmonic mean of precision/recall on token overlap vs. ground truth.</td><td class="output">0–1</td></tr>
+            <tr><td class="name">BLEU</td><td>n-gram overlap vs. ground truth (classic MT metric).</td><td class="output">0–1</td></tr>
+            <tr><td class="name">GLEU</td><td>Google's BLEU variant, tuned for sentence-level scoring.</td><td class="output">0–1</td></tr>
+            <tr><td class="name">ROUGE</td><td>Recall-oriented n-gram overlap vs. ground truth.</td><td class="output">0–1</td></tr>
+            <tr><td class="name">METEOR</td><td>n-gram overlap with explicit word-order alignment.</td><td class="output">0–1</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="block" id="rag">
+      <h2>RAG evaluators</h2>
+      <p class="dek">Assess retrieval quality and whether a response is actually
+      backed by retrieved context — the category closest to what Claim
+      Validator does, and the one detailed most below.</p>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th style="width:19%">Evaluator</th><th>Purpose</th><th style="width:26%">Required inputs</th><th style="width:15%">Output</th></tr></thead>
+          <tbody>
+            <tr><td class="name">Groundedness</td><td>Does the response stay inside the retrieved context, without fabricating content? (precision)</td><td><code>response</code>, <code>context</code> (recommended), <code>query</code> optional</td><td class="output">1–5, pass/fail @ 3</td></tr>
+            <tr><td class="name">Groundedness Pro <span class="badge preview">PREVIEW</span></td><td>Same question, decided by Azure AI Content Safety's own model instead of a bring-your-own judge.</td><td><code>query</code>, <code>response</code>, <code>context</code></td><td class="output">boolean pass/fail</td></tr>
+            <tr><td class="name">Relevance</td><td>Does the response accurately and completely address the query?</td><td><code>query</code>, <code>response</code></td><td class="output">1–5, pass/fail @ 3</td></tr>
+            <tr><td class="name">Response Completeness <span class="badge preview">PREVIEW</span></td><td>Does the response cover everything the ground truth says it should? (recall)</td><td><code>ground_truth</code>, <code>response</code></td><td class="output">1–5, pass/fail @ 3</td></tr>
+            <tr><td class="name">Retrieval</td><td>Are the retrieved context chunks actually relevant to the query? (no ground truth needed)</td><td><code>query</code>, <code>context</code></td><td class="output">1–5, pass/fail @ 3</td></tr>
+            <tr><td class="name">Document Retrieval</td><td>Composite search-quality metrics (Fidelity, NDCG, XDCG, Max Relevance, Holes) against labeled ground truth.</td><td><code>retrieval_ground_truth</code>, <code>retrieved_documents</code></td><td class="output">composite, 0–1 each</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout">
+        Groundedness and Response Completeness are explicitly framed by Microsoft as a
+        precision/recall pair: Groundedness penalizes a response for saying too much
+        (fabrication), Response Completeness penalizes it for saying too little
+        (missing ground truth). Neither one alone answers both questions — you run both.
+      </div>
+    </section>
+
+    <section class="block" id="safety">
+      <h2>Risk &amp; safety evaluators</h2>
+      <p class="dek">Content-moderation and jailbreak/security detection — no
+      equivalent exists in Claim Validator, which doesn't attempt this job at all.</p>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th style="width:24%">Evaluator</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td class="name">Hate and Unfairness</td><td>Biased, discriminatory, or hateful content.</td></tr>
+            <tr><td class="name">Sexual</td><td>Inappropriate sexual content.</td></tr>
+            <tr><td class="name">Violence</td><td>Violent content or incitement.</td></tr>
+            <tr><td class="name">Self-Harm</td><td>Content promoting or describing self-harm.</td></tr>
+            <tr><td class="name">Protected Materials</td><td>Unauthorized reproduction of copyrighted/protected content.</td></tr>
+            <tr><td class="name">Indirect Attack (XPIA)</td><td>Did the model fall for a jailbreak smuggled in through retrieved context?</td></tr>
+            <tr><td class="name">Code Vulnerability</td><td>Security issues in generated code.</td></tr>
+            <tr><td class="name">Ungrounded Attributes</td><td>Fabricated personal/factual attributes inferred about a user.</td></tr>
+            <tr><td class="name">Prohibited Actions</td><td>Whether an agent engaged in explicitly disallowed behaviors.</td></tr>
+            <tr><td class="name">Sensitive Data Leakage</td><td>Whether an agent is vulnerable to exposing sensitive information.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="block" id="agent">
+      <h2>Agent evaluators</h2>
+      <p class="dek">Scored against an agent's tool calls and multi-step behavior —
+      a category that presumes an agentic loop, which Claim Validator, a
+      single-purpose validation pipeline, has no equivalent of.</p>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th style="width:26%">Evaluator</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td class="name">Task Adherence <span class="badge preview">PREVIEW</span></td><td>Does the agent follow its system instructions on the identified task?</td></tr>
+            <tr><td class="name">Task Completion <span class="badge preview">PREVIEW</span></td><td>Did the agent finish the requested task end-to-end?</td></tr>
+            <tr><td class="name">Customer Satisfaction <span class="badge preview">PREVIEW</span></td><td>Holistic satisfaction across a conversation: helpfulness, completeness, clarity, tone, resolution, adaptability.</td></tr>
+            <tr><td class="name">Intent Resolution <span class="badge preview">PREVIEW</span></td><td>How accurately the agent identifies and addresses user intent.</td></tr>
+            <tr><td class="name">Task Navigation Efficiency</td><td>Does the agent's step sequence match an optimal/expected path?</td></tr>
+            <tr><td class="name">Tool Call Accuracy</td><td>Overall quality of tool calls: selection, parameters, efficiency.</td></tr>
+            <tr><td class="name">Tool Selection</td><td>Did the agent pick the most appropriate, efficient tool?</td></tr>
+            <tr><td class="name">Tool Input Accuracy</td><td>Are tool call parameters correct — grounding, type, format, completeness?</td></tr>
+            <tr><td class="name">Tool Output Utilization</td><td>Does the agent correctly use tool results in its response and next calls?</td></tr>
+            <tr><td class="name">Tool Call Success</td><td>Did every tool call execute without a technical failure?</td></tr>
+            <tr><td class="name">Quality Grader <span class="badge preview">PREVIEW</span></td><td>Relevance + abstention + completeness + groundedness + context coverage, in one combined evaluator.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="block" id="rubric">
+      <h2>Rubric evaluators &amp; Azure OpenAI graders</h2>
+      <p class="dek">A generic scoring escape hatch, plus four evaluators that
+      route through Azure OpenAI's own grader primitives rather than Foundry's own judge.</p>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th style="width:22%">Evaluator</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td class="name">Rubric <span class="badge preview">PREVIEW</span></td><td>Scores a response against your own custom, weighted criteria via an LLM judge. Weighted average, 0–1, with per-dimension reasoning.</td></tr>
+            <tr><td class="name">Model Labeler</td><td>Classifies content against custom guidelines and labels.</td></tr>
+            <tr><td class="name">String Checker</td><td>Flexible text validation and pattern matching.</td></tr>
+            <tr><td class="name">Text Similarity</td><td>Semantic closeness between two texts.</td></tr>
+            <tr><td class="name">Model Scorer</td><td>Numeric score on a custom range, from custom guidelines.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="block" id="compare">
+      <h2>Compared to Claim Validator</h2>
+      <p class="dek">Not a head-to-head between two competitors — Foundry is an
+      evaluator <em>toolkit</em> you assemble per project; Claim Validator is one
+      opinionated, deployed pipeline for one specific job. Here's where they
+      actually overlap, and where they don't.</p>
+
+      <div class="closest-analogue">
+        <h3>The closest analogue: Groundedness + Relevance</h3>
+        <p>Feed Foundry's <code>groundedness</code> evaluator a <code>response</code> and
+        <code>context</code>, and it asks almost the same question Claim Validator's
+        entailment judge does: is this text actually backed by that source? The
+        difference is in what the answer looks like.</p>
+        <div class="verdict-row">
+          <span class="vchip">Foundry Groundedness → 1–5 score, pass/fail @ 3</span>
+        </div>
+        <div class="verdict-row">
+          <span class="vchip cv">entails</span>
+          <span class="vchip cv">contradicts</span>
+          <span class="vchip cv">mentions_only</span>
+          <span class="vchip cv">no_evidence</span>
+          <span class="vchip">Claim Validator → 4-way verdict, 3-run majority vote</span>
+        </div>
+      </div>
+
+      <div class="vs-header">
+        <div class="vs-card foundry">
+          <h4>Microsoft Foundry</h4>
+          <p>~35 orthogonal evaluators across quality, translation similarity,
+          RAG, content safety, and agent behavior. You assemble the subset
+          you need per project via the SDK or portal, each with its own
+          data-mapping config and judge-model deployment.</p>
+        </div>
+        <div class="vs-card cv">
+          <h4>Claim Validator</h4>
+          <p>One pipeline, one job: given a document and a batch of bare
+          claims, judge each as true, false, or unaddressed — plus a
+          document-wide coverage gap report. Deployed as a standing,
+          multi-tenant API, not an SDK you call from a notebook.</p>
+        </div>
+      </div>
+
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th style="width:20%"></th><th>Microsoft Foundry</th><th>Claim Validator</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="name">Verdict granularity</td>
+              <td>A 1–5 score collapsed to pass/fail. A low Groundedness score doesn't
+              say whether the response contradicted the source or just didn't
+              address it — those read the same.</td>
+              <td>Four distinct verdicts. <code>contradicts</code> and
+              <code>no_evidence</code> are different outcomes on purpose — a
+              fabricated claim and an unaddressed one need different follow-up.</td>
+            </tr>
+            <tr>
+              <td class="name">Where the context comes from</td>
+              <td>You supply it. Foundry's RAG evaluators score a
+              <code>context</code> field in a dataset you already built —
+              they don't run retrieval themselves (except <code>Retrieval</code>,
+              which scores chunks you already retrieved).</td>
+              <td>Built in. Resolves its own ontology + RAG index from the
+              source document, cached by content hash and reused across
+              submissions — nothing to pre-assemble.</td>
+            </tr>
+            <tr>
+              <td class="name">Document-wide coverage</td>
+              <td>No evaluator in the catalog asks this. Every RAG evaluator
+              scores one response at a time against one context.</td>
+              <td>A dedicated gap report: an exhaustive concept census used as
+              ground truth for what no claim's citation ever touches.</td>
+            </tr>
+            <tr>
+              <td class="name">Breadth</td>
+              <td>Far broader — safety/content-moderation (hate, violence,
+              self-harm, jailbreak, code vulnerability) and a full agent
+              -evaluation suite (tool calls, task completion), none of which
+              Claim Validator attempts.</td>
+              <td>Deliberately narrow — validate-only, one document type of
+              task. No safety scoring, no agent/tool evaluation.</td>
+            </tr>
+            <tr>
+              <td class="name">Judge model</td>
+              <td>Most evaluators take a <code>deployment_name</code> — an
+              Azure OpenAI (or Foundry model catalog) deployment as judge.</td>
+              <td>Anthropic-only by design, no OpenAI dependency anywhere in
+              the pipeline.</td>
+            </tr>
+            <tr>
+              <td class="name">Deployment shape</td>
+              <td>An SDK + portal workflow — evaluation runs you kick off
+              against a dataset, typically in CI or a notebook.</td>
+              <td>A standing, multi-tenant HTTP API — async job submission,
+              polling, Excel + JSON reports, per-tenant isolation.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout accent">
+        Reach for Foundry when you're already inside the Azure AI ecosystem and
+        want a governed, broad evaluation suite spanning quality, safety, and
+        agent behavior across many projects. Reach for Claim Validator when the
+        job is narrower and more concrete: you have a finished batch of claims
+        about one document, from an LLM or anyone else, and need an
+        independent, auditable true/false/unaddressed verdict on each —
+        outside the Azure AI Foundry ecosystem entirely.
+      </div>
+    </section>
+
+    <footer class="colophon">
+      Compiled from Microsoft's own Foundry documentation, fetched live — not
+      a proposal, not exhaustive of every preview flag Microsoft ships next.
+    </footer>
+
+  </main>
+
+</div>

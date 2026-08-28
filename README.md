@@ -86,6 +86,13 @@ development. Reach for this tool when you already have a finished set of
 claims from an external tool or person and need an independent, auditable
 judgment on whether a specific document actually supports them.
 
+Microsoft Foundry's built-in evaluators are the other natural comparison —
+see the
+**[Foundry Evaluators catalog](https://qa-au.github.io/claim-validator/foundry-evaluators.html)**
+(source: [docs/foundry-evaluators.html](docs/foundry-evaluators.html)) for
+every evaluator in that suite and where each one does or doesn't overlap
+with this tool.
+
 ## Architecture
 
 Every deployment is a **silo**: one Container App, one database, one Key
