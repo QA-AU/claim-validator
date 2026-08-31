@@ -13,8 +13,13 @@ logger = logging.getLogger(__name__)
 
 
 # Text-based formats read straight off disk. API specs commonly arrive as
-# .json/.yaml, and docs as .md/.html, so all of them route through load_txt.
-TEXT_SUFFIXES = {".txt", ".json", ".yaml", ".yml", ".md", ".markdown", ".html", ".htm", ".csv", ".xml"}
+# .json/.yaml (OpenAPI, AsyncAPI) or .graphql/.gql (GraphQL SDL) or .proto
+# (Protocol Buffers), and docs as .md/.html, so all of them route through
+# load_txt — none of these formats gets special parsing, just plain text.
+TEXT_SUFFIXES = {
+    ".txt", ".json", ".yaml", ".yml", ".md", ".markdown", ".html", ".htm",
+    ".csv", ".xml", ".graphql", ".gql", ".proto",
+}
 
 
 def load_document(file_path: str) -> DocumentContent:

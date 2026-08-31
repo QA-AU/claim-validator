@@ -275,6 +275,26 @@ def test_upload_document_rejects_an_unsupported_file_type():
     assert response.status_code == 400
 
 
+def test_upload_document_accepts_a_graphql_schema():
+    """The upload gate (validate_file_type) used to be stricter than
+    load_document's own fallback, which already reads any unrecognised
+    suffix as plain text — .graphql/.proto specs were rejected at upload
+    even though they'd have loaded fine. Widened to match."""
+    response = client.post(
+        "/api/documents", headers=AUTH,
+        files={"file": ("schema.graphql", b"type Query { hello: String }", "text/plain")},
+    )
+    assert response.status_code == 201
+
+
+def test_upload_document_accepts_a_protobuf_schema():
+    response = client.post(
+        "/api/documents", headers=AUTH,
+        files={"file": ("service.proto", b'syntax = "proto3";', "text/plain")},
+    )
+    assert response.status_code == 201
+
+
 def test_upload_document_requires_auth():
     response = client.post(
         "/api/documents",
