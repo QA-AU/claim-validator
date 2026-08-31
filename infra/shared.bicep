@@ -118,9 +118,28 @@ resource postgresAadAdmin 'Microsoft.DBforPostgreSQL/flexibleServers/administrat
   }
 }
 
-// Allows Azure services (Container Apps included) to reach the server —
-// tightened to specific subnets via VNet integration is the natural next
-// step once this actually needs to be locked down beyond two tenants.
+// Allows Azure services (Container Apps included) to reach the server.
+//
+// Tried narrowing this to the Container Apps environment's own static IP
+// (`containerAppsEnv.properties.staticIp`) after a Postgres audit-log
+// review turned up 115 rejected scan/probe attempts over 7 days — real
+// unsolicited traffic, though all of it already blocked pre-auth. That
+// change caused a real outage: on a Consumption-only environment (no VNet
+// integration), Azure does not guarantee that property is the actual
+// outbound IP for all traffic — per Microsoft's own guidance, outbound
+// IPs on Consumption plan can vary and aren't reliably the one shown —
+// so real app traffic got firewalled out, both tenants hung on startup
+// (blocking on their first DB connection) until this rule was restored.
+// Reverted within minutes; both tenants recovered immediately once this
+// rule was back. See infra/README.md's postmortem for the full story.
+//
+// The only Microsoft-documented way to get a real static, firewall-able
+// outbound IP here is VNet integration + NAT Gateway — which needs a
+// workload-profiles environment, not this Consumption-only one, and is a
+// materially bigger change than the actual measured risk (zero
+// successful unauthorized connections; AAD-only auth is the real
+// boundary) currently justifies. Left as the natural next step if this
+// project ever needs tighter network isolation than that.
 resource postgresFirewallAzure 'Microsoft.DBforPostgreSQL/flexibleServers/firewallRules@2024-08-01' = {
   parent: postgresServer
   name: 'AllowAzureServices'

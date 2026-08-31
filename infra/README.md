@@ -287,6 +287,45 @@ against — already visible in these logs — so one shared diagnostic
 setting on the server covers every tenant, unlike the per-tenant file
 share setting above.
 
+## Attempted and reverted: scoping the Postgres firewall down (real outage)
+
+A routine `check the postgres audit logs` pass (the section above) turned
+up 115 rejected connection attempts over 7 days from 4 external IPs —
+malformed protocol-version handshakes and default-`postgres`-user login
+attempts, the standard signature of internet-wide port scanners. None got
+past `pg_hba.conf` or authentication (AAD-only auth — `passwordAuth:
+Disabled` — means there's no password to guess even if one did), but the
+firewall rule that let them reach that far at all (`AllowAzureServices`,
+`0.0.0.0`–`0.0.0.0`) is far broader than anything actually needed — it
+opens the server to all of Azure's own IP space, not just this project's
+own traffic.
+
+Tried replacing it with a rule scoped to the Container Apps environment's
+own static IP (`containerAppsEnv.properties.staticIp`) — reasoning that
+this was the one address real app traffic actually connects from. It
+wasn't. **Both tenants went unresponsive within a minute of deploying
+this** — every request hung until it timed out, because the app's own
+startup sequence blocks on its first Postgres connection, and that
+connection was now being silently firewalled. Root cause, confirmed
+afterward: on a Consumption-only Container Apps environment (no VNet
+integration, which is what this project uses), Azure does **not**
+guarantee that the `staticIp` property is the actual outbound IP for all
+traffic — Microsoft's own guidance is that outbound IPs on the Consumption
+plan can vary and aren't reliably the one the portal/API shows. Reverted
+within minutes; both tenants recovered immediately once the broad rule was
+restored — no data loss, no lasting damage, just a real, self-inflicted,
+short outage.
+
+**Where this leaves the actual finding**: still open. The only
+Microsoft-documented way to get a real, firewall-able static outbound IP
+here is VNet integration + a NAT Gateway — which needs a workload-profiles
+environment, not this Consumption-only one, and is a materially bigger
+change than the currently measured risk justifies (zero successful
+unauthorized connections ever occurred; AAD-only auth is the boundary
+that's actually doing the work). Left as the natural next step if this
+project ever needs tighter network isolation than that — attempted the
+cheap version first, and it wasn't actually cheap.
+
 ## How runtime DB auth actually works
 
 At connect time, `db/database.py` (when `CLAIMVAL_DB_AAD_AUTH=true`, set
