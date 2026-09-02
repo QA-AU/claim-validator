@@ -50,6 +50,10 @@ class ResolvedClaim:
     text: str
     source_chunks: List[int] = field(default_factory=list)
     had_citation: bool = False  # retrieval was skipped — a citation was pre-supplied
+    # Carried straight through from ClaimInput.source_ref to ClaimResult —
+    # never read by anything in between (retrieval, shape check, the judge
+    # all only ever see .text).
+    source_ref: Optional[str] = None
 
 
 class _ShapeClaim:

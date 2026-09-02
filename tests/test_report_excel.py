@@ -4,8 +4,8 @@ worth testing directly after a report reader couldn't tell which claim IDs
 a Quality tab metric like "contradicted: 2" was actually about.
 """
 
-from claimvalidator.pipeline import ClaimResult
-from claimvalidator.report_excel import _claim_ids_for
+from claimvalidator.pipeline import ClaimResult, ValidationResult
+from claimvalidator.report_excel import _claim_ids_for, _claims_sheet
 
 
 def _claim(id, **overrides):
@@ -15,6 +15,29 @@ def _claim(id, **overrides):
     )
     defaults.update(overrides)
     return ClaimResult(**defaults)
+
+
+def test_claims_sheet_writes_a_source_ref_column():
+    from openpyxl import Workbook
+
+    claims = [
+        _claim("C1", source_ref="README.md, para 3"),
+        _claim("C2"),  # no source_ref — the common case, must not break
+    ]
+    result = ValidationResult(ontology_key="k", ontology_reused=False, per_claim=claims)
+
+    wb = Workbook()
+    _claims_sheet(wb, result)
+    sheet = wb["Claims"]
+
+    header = [c.value for c in sheet[1]]
+    assert header[-1] == "Source ref"
+
+    assert sheet.cell(row=2, column=len(header)).value == "README.md, para 3"
+    # "-" alone starts with a formula-trigger character (write_row's own
+    # defuse guard, see phases/report_style.py) — "'-" is the correct,
+    # already-defused value, not a bug in this new column.
+    assert sheet.cell(row=3, column=len(header)).value == "'-"
 
 
 def test_a_metric_with_no_claim_id_meaning_says_so_rather_than_blank():

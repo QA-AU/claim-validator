@@ -668,7 +668,10 @@
           <div class="flow-body">
             <h3>Submit your claims</h3>
             <p>Each claim needs just an <code>id</code> and its <code>text</code> — no
-            schema, no metadata. <code>document.files</code> takes the <code>path</code>
+            schema required. An optional <code>source_ref</code> per claim
+            (see <a href="#endpoints">Endpoints</a>) lets you note where the
+            claim itself came from, if it wasn't hand-written for this
+            submission. <code>document.files</code> takes the <code>path</code>
             from step 1, not the bare <code>document_id</code> — leaving it out is
             rejected with a 400 (<a href="#errors">Errors</a>), and <code>document_id</code>
             alone in the request isn't enough on its own to find the uploaded file. You
@@ -750,7 +753,12 @@
             <tr><td class="mono"><span class="method post">POST</span>/api/validations</td>
                 <td>Submit claims for judging against a document — or against an existing
                 ontology directly via <code>ontology_key</code> (see
-                <a href="#ontologies">Reusing ontologies</a>). Returns <code>202</code>
+                <a href="#ontologies">Reusing ontologies</a>). Each claim is
+                <code>{id, text}</code> plus an optional <code>source_ref</code> — a free-text
+                pointer to where that claim actually came from (a document URL, a
+                paragraph number, "chatbot answer, sentence 2"), carried straight through
+                to the report's Claims sheet so a flagged claim traces back to its origin.
+                Never read by validation itself. Returns <code>202</code>
                 immediately with a <code>job_id</code>.</td></tr>
             <tr><td class="mono"><span class="method get">GET</span>/api/validations/&#123;job_id&#125;</td>
                 <td>Status while running; the full result — every verdict, the gap report,
@@ -902,8 +910,9 @@
       <div class="sheet-grid">
         <div class="sheet-card">
           <h4>Claims</h4>
-          <p>Every claim, its verdict, agreement, cited passages, and the judge's reason
-          — side by side, reviewable in one pass.</p>
+          <p>Every claim, its verdict, agreement, cited passages, the judge's reason, and
+          its <code>source_ref</code> if you supplied one — side by side, reviewable in
+          one pass.</p>
         </div>
         <div class="sheet-card">
           <h4>Gaps</h4>

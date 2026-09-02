@@ -128,6 +128,9 @@ class ClaimResult:
     # tab's `undecided` count can name which claim IDs it means, the same
     # way `escalated` already can via escalated/escalated_from above.
     decided: bool = True
+    # See ClaimInput.source_ref's docstring — pure pass-through, never
+    # read by anything upstream of here.
+    source_ref: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -145,6 +148,7 @@ class ClaimResult:
             "judge_method": self.judge_method,
             "confidence": self.confidence,
             "decided": self.decided,
+            "source_ref": self.source_ref,
         }
 
 
@@ -273,7 +277,8 @@ def run_validation(
         cost_cents=phase_usage["ontology"]["cost_cents"] if rates is not None else None,
     )
 
-    claims = [ResolvedClaim(id=c["id"], text=c["text"]) for c in claims_input]
+    claims = [ResolvedClaim(id=c["id"], text=c["text"], source_ref=c.get("source_ref"))
+              for c in claims_input]
 
     retrieval_tracker = RunTracker(db_session, workflow_id, name=document_id or "validation",
                                     phase_name="claim_retrieval")
@@ -386,6 +391,7 @@ def run_validation(
             judge_method=(verdict.method if verdict else "majority_vote"),
             confidence=(verdict.confidence if verdict else None),
             decided=(verdict.decided if verdict else True),
+            source_ref=claim.source_ref,
         ))
 
     completeness_tracker = RunTracker(db_session, workflow_id, name=document_id or "validation",

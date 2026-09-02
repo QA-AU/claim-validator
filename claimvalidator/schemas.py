@@ -8,6 +8,14 @@ from pydantic import BaseModel, Field
 class ClaimInput(BaseModel):
     id: str
     text: str
+    # Optional provenance: where this claim's text actually came from, when
+    # it wasn't hand-written for this submission — e.g. "README.md, para 3"
+    # or "chatbot response, sentence 2". Purely a pass-through: never read
+    # by validation logic, only carried into the report so a claim flagged
+    # contradicts/mentions_only/no_evidence can be traced back to exactly
+    # where in some other document it was extracted from, without the
+    # caller having to keep that mapping themselves.
+    source_ref: Optional[str] = None
 
 
 class DocumentRef(BaseModel):

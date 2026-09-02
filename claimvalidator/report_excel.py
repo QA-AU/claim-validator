@@ -61,7 +61,7 @@ def _claims_sheet(wb, result: ValidationResult) -> None:
 
     sheet = wb.create_sheet("Claims")
     sheet.append(["Claim ID", "Text", "Shape", "Verdict", "Quality classification",
-                  "Agreement", "Escalation", "Cited chunks", "Reason"])
+                  "Agreement", "Escalation", "Cited chunks", "Reason", "Source ref"])
 
     r = 2
     for claim in result.per_claim:
@@ -85,6 +85,7 @@ def _claims_sheet(wb, result: ValidationResult) -> None:
             escalation_note,
             ", ".join(str(c) for c in claim.cited_chunks) or "-",
             claim.reason,
+            claim.source_ref or "-",
         ], wrap_all_from=2)
         for col in (4, 5):
             vcell = sheet.cell(row=r, column=col)
@@ -95,7 +96,7 @@ def _claims_sheet(wb, result: ValidationResult) -> None:
             ecell.font = Font(name="Arial", size=10, bold=True, italic=True)
         r += 1
 
-    style_sheet(sheet, 1, [12, 42, 24, 16, 20, 12, 24, 14, 42])
+    style_sheet(sheet, 1, [12, 42, 24, 16, 20, 12, 24, 14, 42, 24])
 
 
 def _shape_pass_reason(claim) -> str:

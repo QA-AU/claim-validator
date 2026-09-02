@@ -16,6 +16,19 @@ from claimvalidator.claim_shims import (
 )
 
 
+def test_resolved_claim_source_ref_defaults_to_none():
+    """Backward compatibility: every existing caller that doesn't know
+    about source_ref (scripts/validate_claims.py, every test written
+    before this field existed) must keep working unchanged."""
+    claim = ResolvedClaim(id="C1", text="a claim")
+    assert claim.source_ref is None
+
+
+def test_resolved_claim_carries_an_explicit_source_ref():
+    claim = ResolvedClaim(id="C1", text="a claim", source_ref="README.md, para 3")
+    assert claim.source_ref == "README.md, para 3"
+
+
 def test_shape_claim_carries_text_as_expected_behavior():
     claim = ResolvedClaim(id="C1", text="A sufficiently long claim to be checkable.")
     shim = _ShapeClaim(claim)
