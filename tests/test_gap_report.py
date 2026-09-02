@@ -8,7 +8,7 @@ mechanism itself (already covered by the ported test_census.py).
 from types import SimpleNamespace
 
 from claimvalidator.claim_shims import ResolvedClaim
-from claimvalidator.gap_report import build_gap_report
+from claimvalidator.gap_report import _content_tokens, _stem, build_gap_report
 from phases.census import CensusResult, CensusSpread
 
 
@@ -181,3 +181,42 @@ def test_unrelated_names_do_not_fuzzy_match(monkeypatch):
     gap = report.per_concept["keyboard_interaction"]
     reason = gap.never_addressed_reasons["Escape key closes dialog"]
     assert "no verified citation" in reason
+
+
+# ---------------------------------------------------------------- stemming
+#
+# Found via a real diagnostic run against a live document: "Buttons" vs
+# census_many's own "element with role button that closes the dialog"
+# scored 0.000 overlap under exact word matching — "buttons" and "button"
+# share no tokens without this.
+
+def test_plural_and_singular_share_a_stem():
+    assert _stem("buttons") == _stem("button") == "button"
+
+
+def test_short_words_are_never_stemmed():
+    """The length-4 guard exists so real short words (not plurals of
+    anything) survive untouched."""
+    assert _stem("role") == "role"
+    assert _stem("was") == "was"
+
+
+def test_double_s_words_are_not_treated_as_plurals():
+    """class/address/process end in "s" but are not "clas"/"addres"/
+    "proces" pluralized — the naive strip-trailing-s rule would mangle
+    them without this guard."""
+    assert _stem("class") == "class"
+    assert _stem("address") == "address"
+    assert _stem("process") == "process"
+
+
+def test_a_bare_plural_still_falls_short_of_a_long_descriptive_phrase():
+    """The stemming fix closes the exact-token gap (0.000 -> real
+    overlap) but doesn't manufacture a match where the phrases are
+    genuinely different in scope — a single generic word against a long,
+    specific phrase correctly stays below the match threshold. Real
+    number from the diagnostic run this fix was based on: 0.2."""
+    buttons = _content_tokens("Buttons")
+    phrase = _content_tokens("element with role button that closes the dialog")
+    overlap = len(buttons & phrase) / len(buttons | phrase)
+    assert 0.0 < overlap < 0.5

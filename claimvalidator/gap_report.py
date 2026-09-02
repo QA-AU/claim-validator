@@ -39,11 +39,33 @@ _STOPWORDS = {
     "in", "for", "and", "or", "this", "that", "at", "by", "as", "be",
 }
 _FUZZY_MATCH_THRESHOLD = 0.5
+# Longer suffixes checked first so "closing" strips to "clos" in one pass
+# rather than partially matching "ing" after already trying "s".
+_STEM_SUFFIXES = ("ing", "edly", "ed", "es", "s")
+
+
+def _stem(word: str) -> str:
+    """Crude English-suffix stripping — not a real stemmer (Porter etc.),
+    deliberately simple. Exists because a real diagnostic run (comparing
+    two independent census passes' names for the same real instance)
+    found "buttons" vs "button" scoring 0.000 overlap under exact word
+    matching alone, even though a human reads them as the same word.
+    Guarded against the obvious false-stem cases: short words ("role",
+    "was") and words ending in a double "s" ("class", "address",
+    "process" are not plurals of "clas"/"addres"/"proces")."""
+    if len(word) <= 4 or word.endswith("ss"):
+        return word
+    for suffix in _STEM_SUFFIXES:
+        if word.endswith(suffix):
+            stem = word[: -len(suffix)]
+            if len(stem) >= 3:
+                return stem
+    return word
 
 
 def _content_tokens(text: str) -> Set[str]:
     words = re.findall(r"[a-z0-9]+", text.lower())
-    return {w for w in words if w not in _STOPWORDS}
+    return {_stem(w) for w in words if w not in _STOPWORDS}
 
 
 def _best_fuzzy_match(display_name: str, candidates: List[str]) -> Optional[str]:
