@@ -88,3 +88,96 @@ def test_force_runs_it_anyway_over_the_limit(monkeypatch):
     report = build_gap_report(_ontology([]), ["c"] * 500, llm_client=None, claims=[],
                                max_chunks=200, force=True)
     assert report.ran is True
+
+
+# ---------------------------------------------------------------- fuzzy name matching
+#
+# census_repeated's `probable` names and census_many's `chunk_of` names come
+# from two independent LLM calls that each phrase the same real instance in
+# their own words. Found live: a real gap report reported every
+# keyboard-interaction instance as "no verified citation" even though the
+# census plainly located them, because census_repeated said e.g. "Escape key
+# closes dialog" while census_many's separate call said "Pressing Escape
+# closes the dialog" — different exact strings, same fact.
+
+def test_a_paraphrased_name_still_resolves_to_its_chunk(monkeypatch):
+    spread = CensusSpread(
+        concept="keyboard_interaction", counts=[3],
+        seen_in={"escape-key-closes-dialog": 3},
+        display={"escape-key-closes-dialog": "Escape key closes dialog"},
+        runs=3,
+    )
+    # census_many's own, differently-phrased name for the same real instance
+    # — not present under the exact slug census_repeated used.
+    result = CensusResult(
+        concept="keyboard_interaction",
+        names=["Pressing Escape closes the dialog"],
+        chunk_of={"pressing-escape-closes-the-dialog": 7},
+    )
+    monkeypatch.setattr("claimvalidator.gap_report.census_repeated",
+                         lambda *a, **k: {"keyboard_interaction": spread})
+    monkeypatch.setattr("claimvalidator.gap_report.census_many",
+                         lambda *a, **k: {"keyboard_interaction": result})
+
+    claims = [ResolvedClaim(id="C1", text="pressing escape closes the dialog", source_chunks=[7])]
+    report = build_gap_report(_ontology([("keyboard_interaction", "d")]), ["c"] * 10,
+                               llm_client=None, claims=claims)
+
+    gap = report.per_concept["keyboard_interaction"]
+    assert gap.addressed_count == 1
+    assert gap.never_addressed == []
+
+
+def test_a_paraphrased_name_with_no_claim_citation_reports_the_real_chunk(monkeypatch):
+    spread = CensusSpread(
+        concept="keyboard_interaction", counts=[3],
+        seen_in={"escape-key-closes-dialog": 3},
+        display={"escape-key-closes-dialog": "Escape key closes dialog"},
+        runs=3,
+    )
+    result = CensusResult(
+        concept="keyboard_interaction",
+        names=["Pressing Escape closes the dialog"],
+        chunk_of={"pressing-escape-closes-the-dialog": 7},
+    )
+    monkeypatch.setattr("claimvalidator.gap_report.census_repeated",
+                         lambda *a, **k: {"keyboard_interaction": spread})
+    monkeypatch.setattr("claimvalidator.gap_report.census_many",
+                         lambda *a, **k: {"keyboard_interaction": result})
+
+    report = build_gap_report(_ontology([("keyboard_interaction", "d")]), ["c"] * 10,
+                               llm_client=None, claims=[])
+
+    gap = report.per_concept["keyboard_interaction"]
+    assert gap.never_addressed == ["Escape key closes dialog"]
+    reason = gap.never_addressed_reasons["Escape key closes dialog"]
+    assert "chunk 7" in reason
+    assert "no verified citation" not in reason
+
+
+def test_unrelated_names_do_not_fuzzy_match(monkeypatch):
+    """Guard against the fix itself becoming a false-positive source: two
+    genuinely different instances must not be treated as the same one just
+    because they happen to share a stray word."""
+    spread = CensusSpread(
+        concept="keyboard_interaction", counts=[3],
+        seen_in={"escape-key-closes-dialog": 3},
+        display={"escape-key-closes-dialog": "Escape key closes dialog"},
+        runs=3,
+    )
+    result = CensusResult(
+        concept="keyboard_interaction",
+        names=["Tab key moves focus to the next element"],
+        chunk_of={"tab-key-moves-focus-to-the-next-element": 3},
+    )
+    monkeypatch.setattr("claimvalidator.gap_report.census_repeated",
+                         lambda *a, **k: {"keyboard_interaction": spread})
+    monkeypatch.setattr("claimvalidator.gap_report.census_many",
+                         lambda *a, **k: {"keyboard_interaction": result})
+
+    report = build_gap_report(_ontology([("keyboard_interaction", "d")]), ["c"] * 10,
+                               llm_client=None, claims=[])
+
+    gap = report.per_concept["keyboard_interaction"]
+    reason = gap.never_addressed_reasons["Escape key closes dialog"]
+    assert "no verified citation" in reason
