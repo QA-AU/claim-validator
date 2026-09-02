@@ -72,7 +72,24 @@ def _best_fuzzy_match(display_name: str, candidates: List[str]) -> Optional[str]
     """The candidate whose content-word overlap with `display_name` is
     highest, by Jaccard similarity — or None if nothing clears
     `_FUZZY_MATCH_THRESHOLD`. `candidates` is the *other* census pass's own
-    independently-generated names for the same concept."""
+    independently-generated names for the same concept.
+
+    Known boundary, found live and left as-is rather than chased further:
+    word-overlap matching only closes a *lexical* gap (plurals, verb
+    forms, word order) — it cannot recognize two phrasings of the same
+    fact that share almost no vocabulary. Diagnosed on a real SemVer
+    validation run: "ASCII alphanumerics and hyphens in build metadata"
+    (census_repeated's name) and "Build metadata identifiers composition"
+    (census_many's name for the literal same rule) scored 0.286 — the
+    best of five real candidates, still well under threshold. Lowering
+    the threshold to catch it would also start matching genuinely
+    unrelated instances (a deliberately-unrelated pair in this module's
+    own tests scores 0.111, not far below 0.286) — the fix for *this*
+    class would need actual semantic similarity (embeddings, or an LLM
+    judging the pair), a materially different and costlier mechanism
+    than lexical overlap, not a threshold tweak. Not built here — the
+    remaining false-negative rate this leaves is a known, accepted
+    boundary of the current approach, not an oversight."""
     target = _content_tokens(display_name)
     if not target:
         return None

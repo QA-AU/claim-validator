@@ -853,6 +853,18 @@
         reports — one tells you if your claims are <em>correct</em>, the other tells you
         if they're <em>complete</em>.
       </div>
+
+      <div class="callout">
+        <strong>Known limitation:</strong> a concept instance can occasionally show up
+        in <code>claims_never_addressed</code> even when a claim plainly does address
+        it, if the document's own internal analysis happened to name that instance very
+        differently in two different passes — matched by shared wording where possible,
+        but two genuinely different phrasings of the same fact (sharing almost no
+        vocabulary) can still slip past that matching. Treat a gap report result as a
+        strong signal, not an infallible one — worth a second look before treating a
+        listed gap as certain, the same way you'd treat any other measurement with a
+        known, accepted false-negative rate.
+      </div>
     </section>
 
     <section class="block" id="ontologies">
