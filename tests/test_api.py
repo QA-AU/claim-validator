@@ -295,6 +295,25 @@ def test_upload_document_accepts_a_protobuf_schema():
     assert response.status_code == 201
 
 
+def test_upload_document_accepts_a_bicep_template():
+    """Found live: checking a doc's claims against the actual IaC source
+    it's describing (a documentation-drift check) needs the source file
+    itself uploadable — same class of gap as .graphql/.proto."""
+    response = client.post(
+        "/api/documents", headers=AUTH,
+        files={"file": ("shared.bicep", b"resource foo 'Microsoft.Foo@2024-01-01' = {}", "text/plain")},
+    )
+    assert response.status_code == 201
+
+
+def test_upload_document_accepts_python_source():
+    response = client.post(
+        "/api/documents", headers=AUTH,
+        files={"file": ("azure_auth.py", b"def validate(token): return None", "text/plain")},
+    )
+    assert response.status_code == 201
+
+
 def test_upload_document_requires_auth():
     response = client.post(
         "/api/documents",

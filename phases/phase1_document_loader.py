@@ -14,11 +14,15 @@ logger = logging.getLogger(__name__)
 
 # Text-based formats read straight off disk. API specs commonly arrive as
 # .json/.yaml (OpenAPI, AsyncAPI) or .graphql/.gql (GraphQL SDL) or .proto
-# (Protocol Buffers), and docs as .md/.html, so all of them route through
-# load_txt — none of these formats gets special parsing, just plain text.
+# (Protocol Buffers), docs as .md/.html, and — found live, needed to check
+# a doc against the source code it's actually documenting rather than
+# another doc about it — .bicep (this project's own IaC) and .py (source
+# code as the ground truth for a documentation-drift or compliance check).
+# All of them route through load_txt — none gets special parsing, just
+# plain text.
 TEXT_SUFFIXES = {
     ".txt", ".json", ".yaml", ".yml", ".md", ".markdown", ".html", ".htm",
-    ".csv", ".xml", ".graphql", ".gql", ".proto",
+    ".csv", ".xml", ".graphql", ".gql", ".proto", ".bicep", ".py",
 }
 
 
