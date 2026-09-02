@@ -1,10 +1,15 @@
-"""AnthropicClient.generate()'s temperature handling — found live that the
-installed anthropic SDK (1.0.0+) removed `temperature` from
-Messages.create() entirely, so every call that passed one (census.py pins
-one to cut sampling variance) failed outright with
-"Messages.create() got an unexpected keyword argument 'temperature'"
-before ever reaching the network. Mocks anthropic.Anthropic directly,
-since AnthropicClient imports it locally inside __init__.
+"""AnthropicClient.generate()'s temperature handling.
+
+The installed anthropic SDK (1.0.0+) dropped `temperature` from
+Messages.create()'s typed signature — confirmed by introspecting the real
+method, not assumed. The first fix for that (warn once, silently drop the
+request) was itself wrong: the underlying Messages API still accepts
+temperature, and the SDK's own `extra_body` passes arbitrary fields
+straight into the request body, bypassing the incomplete typed parameter
+list. Verified live against the real API — a request with
+extra_body={"temperature": ...} succeeds normally — before relying on it
+here. Mocks anthropic.Anthropic directly, since AnthropicClient imports it
+locally inside __init__.
 """
 
 from unittest.mock import MagicMock, patch
@@ -22,9 +27,7 @@ def _mock_response(text="ok"):
     return response
 
 
-def test_temperature_is_never_passed_to_the_real_sdk_call():
-    """The installed SDK rejects it outright — passing it through would
-    make every census call fail before reaching the network."""
+def test_a_requested_temperature_reaches_the_real_call_via_extra_body():
     with patch("anthropic.Anthropic") as MockAnthropic:
         mock_client = MockAnthropic.return_value
         mock_client.messages.create.return_value = _mock_response()
@@ -33,10 +36,13 @@ def test_temperature_is_never_passed_to_the_real_sdk_call():
         client.generate("prompt", temperature=0.01)
 
         _, kwargs = mock_client.messages.create.call_args
+        # Not a top-level kwarg — the SDK's typed signature doesn't have
+        # one — but present inside extra_body, which does reach the API.
         assert "temperature" not in kwargs
+        assert kwargs["extra_body"] == {"temperature": 0.01}
 
 
-def test_no_temperature_requested_behaves_exactly_as_before():
+def test_no_temperature_requested_sends_no_extra_body():
     with patch("anthropic.Anthropic") as MockAnthropic:
         mock_client = MockAnthropic.return_value
         mock_client.messages.create.return_value = _mock_response()
@@ -46,38 +52,4 @@ def test_no_temperature_requested_behaves_exactly_as_before():
 
         assert text == "ok"
         _, kwargs = mock_client.messages.create.call_args
-        assert "temperature" not in kwargs
-
-
-def test_a_dropped_temperature_is_logged_not_silent():
-    AnthropicClient._warned_temperature_unsupported = False  # isolate from other tests
-
-    with patch("anthropic.Anthropic") as MockAnthropic, \
-         patch("phases.cli_client.logger") as mock_logger:
-        mock_client = MockAnthropic.return_value
-        mock_client.messages.create.return_value = _mock_response()
-
-        client = AnthropicClient(model="claude-haiku-4-5")
-        client.generate("prompt", temperature=0.01)
-
-        mock_logger.warning.assert_called_once()
-
-    AnthropicClient._warned_temperature_unsupported = False  # leave clean for other tests
-
-
-def test_the_warning_fires_once_per_process_not_once_per_call():
-    AnthropicClient._warned_temperature_unsupported = False
-
-    with patch("anthropic.Anthropic") as MockAnthropic, \
-         patch("phases.cli_client.logger") as mock_logger:
-        mock_client = MockAnthropic.return_value
-        mock_client.messages.create.return_value = _mock_response()
-
-        client = AnthropicClient(model="claude-haiku-4-5")
-        client.generate("prompt", temperature=0.01)
-        client.generate("prompt", temperature=0.01)
-        client.generate("prompt", temperature=0.01)
-
-        mock_logger.warning.assert_called_once()
-
-    AnthropicClient._warned_temperature_unsupported = False
+        assert "extra_body" not in kwargs
