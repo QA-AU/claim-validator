@@ -17,7 +17,17 @@
 // shared.bicep's matching parameters.
 
 @description('Azure region.')
-param location string = resourceGroup().location
+// Defaults to australiaeast, not resourceGroup().location: this
+// project's actual resource group (claim-validator-rg) reports
+// australiacentral as its own location — a one-time historical
+// mismatch from an early region-availability issue, permanent because
+// Azure treats a resource group's location as immutable after
+// creation (az group update has no --location option). Every real
+// resource here has always lived in australiaeast regardless; a bare
+// deploy relying on resourceGroup().location silently targeted the
+// wrong region until this default was fixed. Override explicitly if
+// this is ever deployed into a genuinely different resource group.
+param location string = 'australiaeast'
 
 @description('Short, unique prefix for resource names (e.g. "cv").')
 param namePrefix string = 'cv'

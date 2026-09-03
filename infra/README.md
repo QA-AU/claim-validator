@@ -55,11 +55,23 @@ secret sync and the Postgres AAD grant both confirmed working end to
 end. Real problems surfaced only at the real-deployment stage — neither
 `az bicep build` nor `az deployment group what-if` caught any of them:
 
-- `australiacentral` (this resource group's default region) doesn't
-  support `Microsoft.App/managedEnvironments` — `shared.bicep` and
-  `tenant.bicep` both take an explicit `location` parameter rather than
-  relying on `resourceGroup().location`; pass a region that supports
-  Container Apps (`australiaeast` was used here).
+- `australiacentral` (`claim-validator-rg`'s own reported region) doesn't
+  support `Microsoft.App/managedEnvironments` — every real resource here
+  has always lived in `australiaeast` instead. That's two related facts,
+  not one: which region actually supports Container Apps, and what this
+  specific resource group's own location metadata says (a one-time
+  mismatch from finding the first fact out live, permanent because Azure
+  treats a resource group's location as immutable after creation — no
+  `az group update --location`, no way to fix the resource group itself
+  short of creating a new one and migrating every resource into it, wildly
+  disproportionate to a metadata field that causes no functional harm).
+  Fixed at the template level instead: all three `location` parameters
+  now default to `'australiaeast'` directly rather than
+  `resourceGroup().location`, so a bare deploy with no `--parameters
+  location=...` override lands in the right place instead of failing with
+  `InvalidResourceLocation` (found live: it did, the first time this
+  mismatch actually bit a deploy). Override explicitly only if this is
+  ever deployed into a genuinely different resource group.
 - First-deploy chicken-and-egg on the registry pull: the Container App's
   own `AcrPull` role assignment can't exist until the Container App
   itself exists (its `principalId` isn't known before then), but the

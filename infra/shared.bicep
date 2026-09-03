@@ -23,7 +23,11 @@
 // Run infra/tenant.bicep once per user after this exists.
 
 @description('Azure region for all resources.')
-param location string = resourceGroup().location
+// Defaults to australiaeast, not resourceGroup().location — see
+// pg-admin-identity.bicep's location param for why (a permanent,
+// harmless metadata mismatch on this project's real resource group;
+// the default used to silently target the wrong region).
+param location string = 'australiaeast'
 
 @description('Short, unique prefix for resource names (e.g. "cv").')
 param namePrefix string = 'cv'
