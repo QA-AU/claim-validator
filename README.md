@@ -17,11 +17,9 @@ them up.
 It separately reports what the claims never address at all, since a
 claim set can be perfectly accurate and still leave real gaps.
 
-Built on top of the ontology + RAG + entailment-judge machinery from
-[llm-rag-ontology-eval-scaffold](../llm-rag-ontology-eval-scaffold), reused
-here as a library rather than rewritten. See
-[`../.claude/plans/shiny-floating-wilkes.md`](~/.claude/plans/shiny-floating-wilkes.md)
-for the design this repo was originally built from.
+Built on top of an existing ontology + RAG + entailment-judge pipeline
+from an earlier, private project — reused here as a library (see
+`phases/`'s own docstrings) rather than rewritten from scratch.
 
 For the API itself — endpoints, request/response shapes, verdict types,
 the gap report, the Excel report's sheets — see the
@@ -205,15 +203,21 @@ destructible by any one authenticated caller.
 .venv/bin/pytest tests/ -q
 ```
 
-159 tests. A mix of tests ported unmodified from the source repo
+192 tests. A mix of tests ported unmodified from the source repo
 (`test_census.py`, `test_ontology_store.py`, `test_run_tracker.py` —
 proving the reused logic still behaves as documented) and new ones for
 this repo's own code, including the async job/API layer
 (`test_api.py`, `test_jobs.py`, `test_run_validation_job.py`), Azure AD
-auth (`test_azure_auth.py`, `test_database_azure_ad.py`), and the shims
+auth (`test_azure_auth.py`, `test_database_azure_ad.py`), the shims
 that let a bare claim satisfy the reused judge/shape-check contracts
 (`test_claim_shims.py`, `test_entailment_shim.py`,
-`test_requirement_shapes_shim.py`).
+`test_requirement_shapes_shim.py`), and regression tests for real bugs
+found live rather than written ahead of time — `test_gap_report.py`'s
+fuzzy-name-matching and stemming tests (two independent census passes
+naming the same real instance differently caused false "never
+addressed" results) and `test_cli_client.py` (a requested LLM sampling
+temperature was silently being dropped, not actually reaching the
+API).
 
 `test_entailment_shim.py` is the automated version of this repo's central
 early risk: does a bare claim's shim actually satisfy `judge_entailment`'s
