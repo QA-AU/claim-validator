@@ -263,10 +263,34 @@ Repeat for each additional user with a different `tenantName` and a
 different `anthropicApiKey` — per the separate-keys-per-user decision.
 
 To use Azure AD (Entra ID) *API* auth for a tenant instead of the
-generated shared-secret token (`claimvalidator/azure_auth.py` — a
+`apiToken` shared-secret parameter (`claimvalidator/azure_auth.py` — a
 separate concern from the *database* RBAC this file is about), also pass
 `azureAdTenantId` and `azureAdClientId` for that tenant's own app
 registration.
+
+### Redeploying an existing tenant: `RoleAssignmentExists` is usually harmless
+
+Found live rotating both tenants' `apiToken`: redeploying `tenant.bicep`
+against a tenant that already exists can fail with
+`RoleAssignmentExists`, naming a role assignment's own ID — even though
+that assignment is already correct (right principal, right role, right
+scope; confirmed by reading it back directly, not assumed). This is a
+known ARM platform quirk, not a template bug:
+`Microsoft.Authorization/roleAssignments` isn't always treated as
+idempotent on redeploy the way most resource types are, even when
+Bicep computes the exact same deterministic name (`guid(...)`) both
+times.
+
+The deployment reports `"status": "Failed"` regardless — worth knowing
+before assuming the whole redeploy did nothing. In both cases so far,
+every resource *before* the role-assignment step in the dependency
+graph — the Key Vault secret this rotation actually cared about, and
+the Container App with a freshly forced revision — had already applied
+successfully. Check the thing you actually changed directly (`az
+keyvault secret show`, `az containerapp revision list`) rather than
+trusting the top-level status alone. If the real resource didn't apply,
+that's a genuine failure worth investigating — this specific error, by
+itself, isn't one.
 
 ## Auditing file share activity
 
