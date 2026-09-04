@@ -222,9 +222,21 @@ az deployment group create -g <resource-group> --name tenant-usera -f infra/tena
                pgAdminIdentityClientId=<same, "clientId" output> \
                pgAdminIdentityName=<same, "name" output> \
                anthropicApiKey=<this tenant's own key> \
+               apiToken=<a real random value, e.g. `python3 -c "import secrets; print(secrets.token_urlsafe(32))"`> \
                containerImage=<registry>/claim-validator:<tag> \
                containerRegistryName=<registry name, e.g. "myregistry">
 ```
+
+**`apiToken` isn't auto-generated, and that's deliberate.** It used to be
+computed as `uniqueString(resourceGroup().id, tenantName, deployment().name)`
+— found live, after this repo went public: that's a *deterministic hash*,
+not a secret, and two of its three inputs (the tenant name, the
+`--name tenant-usera` deployment-name convention right above) are already
+public in this file. The only thing standing between "public" and
+"derivable by formula" was the subscription ID — never meant to function
+as a secret in the first place. Generate a real random value yourself and
+pass it explicitly; there's no safe way to auto-fill a bearer token that
+guards a publicly reachable API.
 
 **Always pass an explicit `--name`, unique per tenant** (`tenant-usera`,
 `tenant-userb`, ...) — found live: `az deployment group create` defaults

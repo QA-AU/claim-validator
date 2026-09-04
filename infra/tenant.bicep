@@ -20,6 +20,8 @@
 //                  pgAdminIdentityClientId=<same, "clientId" output> \
 //                  pgAdminIdentityName=<same, "name" output> \
 //                  anthropicApiKey=<this tenant's own key> \
+//                  apiToken=<a real random value you generate — see apiToken's
+//                            own @description for why nothing auto-fills this> \
 //                  containerImage=<registry>/claim-validator:<tag> \
 //                  containerRegistryName=<registry name, e.g. "myregistry">
 
@@ -57,13 +59,17 @@ param pgAdminIdentityName string
 @description('This tenant\'s own Anthropic API key — kept separate per tenant by design (see the shared-vs-separate-keys discussion this was built from).')
 param anthropicApiKey string
 
+@secure()
+@description('This tenant\'s own bearer token for the shared-secret auth fallback — generate a real random value yourself (e.g. `python3 -c "import secrets; print(secrets.token_urlsafe(32))"`) and pass it here. Not auto-generated: it used to be computed as uniqueString(resourceGroup().id, tenantName, deployment().name), which is a deterministic hash, not a secret — two of its three inputs (tenantName, the deployment name convention) are already public in this repo\'s own docs, leaving only the subscription ID standing between "public" and "guessable by formula." Found live, on a repo that had just gone public with this API confirmed reachable from the open internet.')
+param apiToken string
+
 @description('Container image, e.g. myregistry.azurecr.io/claim-validator:latest.')
 param containerImage string
 
 @description('Name (not login server) of the Azure Container Registry containerImage is hosted in — the Container App pulls from it using its own system-assigned identity, granted AcrPull below, since the registry has admin auth disabled.')
 param containerRegistryName string
 
-@description('Azure AD tenant ID, if this tenant should use Entra ID auth instead of the shared-secret fallback. Leave empty to use the generated CLAIMVAL_API_TOKEN instead.')
+@description('Azure AD tenant ID, if this tenant should use Entra ID auth instead of the shared-secret fallback. Leave empty to use the apiToken parameter as CLAIMVAL_API_TOKEN instead.')
 param azureAdTenantId string = ''
 
 @description('Azure AD app (client) ID — this tenant\'s own app registration, required if azureAdTenantId is set.')
@@ -86,7 +92,6 @@ var keyVaultName = toLower('${take(resourceName, 9)}kv${uniqueString(resourceGro
 var containerAppName = '${tenantName}-claimval'
 var apiTokenSecretName = 'claimval-api-token'
 var anthropicKeySecretName = 'anthropic-api-key'
-var generatedApiToken = uniqueString(resourceGroup().id, tenantName, deployment().name)
 // No password anywhere in this string — CLAIMVAL_DB_AAD_AUTH=true (set
 // on the Container App below) tells db/database.py to supply a fresh
 // Azure AD token as the password at connect time instead.
@@ -191,7 +196,7 @@ resource apiTokenSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
   parent: keyVault
   name: apiTokenSecretName
   properties: {
-    value: generatedApiToken
+    value: apiToken
   }
 }
 
@@ -491,4 +496,4 @@ resource grantContainerAppDbAccess 'Microsoft.Resources/deploymentScripts@2023-0
 
 output containerAppFqdn string = containerApp.properties.configuration.ingress.fqdn
 output keyVaultName string = keyVault.name
-output generatedApiTokenSecretName string = apiTokenSecretName
+output apiTokenSecretName string = apiTokenSecretName
