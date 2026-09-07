@@ -98,6 +98,24 @@ class OntologyMeta:
     # get_or_create()): the ontology is immutable and shared, but who
     # originally paid to build it stays attributable.
     created_by: str = ""
+    # A shape-check rule set (see phases/shape_profile_inference.py), in the
+    # exact shape phases/requirement_shapes.py expects: {"requirement": {...}}.
+    # Empty until inferred — a claim validated against this ontology before
+    # then uses claimvalidator/claim_shims.py's static BARE_CLAIM_RULES, same
+    # as every ontology did before this field existed.
+    shape_profile: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+    # "default" (never attempted) | "llm" (an inferred profile is stored in
+    # shape_profile) | "llm_failed" (attempted, produced nothing usable).
+    # Its own flag rather than reusing pinned_concept_types' state: the two
+    # are conceptually independent — an ontology's schema and its shape
+    # profile can each be set (or re-set) in different runs.
+    shape_profile_source: str = "default"
+    # What the inference step changed or dropped from the model's raw
+    # proposal, and why — see shape_profile_inference.py's module docstring
+    # for what gets clamped and why. Kept even when source == "default" (a
+    # failed attempt still explains itself here rather than looking identical
+    # to "never tried").
+    shape_profile_notes: List[str] = field(default_factory=list)
     created_at: str = field(default_factory=lambda: datetime.now().isoformat())
     updated_at: str = field(default_factory=lambda: datetime.now().isoformat())
 
@@ -116,6 +134,9 @@ class OntologyMeta:
             "brief": self.brief,
             "content_hash": self.content_hash,
             "created_by": self.created_by,
+            "shape_profile": self.shape_profile,
+            "shape_profile_source": self.shape_profile_source,
+            "shape_profile_notes": self.shape_profile_notes,
             "created_at": self.created_at,
             "updated_at": self.updated_at,
         }
@@ -131,6 +152,9 @@ class OntologyMeta:
             brief=data.get("brief", {}) or {},
             content_hash=data.get("content_hash", ""),
             created_by=data.get("created_by", ""),
+            shape_profile=data.get("shape_profile", {}) or {},
+            shape_profile_source=data.get("shape_profile_source", "default"),
+            shape_profile_notes=data.get("shape_profile_notes", []) or [],
             created_at=data.get("created_at", datetime.now().isoformat()),
             updated_at=data.get("updated_at", datetime.now().isoformat()),
         )
@@ -286,6 +310,26 @@ class OntologyStore:
         meta.brief = brief.to_dict() if brief is not None else {}
         self._write_meta(meta)
         logger.info(f"Brief attached to '{meta.name}' ({len(meta.brief.get('raw', ''))} chars)")
+        return meta
+
+    def set_shape_profile(
+        self, key: str, rules: Dict[str, Dict[str, Any]], source: str, notes: List[str]
+    ) -> OntologyMeta:
+        """Attach a shape profile (see phases/shape_profile_inference.py) to
+        an ontology, so every later validation against it reuses it instead
+        of paying to infer one again. `source` is "llm" for a usable
+        inference, "llm_failed" to record that inference was attempted but
+        produced nothing usable (rules empty, notes explain why) — kept
+        distinct from "default" (never attempted at all) so a caller can tell
+        "we tried and got nothing" from "nobody asked yet"."""
+        meta = self.load_meta(key)
+        if meta is None:
+            raise ValueError(f"No such ontology: {key}")
+        meta.shape_profile = rules
+        meta.shape_profile_source = source
+        meta.shape_profile_notes = notes
+        self._write_meta(meta)
+        logger.info(f"Shape profile for '{meta.name}' set to source={source!r}")
         return meta
 
     def load_brief(self, key: str):

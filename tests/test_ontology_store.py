@@ -237,3 +237,58 @@ def test_dropping_nothing_reports_nothing(tmp_path):
     store.save_index("k", ["a chunk"], [{}])
 
     assert store.dropped_censuses == []
+
+
+def test_a_fresh_ontology_defaults_to_no_shape_profile(tmp_path):
+    store = OntologyStore(str(tmp_path))
+    meta = store.create("Fresh Doc")
+    assert meta.shape_profile == {}
+    assert meta.shape_profile_source == "default"
+    assert meta.shape_profile_notes == []
+
+
+def test_old_meta_json_without_shape_profile_fields_loads_fine(tmp_path):
+    # Backward compatibility, exactly like content_hash/created_by before it:
+    # a meta.json written before these fields existed must still load, and
+    # report the same "never attempted" state a truly fresh ontology would.
+    from phases.ontology_store import OntologyMeta
+
+    old_style = {
+        "name": "Pre-existing Doc",
+        "short_id": "ab12",
+        "background_description": "",
+        "pinned_concept_types": [],
+        "profile": "generic",
+        "brief": {},
+        "content_hash": "deadbeef",
+        "created_by": "user-a",
+        "created_at": "2026-01-01T00:00:00",
+        "updated_at": "2026-01-01T00:00:00",
+    }
+    meta = OntologyMeta.from_dict(old_style)
+    assert meta.shape_profile == {}
+    assert meta.shape_profile_source == "default"
+    assert meta.shape_profile_notes == []
+
+
+def test_set_shape_profile_persists_and_reloads(tmp_path):
+    store = OntologyStore(str(tmp_path))
+    meta = store.create("Shaped Doc")
+
+    store.set_shape_profile(
+        meta.key,
+        rules={"requirement": {"require_fields": ["title"]}},
+        source="llm",
+        notes=["inferred from 3 concept types"],
+    )
+
+    reloaded = store.load_meta(meta.key)
+    assert reloaded.shape_profile == {"requirement": {"require_fields": ["title"]}}
+    assert reloaded.shape_profile_source == "llm"
+    assert reloaded.shape_profile_notes == ["inferred from 3 concept types"]
+
+
+def test_set_shape_profile_on_unknown_key_raises_clearly(tmp_path):
+    store = OntologyStore(str(tmp_path))
+    with pytest.raises(ValueError, match="No such ontology"):
+        store.set_shape_profile("does-not-exist", rules={}, source="llm", notes=[])
