@@ -29,16 +29,25 @@ BARE_CLAIM_RULES: Dict[str, Dict[str, Any]] = {
 }
 
 
-def resolve_shape_rules(overrides: Optional[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
-    """The default, or the default with a caller's overrides merged in.
+def resolve_shape_rules(
+    overrides: Optional[Dict[str, Any]],
+    base: Optional[Dict[str, Dict[str, Any]]] = None,
+) -> Dict[str, Dict[str, Any]]:
+    """The base rules, or the base with a caller's overrides merged in.
+
+    `base` defaults to BARE_CLAIM_RULES, but a caller can pass an ontology's
+    own inferred shape profile (see phases/shape_profile_inference.py)
+    instead — a per-request override still wins over a per-ontology profile,
+    which still wins over the hardcoded default, in that order.
 
     Merged rather than replaced: a caller wanting only `require_subject: True`
     for a specialist task shouldn't also have to restate `require_fields` and
     `require_any_of` to avoid silently losing them.
     """
+    base = base or BARE_CLAIM_RULES
     if not overrides:
-        return BARE_CLAIM_RULES
-    merged = {**BARE_CLAIM_RULES["requirement"], **overrides}
+        return base
+    merged = {**base.get("requirement", {}), **overrides}
     return {"requirement": merged}
 
 
@@ -92,5 +101,8 @@ class _JudgeClaim:
         self.source_chunks = claim.source_chunks
 
 
-def shape_profile(overrides: Optional[Dict[str, Any]] = None) -> SimpleNamespace:
-    return SimpleNamespace(requirement_rules=resolve_shape_rules(overrides))
+def shape_profile(
+    overrides: Optional[Dict[str, Any]] = None,
+    base: Optional[Dict[str, Dict[str, Any]]] = None,
+) -> SimpleNamespace:
+    return SimpleNamespace(requirement_rules=resolve_shape_rules(overrides, base))

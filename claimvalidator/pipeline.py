@@ -299,11 +299,26 @@ def run_validation(
         cost_cents=phase_usage["retrieval"]["cost_cents"] if rates is not None else None,
     )
 
+    # An ontology built (or backfilled) with a shape profile carries its own
+    # rules — see phases/shape_profile_inference.py. Falls back to the
+    # hardcoded default when there isn't one (a pre-existing ontology, or
+    # inference that produced nothing usable). isinstance/truthiness-checked
+    # rather than assumed: meta.json is a file an operator could hand-edit,
+    # so "loaded without raising" isn't the same guarantee as "usable".
+    ontology_meta = store.load_meta(ontology_key)
+    ontology_shape_rules = (
+        ontology_meta.shape_profile
+        if ontology_meta and isinstance(ontology_meta.shape_profile, dict) and ontology_meta.shape_profile
+        else None
+    )
+
     shape_tracker = RunTracker(db_session, workflow_id, name=document_id or "validation",
                                 phase_name="claim_shape_check")
     shape_tracker.start()
     shape_report = check_requirement_shapes(
-        _ClaimSet(claims), profile=shape_profile(shape_rule_overrides), tracker=shape_tracker,
+        _ClaimSet(claims),
+        profile=shape_profile(shape_rule_overrides, base=ontology_shape_rules),
+        tracker=shape_tracker,
     )
     violations_by_id = {v.item_id: v.reason for v in shape_report.violations}
     # No LLM calls in this phase — it's a deterministic text check — so there
@@ -438,6 +453,13 @@ def run_validation(
         "claims_submitted": len(claims),
         "shape_checked": shape_report.checked,
         "shape_violations": len(shape_report.violations),
+        # Which shape rules actually governed this run — see
+        # phases/shape_profile_inference.py. "default"/"llm"/"llm_failed"
+        # come straight from the ontology's own metadata; the second flag
+        # says whether this specific request's own shape_rules additionally
+        # overrode whatever the ontology carried.
+        "shape_profile_source": ontology_meta.shape_profile_source if ontology_meta else "default",
+        "shape_profile_overridden_by_request": bool(shape_rule_overrides),
         "retrieval_found_nothing": found_nothing,
         "judged": len(entailment_report.judged),
         "entailed": len(entailment_report.entailed),

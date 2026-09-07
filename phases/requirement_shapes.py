@@ -76,15 +76,34 @@ def _evaluate(requirement, rule: Dict[str, Any]) -> Optional[str]:
     # an operation. The domain already declares which is which for Phase 1, so
     # the same pattern is applied here.
     pattern = rule.get("subject_pattern")
-    if subject and pattern and not re.search(pattern, subject):
-        return (
-            f"subject {subject!r} does not look like something you can test against "
-            f"— it names a thing, not an operation on it"
-        )
+    if subject and pattern:
+        # A rule's pattern can come from a caller or, since
+        # phases/shape_profile_inference.py, a model — either way it's data
+        # this function doesn't control, and an invalid regex used to raise
+        # re.error straight through this call. Caught and reported as a
+        # broken *rule*, distinct wording from a claim that just doesn't
+        # match, so a reader isn't misled into thinking their claim is the
+        # defective thing.
+        try:
+            matched = bool(re.search(pattern, subject))
+        except (re.error, TypeError) as e:
+            logger.warning(f"Invalid subject_pattern {pattern!r}: {e}")
+            return f"shape rule's subject_pattern is not usable ({e}) — flagged for review"
+        if not matched:
+            return (
+                f"subject {subject!r} does not look like something you can test against "
+                f"— it names a thing, not an operation on it"
+            )
 
     pattern = rule.get("id_pattern")
-    if pattern and not re.search(pattern, str(getattr(requirement, "id", "") or "")):
-        return f"id {getattr(requirement, 'id', '')!r} does not match the declared format"
+    if pattern:
+        try:
+            matched = bool(re.search(pattern, str(getattr(requirement, "id", "") or "")))
+        except (re.error, TypeError) as e:
+            logger.warning(f"Invalid id_pattern {pattern!r}: {e}")
+            return f"shape rule's id_pattern is not usable ({e}) — flagged for review"
+        if not matched:
+            return f"id {getattr(requirement, 'id', '')!r} does not match the declared format"
 
     return None
 

@@ -109,7 +109,15 @@ def run_validation_job(job_id: str, SessionLocal, llm_client_factory) -> None:
             store_root=config.STORE_ROOT,
             output_dir=config.OUTPUT_DIR,
             db_session=session,
-            shape_rule_overrides=request.options.shape_rules,
+            # ValidationOptions.shape_rules is a validated ShapeRuleOverrides
+            # model (or None), not a plain dict — everything downstream
+            # (resolve_shape_rules, check_requirement_shapes) still expects a
+            # plain dict, so convert at this one boundary. exclude_none so an
+            # unset field doesn't override a base rule with a literal None.
+            shape_rule_overrides=(
+                request.options.shape_rules.model_dump(exclude_none=True)
+                if request.options.shape_rules is not None else None
+            ),
             census_max_chunks=request.options.census_max_chunks,
             force_census=request.options.force_census,
             ontology_key=request.ontology_key,

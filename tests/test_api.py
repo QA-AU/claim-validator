@@ -223,6 +223,67 @@ def test_list_ontologies_includes_a_freshly_created_one(monkeypatch, tmp_path):
     assert ontologies[0]["has_index"] is False
 
 
+def test_list_ontologies_reports_shape_profile_source(monkeypatch, tmp_path):
+    from phases.ontology_store import OntologyStore
+
+    monkeypatch.setattr(config, "STORE_ROOT", str(tmp_path))
+    store = OntologyStore(root=str(tmp_path))
+    meta = store.create("Shaped Doc")
+    store._write_meta(meta)
+
+    response = client.get("/api/ontologies", headers=AUTH)
+    ontologies = response.json()["ontologies"]
+    assert ontologies[0]["shape_profile_source"] == "default"
+
+
+def test_invalid_shape_rules_regex_is_rejected_before_a_job_is_created():
+    # This is the fix for a real, pre-existing gap: shape_rules used to be
+    # an unvalidated Dict[str, Any], and phases/requirement_shapes.py's
+    # _evaluate() compiled subject_pattern with an unguarded re.search() —
+    # a bad regex reached a background job and failed it there. Now it
+    # should never get past request validation at all.
+    response = client.post(
+        "/api/validations",
+        headers=AUTH,
+        json={
+            "document": {"document_id": "test-doc", "files": []},
+            "ontology_key": "whatever",
+            "claims": [{"id": "C1", "text": "a claim"}],
+            "options": {"shape_rules": {"subject_pattern": "(unclosed"}},
+        },
+    )
+    assert response.status_code == 422
+
+
+def test_oversized_shape_rules_list_is_rejected():
+    response = client.post(
+        "/api/validations",
+        headers=AUTH,
+        json={
+            "document": {"document_id": "test-doc", "files": []},
+            "ontology_key": "whatever",
+            "claims": [{"id": "C1", "text": "a claim"}],
+            "options": {"shape_rules": {"require_fields": [f"field_{i}" for i in range(25)]}},
+        },
+    )
+    assert response.status_code == 422
+
+
+def test_valid_shape_rules_still_reach_job_creation():
+    response = client.post(
+        "/api/validations",
+        headers=AUTH,
+        json={
+            "document": {"document_id": "test-doc", "files": []},
+            "ontology_key": "whatever",
+            "claims": [{"id": "C1", "text": "a claim"}],
+            "options": {"shape_rules": {"require_subject": True, "subject_pattern": "^GET /"}},
+        },
+    )
+    assert response.status_code == 202
+    assert response.json()["status"] == "queued"
+
+
 def test_delete_ontology_route_no_longer_exists():
     """Ontologies are shared and immutable in the multi-user model — no
     authenticated caller can destroy one via the API any more."""

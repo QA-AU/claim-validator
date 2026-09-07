@@ -263,6 +263,34 @@ def run_phase1(
                     ontology_key, [ct.to_dict() for ct in ontology.concept_types]
                 )
 
+            # Propose a shape profile once, from the concept types just
+            # discovered — its own flag, not "not pinned yet", so a later
+            # re-extraction of an ontology that already has a profile never
+            # silently overwrites it. See shape_profile_inference.py's
+            # module docstring for why the result is clamped before storage.
+            meta = store.load_meta(ontology_key)
+            if meta and meta.shape_profile_source == "default" and ontology.concept_types:
+                from phases.shape_profile_inference import (
+                    ShapeProfileInferenceError,
+                    infer_shape_profile,
+                )
+
+                try:
+                    inferred = infer_shape_profile(
+                        [ct.to_dict() for ct in ontology.concept_types],
+                        background_description,
+                        llm_client,
+                    )
+                    store.set_shape_profile(
+                        ontology_key, inferred.rules, "llm", inferred.notes
+                    )
+                except ShapeProfileInferenceError as e:
+                    logger.warning(
+                        f"[Phase 1] Shape profile inference produced nothing usable "
+                        f"({e}) — keeping the static default"
+                    )
+                    store.set_shape_profile(ontology_key, {}, "llm_failed", [str(e)])
+
             # Gaps the brief predicted become open checklist items. They are
             # still classified against the document before anyone is asked —
             # the brief is a person's belief about the document, not a finding.

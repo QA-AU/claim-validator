@@ -160,6 +160,39 @@ def build_ontology(request: OntologyBuildRequest, http_request: Request, backgro
         store, request.files, request.document_id, created_by=owner_user_id
     )
     if reused or store.has_index(key):
+        # infer_shape_profile is a per-request opt-in — an already-built
+        # ontology otherwise stays exactly as it was, matching the "never
+        # silent" requirement: nothing infers a profile onto a reused
+        # ontology unless the caller explicitly asks for it this time.
+        if request.infer_shape_profile:
+            meta = store.load_meta(key)
+            if meta and meta.shape_profile_source == "default":
+                def _backfill_shape_profile():
+                    try:
+                        from phases.shape_profile_inference import (
+                            ShapeProfileInferenceError,
+                            infer_shape_profile,
+                        )
+
+                        inferred = infer_shape_profile(
+                            meta.pinned_concept_types,
+                            meta.background_description,
+                            config.llm_client_factory(),
+                        )
+                        store.set_shape_profile(key, inferred.rules, "llm", inferred.notes)
+                    except ShapeProfileInferenceError as e:
+                        logger.warning(
+                            f"Shape profile backfill for {key!r} produced nothing "
+                            f"usable ({e})"
+                        )
+                        store.set_shape_profile(key, {}, "llm_failed", [str(e)])
+                    except Exception:
+                        # Own top-level guard, matching _build()'s below — a bug
+                        # here must never surface as an unhandled exception
+                        # inside a BackgroundTasks callback.
+                        logger.exception(f"Shape profile backfill for {key!r} failed")
+
+                background.add_task(_backfill_shape_profile)
         return {"key": key, "reused": True}
 
     session = _session()
@@ -219,6 +252,7 @@ def list_ontologies():
             "created_by": meta.created_by,
             "created_at": meta.created_at,
             "content_hash": meta.content_hash,
+            "shape_profile_source": meta.shape_profile_source,
             "has_index": store.has_index(meta.key),
             "concept_types": len((current or {}).get("concept_types", [])),
         })

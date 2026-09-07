@@ -196,6 +196,24 @@ _METRIC_EXPLANATIONS = {
         "judgment call.",
         VERDICT_QUALITY,
     ),
+    "shape_profile_source": (
+        "Which shape rules actually governed the Shape checks tab for this run "
+        "— the static default, or a profile an LLM proposed once when this "
+        "ontology was built or backfilled (see phases/shape_profile_inference.py).",
+        "\"default\" = static built-in rule. \"llm\" = an inferred profile is "
+        "in effect. \"llm_failed\" = inference was attempted and produced "
+        "nothing usable, so the static default was used instead — check "
+        "GET /api/ontologies/{key}'s shape_profile_notes for why.",
+        "Informational",
+    ),
+    "shape_profile_overridden_by_request": (
+        "Whether this specific request's own options.shape_rules additionally "
+        "overrode whatever the ontology's profile (or the default) already set.",
+        "True means the rules actually applied may differ from what "
+        "shape_profile_source alone would suggest — check the request's own "
+        "options.shape_rules to see what changed.",
+        "Informational",
+    ),
     "retrieval_found_nothing": (
         "Claims for which no supporting passage was found anywhere in the "
         "document.",
