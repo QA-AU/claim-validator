@@ -292,6 +292,51 @@ trusting the top-level status alone. If the real resource didn't apply,
 that's a genuine failure worth investigating — this specific error, by
 itself, isn't one.
 
+### Shipping an application code change — no Bicep involved
+
+Most changes to this project are plain Python, not infrastructure — the
+LLM-inferred shape-profile feature (`phases/shape_profile_inference.py`
+and its wiring) shipped this way, with zero changes to any `.bicep` file.
+The tenant's Container App already exists; only its image needs to
+change.
+
+**Build and push with `az acr build`, not local `docker buildx`:**
+
+```bash
+az acr build --registry <registry name> --platform linux/amd64 \
+  -t claim-validator:latest .
+```
+
+`az acr build` builds inside ACR itself, on the platform you tell it to —
+it sidesteps the Apple Silicon `arm64`-by-default trap documented above
+entirely, without needing Docker (or `buildx`) installed locally at all.
+Prefer it over `docker buildx build --platform linux/amd64 --push` for
+exactly that reason; the Dockerfile's own comment still documents the
+`buildx` path for anyone building from a machine where `az acr build`
+isn't available.
+
+**Force a new revision so the running Container App actually pulls it** —
+pushing a new `:latest` tag alone changes nothing already-running:
+
+```bash
+az containerapp update -g <resource-group> -n <tenant>-claimval \
+  --revision-suffix <anything-unique, e.g. a timestamp> \
+  --image <registry>.azurecr.io/claim-validator:latest
+```
+
+Same reasoning as `template.revisionSuffix` in `tenant.bicep` itself
+(see "Identity changes... don't by themselves force a new revision"
+above) — an explicit, unique `--revision-suffix` is what actually causes
+Container Apps to pull the new image and start a new revision, rather
+than an existing revision quietly continuing to run stale code
+indefinitely. Confirm the new revision is the one actually serving
+traffic before trusting anything tested against it:
+
+```bash
+az containerapp revision list -g <resource-group> -n <tenant>-claimval \
+  --query "[].{name:name, active:properties.active, running:properties.runningState}" -o table
+```
+
 ## Auditing file share activity
 
 Every read, write, and delete against a tenant's file share lands in the
