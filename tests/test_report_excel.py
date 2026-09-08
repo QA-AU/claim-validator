@@ -11,7 +11,7 @@ from claimvalidator.report_excel import _claim_ids_for, _claims_sheet
 def _claim(id, **overrides):
     defaults = dict(
         id=id, text="t", shape_ok=True, shape_reason=None, verdict="entails",
-        judged=True, agreement="3/3", cited_chunks=[0], reason="r",
+        judged=True, agreement="3/3", cited_chunks=[0], cited_passages=[], reason="r",
     )
     defaults.update(overrides)
     return ClaimResult(**defaults)
@@ -38,6 +38,32 @@ def test_claims_sheet_writes_a_source_ref_column():
     # defuse guard, see phases/report_style.py) — "'-" is the correct,
     # already-defused value, not a bug in this new column.
     assert sheet.cell(row=3, column=len(header)).value == "'-"
+
+
+def test_claims_sheet_writes_a_cited_passages_column():
+    from openpyxl import Workbook
+
+    claims = [
+        _claim("C1", cited_chunks=[0, 1], cited_passages=["first passage", "second passage"]),
+        _claim("C2"),  # no citations — the no_evidence case, must not break
+    ]
+    result = ValidationResult(ontology_key="k", ontology_reused=False, per_claim=claims)
+
+    wb = Workbook()
+    _claims_sheet(wb, result)
+    sheet = wb["Claims"]
+
+    header = [c.value for c in sheet[1]]
+    assert "Cited passages" in header
+    idx = header.index("Cited passages") + 1
+    # sits between "Cited chunks" and "Reason", not just present anywhere
+    assert header[idx - 2] == "Cited chunks"
+    assert header[idx] == "Reason"
+
+    assert sheet.cell(row=2, column=idx).value == "[0] first passage\n[1] second passage"
+    # "-" alone starts with a formula-trigger character (write_row's own
+    # defuse guard) — "'-" is the correct, already-defused value.
+    assert sheet.cell(row=3, column=idx).value == "'-"
 
 
 def test_a_metric_with_no_claim_id_meaning_says_so_rather_than_blank():
