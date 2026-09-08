@@ -79,6 +79,16 @@ def _agreement_label(verdict) -> Optional[str]:
     return f"{verdict.agreement}/{verdict.runs_judged}"
 
 
+def _resolve_cited_passages(indices: List[int], chunks: List[str]) -> List[str]:
+    """The chunk text behind each cited index, in the same order — what a
+    human actually needs to independently verify a verdict, since a bare
+    integer means nothing without this lookup. Indices come from retrieval
+    against this same `chunks` list, so they should always be in range —
+    guarded anyway, matching this project's own habit of not assuming a
+    range invariant holds just because it's supposed to."""
+    return [chunks[i] for i in indices if isinstance(i, int) and 0 <= i < len(chunks)]
+
+
 def _usage_delta(before: Dict[str, int], after: Dict[str, int], rates) -> Dict[str, Any]:
     """What one phase spent: the difference between two snapshots of the same
     client, so a run with several phases can say which one was expensive
@@ -107,6 +117,18 @@ class ClaimResult:
     agreement: Optional[str]
     cited_chunks: List[int]
     reason: str
+    # The actual retrieved passage text behind each index in cited_chunks,
+    # same order — added because a bare integer means nothing to a human
+    # trying to independently verify a contradicts/mentions_only/no_evidence
+    # verdict without it. Deliberately not a Q&A endpoint: the source
+    # document stays the thing a person proofreads, this just puts the
+    # exact passage the judge already saw right next to its verdict instead
+    # of making a reader search the source blind. Defaulted (not placed
+    # next to cited_chunks above) only because dataclasses require every
+    # non-default field before any defaulted one, and cited_chunks/reason
+    # above have no default — see to_dict() below for the reading order
+    # that actually matters.
+    cited_passages: List[str] = field(default_factory=list)
     # Per-claim escalation detail — without this, the aggregate `escalated`
     # count in quality says *how many* verdicts a stronger model settled, but
     # not *which* claim or what it changed from, which is the whole point of
@@ -141,6 +163,7 @@ class ClaimResult:
             "judged": self.judged,
             "agreement": self.agreement,
             "cited_chunks": self.cited_chunks,
+            "cited_passages": self.cited_passages,
             "reason": self.reason,
             "escalated": self.escalated,
             "escalated_from": self.escalated_from,
@@ -399,6 +422,7 @@ def run_validation(
             judged=bool(verdict and verdict.judged),
             agreement=_agreement_label(verdict),
             cited_chunks=claim.source_chunks,
+            cited_passages=_resolve_cited_passages(claim.source_chunks, chunks),
             reason=(verdict.reason if verdict else "no citation found by retrieval"),
             escalated=bool(verdict and verdict.escalated),
             escalated_from=(verdict.escalated_from if verdict else ""),

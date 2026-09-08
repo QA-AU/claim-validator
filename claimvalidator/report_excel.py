@@ -56,12 +56,24 @@ def build_excel_report(result: ValidationResult, path: str) -> None:
     wb.save(path)
 
 
+def _cited_passages_cell(claim) -> str:
+    """One line per cited passage, each numbered against the matching index
+    in "Cited chunks" — same multi-item-in-one-cell idiom _gaps_sheet
+    already uses for never_addressed_detail below, not a new join style.
+    zip() truncates to the shorter list if an out-of-range index got
+    dropped upstream (see pipeline.py::_resolve_cited_passages) — that
+    index simply has no passage line, nothing else misaligns."""
+    if not claim.cited_passages:
+        return "-"
+    return "\n".join(f"[{idx}] {text}" for idx, text in zip(claim.cited_chunks, claim.cited_passages))
+
+
 def _claims_sheet(wb, result: ValidationResult) -> None:
     from openpyxl.styles import Font, PatternFill
 
     sheet = wb.create_sheet("Claims")
     sheet.append(["Claim ID", "Text", "Shape", "Verdict", "Quality classification",
-                  "Agreement", "Escalation", "Cited chunks", "Reason", "Source ref"])
+                  "Agreement", "Escalation", "Cited chunks", "Cited passages", "Reason", "Source ref"])
 
     r = 2
     for claim in result.per_claim:
@@ -84,6 +96,7 @@ def _claims_sheet(wb, result: ValidationResult) -> None:
             claim.agreement or "-",
             escalation_note,
             ", ".join(str(c) for c in claim.cited_chunks) or "-",
+            _cited_passages_cell(claim),
             claim.reason,
             claim.source_ref or "-",
         ], wrap_all_from=2)
@@ -96,7 +109,7 @@ def _claims_sheet(wb, result: ValidationResult) -> None:
             ecell.font = Font(name="Arial", size=10, bold=True, italic=True)
         r += 1
 
-    style_sheet(sheet, 1, [12, 42, 24, 16, 20, 12, 24, 14, 42, 24])
+    style_sheet(sheet, 1, [12, 42, 24, 16, 20, 12, 24, 14, 60, 42, 24])
 
 
 def _shape_pass_reason(claim) -> str:
