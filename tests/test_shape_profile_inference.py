@@ -50,6 +50,18 @@ def test_invalid_subject_pattern_is_dropped_not_raised():
     assert any("not a valid regex" in n for n in result.notes)
 
 
+def test_subject_pattern_without_wants_check_is_dropped_with_a_note():
+    # Found live: an earlier version of this function silently dropped a
+    # subject_pattern the model offered without also setting
+    # wants_subject_check. Every drop path needs its own explanation.
+    client = FakeLLMClient([json.dumps({
+        "subject_pattern": "^(GET|POST)\\s+/",
+    })])
+    result = infer_shape_profile([], "", client)
+    assert "subject_pattern" not in result.rules["requirement"]
+    assert any("wants_subject_check" in n for n in result.notes)
+
+
 def test_valid_subject_pattern_is_kept_as_informational():
     client = FakeLLMClient([json.dumps({
         "wants_subject_check": True,

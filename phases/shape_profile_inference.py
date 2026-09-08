@@ -209,9 +209,22 @@ real opinion on. Omit any key you have nothing useful to say about."""
             f"determined by the document, so no document-derived pattern can validly match it"
         )
 
+    # Every path that could end with a proposed subject_pattern going nowhere
+    # gets a note — found live: an earlier version of this function only
+    # logged the regex-invalid case, so a pattern the model offered without
+    # also setting wants_subject_check was dropped in total silence. That's
+    # the one thing this module's whole design is supposed to never do.
     subject_pattern = ""
+    raw_pattern = data.get("subject_pattern")
     if data.get("wants_subject_check") is True:
-        subject_pattern = _clamp_pattern(data.get("subject_pattern"), "subject_pattern", notes)
+        subject_pattern = _clamp_pattern(raw_pattern, "subject_pattern", notes)
+    elif raw_pattern:
+        notes.append(
+            f"subject_pattern: model proposed {str(raw_pattern)[:MAX_FIELD_CHARS]!r} without "
+            f"setting wants_subject_check — not stored. A pattern offered without the model's "
+            f"own signal that this document has real, distinguishable subjects isn't safe to "
+            f"treat as informational either"
+        )
 
     description = str(data.get("description") or "").strip()[:MAX_DESCRIPTION_CHARS]
 
