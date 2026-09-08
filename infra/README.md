@@ -337,6 +337,8 @@ az containerapp revision list -g <resource-group> -n <tenant>-claimval \
   --query "[].{name:name, active:properties.active, running:properties.runningState}" -o table
 ```
 
+Repeated for real twice more since (the `shape_profile_inference.py` note-logging fix, then the `cited_passages` feature) — both times the exact same three commands, no new surprises. Worth trusting as the standard path for a plain code change now, not a one-off that happened to work.
+
 ## Auditing file share activity
 
 Every read, write, and delete against a tenant's file share lands in the
