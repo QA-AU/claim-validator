@@ -62,10 +62,23 @@ def _cited_passages_cell(claim) -> str:
     already uses for never_addressed_detail below, not a new join style.
     zip() truncates to the shorter list if an out-of-range index got
     dropped upstream (see pipeline.py::_resolve_cited_passages) — that
-    index simply has no passage line, nothing else misaligns."""
+    index simply has no passage line, nothing else misaligns.
+
+    The source filename is only shown when a claim's own citations span
+    more than one file — meaningless noise on every single-document
+    validation tested so far, real information once an ontology spans a
+    document set (see pipeline.py::_resolve_cited_sources)."""
     if not claim.cited_passages:
         return "-"
-    return "\n".join(f"[{idx}] {text}" for idx, text in zip(claim.cited_chunks, claim.cited_passages))
+    sources = getattr(claim, "cited_sources", None) or []
+    multi_source = len(set(sources)) > 1
+    lines = []
+    for i, (idx, text) in enumerate(zip(claim.cited_chunks, claim.cited_passages)):
+        prefix = f"[{idx}]"
+        if multi_source and i < len(sources):
+            prefix += f" ({sources[i]})"
+        lines.append(f"{prefix} {text}")
+    return "\n".join(lines)
 
 
 def _claims_sheet(wb, result: ValidationResult) -> None:

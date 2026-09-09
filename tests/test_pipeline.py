@@ -6,7 +6,41 @@ is covered by scripts/validate_claims.py and manual verification instead.
 
 import pytest
 
-from claimvalidator.pipeline import ClaimResult, _resolve_cited_passages, run_validation
+from claimvalidator.pipeline import (
+    ClaimResult,
+    _resolve_cited_passages,
+    _resolve_cited_sources,
+    run_validation,
+)
+
+
+class _FakeSearcher:
+    """Stand-in for RAGIndexSearcher — only source_of() is exercised here."""
+
+    def __init__(self, sources):
+        self._sources = sources
+
+    def source_of(self, i):
+        return self._sources.get(i, "unknown")
+
+
+def test_resolve_cited_sources_maps_indices_in_order():
+    searcher = _FakeSearcher({0: "a.txt", 1: "b.txt"})
+    assert _resolve_cited_sources([0, 1], searcher) == ["a.txt", "b.txt"]
+
+
+def test_resolve_cited_sources_empty_input():
+    assert _resolve_cited_sources([], _FakeSearcher({})) == []
+
+
+def test_claim_result_cited_sources_defaults_to_empty_list():
+    result = ClaimResult(
+        id="C1", text="a claim", shape_ok=True, shape_reason=None,
+        verdict="entails", judged=True, agreement="3/3", cited_chunks=[0],
+        reason="r",
+    )
+    assert result.cited_sources == []
+    assert result.to_dict()["cited_sources"] == []
 
 
 def test_resolve_cited_passages_maps_indices_in_order():

@@ -89,6 +89,16 @@ def _resolve_cited_passages(indices: List[int], chunks: List[str]) -> List[str]:
     return [chunks[i] for i in indices if isinstance(i, int) and 0 <= i < len(chunks)]
 
 
+def _resolve_cited_sources(indices: List[int], searcher) -> List[str]:
+    """Which file each cited passage actually came from — meaningless for a
+    single-document ontology, but real once one spans a document set (see
+    document_identity.py's own "document set" language). searcher.source_of()
+    already exists and is already bounds-checked (phases/phase1_rag_indexer.py)
+    — this just calls it for each cited index, in the same order as
+    cited_chunks/cited_passages."""
+    return [searcher.source_of(i) for i in indices if isinstance(i, int)]
+
+
 def _usage_delta(before: Dict[str, int], after: Dict[str, int], rates) -> Dict[str, Any]:
     """What one phase spent: the difference between two snapshots of the same
     client, so a run with several phases can say which one was expensive
@@ -129,6 +139,12 @@ class ClaimResult:
     # above have no default — see to_dict() below for the reading order
     # that actually matters.
     cited_passages: List[str] = field(default_factory=list)
+    # Which file each cited passage came from, same order as cited_chunks/
+    # cited_passages — meaningless for a single document, real once an
+    # ontology spans a document set (document_identity.py's own term).
+    # Without this, a caller validating against several combined documents
+    # gets the real passage text but no way to tell which file it's in.
+    cited_sources: List[str] = field(default_factory=list)
     # Per-claim escalation detail — without this, the aggregate `escalated`
     # count in quality says *how many* verdicts a stronger model settled, but
     # not *which* claim or what it changed from, which is the whole point of
@@ -164,6 +180,7 @@ class ClaimResult:
             "agreement": self.agreement,
             "cited_chunks": self.cited_chunks,
             "cited_passages": self.cited_passages,
+            "cited_sources": self.cited_sources,
             "reason": self.reason,
             "escalated": self.escalated,
             "escalated_from": self.escalated_from,
@@ -423,6 +440,7 @@ def run_validation(
             agreement=_agreement_label(verdict),
             cited_chunks=claim.source_chunks,
             cited_passages=_resolve_cited_passages(claim.source_chunks, chunks),
+            cited_sources=_resolve_cited_sources(claim.source_chunks, searcher),
             reason=(verdict.reason if verdict else "no citation found by retrieval"),
             escalated=bool(verdict and verdict.escalated),
             escalated_from=(verdict.escalated_from if verdict else ""),
