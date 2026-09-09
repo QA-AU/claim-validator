@@ -270,7 +270,7 @@
 
     <figure>
       <div class="diagram-scroll">
-        <svg viewBox="0 0 900 700" role="img" aria-label="Two isolated tenant stacks, each with its own Container App, Key Vault and storage share, sharing only a Container Apps environment and a Postgres server that hosts one database per tenant; each Container App calls Anthropic independently using its own key.">
+        <svg viewBox="0 0 900 820" role="img" aria-label="Two isolated tenant stacks, each with its own Container App, Key Vault and storage share, connected by RBAC role assignments rather than shared credentials. They share a Container Apps environment, a Postgres server that hosts one database per tenant (own AAD role, granted once via a shared pg-admin-identity used only at setup time), a container registry (image pull only, via AcrPull), and an audit-log workspace (activity metadata only, never document content). Each Container App calls Anthropic independently using its own key.">
           <defs>
             <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
               <path d="M0,0 L10,5 L0,10 z" fill="currentColor" />
@@ -288,10 +288,12 @@
           <text x="725" y="47" text-anchor="middle" font-family="IBM Plex Mono" font-size="13" font-weight="500" fill="var(--tenant-b)">User B</text>
 
           <line x1="175" y1="64" x2="175" y2="140" stroke="var(--tenant-a)" stroke-width="1.4" marker-end="url(#arrow)"/>
-          <text x="182" y="105" font-family="IBM Plex Mono" font-size="10.5" fill="var(--tenant-a)">own bearer token</text>
+          <text x="182" y="98" font-family="IBM Plex Mono" font-size="10.5" fill="var(--tenant-a)">own bearer token</text>
+          <text x="182" y="113" font-family="IBM Plex Mono" font-size="9" fill="var(--tenant-a)" opacity="0.8">uploads doc · submits claims</text>
 
           <line x1="725" y1="64" x2="725" y2="140" stroke="var(--tenant-b)" stroke-width="1.4" marker-end="url(#arrow)"/>
-          <text x="629" y="105" font-family="IBM Plex Mono" font-size="10.5" fill="var(--tenant-b)" text-anchor="end">own bearer token</text>
+          <text x="629" y="98" font-family="IBM Plex Mono" font-size="10.5" fill="var(--tenant-b)" text-anchor="end">own bearer token</text>
+          <text x="629" y="113" font-family="IBM Plex Mono" font-size="9" fill="var(--tenant-b)" text-anchor="end" opacity="0.8">uploads doc · submits claims</text>
 
           <!-- tenant A silo -->
           <rect x="30" y="100" width="400" height="300" rx="10" fill="none" stroke="var(--tenant-a)" stroke-width="1.4" stroke-dasharray="5 4"/>
@@ -308,6 +310,7 @@
           <line x1="240" y1="166" x2="278" y2="166" stroke="var(--line-strong)" stroke-width="1.4" marker-end="url(#arrow)"/>
           <text x="259" y="158" text-anchor="middle" font-family="IBM Plex Mono" font-size="8.5" fill="var(--muted)">reads via</text>
           <text x="259" y="200" text-anchor="middle" font-family="IBM Plex Mono" font-size="8.5" fill="var(--muted)">managed identity</text>
+          <text x="259" y="212" text-anchor="middle" font-family="IBM Plex Mono" font-size="8" fill="var(--faint)">(RBAC: Key Vault Secrets User)</text>
 
           <rect x="65" y="235" width="175" height="52" rx="6" fill="var(--surface-2)" stroke="var(--line-strong)"/>
           <text x="152" y="257" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" font-weight="500" fill="var(--ink)">Azure Files</text>
@@ -347,21 +350,44 @@
           <text x="525" y="520" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="var(--tenant-b)">db: userb</text>
           <text x="375" y="540" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="var(--muted)">separate database,</text>
           <text x="525" y="540" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="var(--muted)">not just a table</text>
+          <text x="450" y="555" text-anchor="middle" font-family="IBM Plex Mono" font-size="8" fill="var(--faint)">RBAC: own Postgres AAD role, granted once via pg-admin-identity — never a tenant's own identity</text>
 
           <path d="M 152 287 L 152 400 L 375 400 L 375 468" fill="none" stroke="var(--tenant-a)" stroke-width="1.5" marker-end="url(#arrow)"/>
           <path d="M 592 287 L 592 400 L 525 400 L 525 468" fill="none" stroke="var(--tenant-b)" stroke-width="1.5" marker-end="url(#arrow)"/>
 
-          <!-- anthropic -->
-          <rect x="350" y="625" width="200" height="50" rx="8" fill="none" stroke="var(--accent)" stroke-width="1.6"/>
-          <text x="450" y="655" text-anchor="middle" font-family="IBM Plex Mono" font-size="12.5" font-weight="500" fill="var(--accent)">Anthropic API</text>
+          <!-- second shared band: registry + log analytics — the two other
+               genuinely shared resources beyond compute and Postgres, both
+               reached the same way from either tenant. Only tenant A's own
+               connectors are drawn to keep this legible; tenant B connects
+               identically, noted rather than duplicated (see figcaption). -->
+          <rect x="20" y="585" width="420" height="115" rx="10" fill="var(--surface-2)" stroke="var(--accent)" stroke-width="1.2" stroke-dasharray="5 4"/>
+          <text x="36" y="605" font-family="IBM Plex Mono" font-size="10.5" font-weight="500" letter-spacing="0.03em" fill="var(--accent)">SHARED — MORE AZURE RESOURCES</text>
 
-          <path d="M 152 287 L 152 610 L 348 645" fill="none" stroke="var(--accent)" stroke-width="1.4" stroke-dasharray="3 3" marker-end="url(#arrowAccent)"/>
-          <path d="M 592 287 L 592 610 L 552 645" fill="none" stroke="var(--accent)" stroke-width="1.4" stroke-dasharray="3 3" marker-end="url(#arrowAccent)"/>
-          <text x="90" y="605" font-family="IBM Plex Mono" font-size="9" fill="var(--accent)">own key</text>
-          <text x="655" y="605" font-family="IBM Plex Mono" font-size="9" fill="var(--accent)">own key</text>
+          <rect x="45" y="618" width="150" height="60" rx="6" fill="var(--surface)" stroke="var(--line-strong)"/>
+          <text x="120" y="638" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" font-weight="500" fill="var(--ink)">Container Registry</text>
+          <text x="120" y="653" text-anchor="middle" font-family="IBM Plex Mono" font-size="8.5" fill="var(--muted)">image pull only</text>
+          <text x="120" y="666" text-anchor="middle" font-family="IBM Plex Mono" font-size="8" fill="var(--faint)">RBAC: AcrPull</text>
+
+          <rect x="215" y="618" width="205" height="60" rx="6" fill="var(--surface)" stroke="var(--line-strong)"/>
+          <text x="317" y="638" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" font-weight="500" fill="var(--ink)">Log Analytics — cv-logs</text>
+          <text x="317" y="653" text-anchor="middle" font-family="IBM Plex Mono" font-size="8.5" fill="var(--muted)">file share + Postgres audit</text>
+          <text x="317" y="666" text-anchor="middle" font-family="IBM Plex Mono" font-size="8" fill="var(--faint)">metadata only, never document content</text>
+
+          <path d="M 200 192 L 200 225 L 255 225 L 255 585 L 120 585 L 120 616" fill="none" stroke="var(--tenant-a)" stroke-width="1.3" marker-end="url(#arrow)"/>
+          <path d="M 200 192 L 200 225 L 255 225 L 255 585 L 317 585 L 317 616" fill="none" stroke="var(--tenant-a)" stroke-width="1.3" marker-end="url(#arrow)"/>
+          <text x="440" y="628" font-family="IBM Plex Mono" font-size="9" fill="var(--faint)">userb connects to both the same way — one line drawn, not two, for legibility</text>
+
+          <!-- anthropic -->
+          <rect x="350" y="725" width="200" height="50" rx="8" fill="none" stroke="var(--accent)" stroke-width="1.6"/>
+          <text x="450" y="755" text-anchor="middle" font-family="IBM Plex Mono" font-size="12.5" font-weight="500" fill="var(--accent)">Anthropic API</text>
+
+          <path d="M 152 287 L 152 600 L 388 725" fill="none" stroke="var(--accent)" stroke-width="1.4" stroke-dasharray="3 3" marker-end="url(#arrowAccent)"/>
+          <path d="M 592 287 L 592 600 L 512 725" fill="none" stroke="var(--accent)" stroke-width="1.4" stroke-dasharray="3 3" marker-end="url(#arrowAccent)"/>
+          <text x="90" y="595" font-family="IBM Plex Mono" font-size="9" fill="var(--accent)">own key</text>
+          <text x="655" y="595" font-family="IBM Plex Mono" font-size="9" fill="var(--accent)">own key</text>
         </svg>
       </div>
-      <figcaption>Two structurally identical stacks with no connection between them. The only lines that cross a tenant's own dashed boundary are the ones reaching the shared Postgres server (into that tenant's own database only) and Anthropic (using that tenant's own key only) — everything else stays inside the silo.</figcaption>
+      <figcaption>Two structurally identical stacks with no connection between them. The only lines that cross a tenant's own dashed boundary are the ones reaching the shared Postgres server (into that tenant's own database only), the shared registry (image pull, RBAC-scoped), the shared audit log (activity metadata only, never document content), and Anthropic (using that tenant's own key only) — everything else stays inside the silo. Every cross-silo line is a named RBAC role assignment, not an open network path.</figcaption>
       <div class="legend">
         <span><span class="swatch" style="background:var(--tenant-a)"></span>Tenant A</span>
         <span><span class="swatch" style="background:var(--tenant-b)"></span>Tenant B</span>
@@ -449,6 +475,140 @@
         </svg>
       </div>
       <figcaption>Only two response paths are the point of this diagram: the accent line at 202 — the request returns before any model has been called — and the divider marking where synchronous handling ends and the actual work begins.</figcaption>
+    </figure>
+  </section>
+
+  <section class="block">
+    <h2>Internal Code Flow <span class="tag">— one validation job, file by file</span></h2>
+    <p class="intro">The previous diagram's background steps, expanded — every box below is a real function in a real file, in the order it's actually called. Traced directly from the current imports in <code>claimvalidator/pipeline.py</code>, not summarized from memory.</p>
+
+    <figure>
+      <div class="diagram-scroll">
+        <svg viewBox="0 0 900 1460" role="img" aria-label="The real function call chain for one validation job: api.py's submit_validation creates a job and returns 202, jobs.py's run_validation_job calls pipeline.py's run_validation, which resolves or builds the ontology (phase1_orchestrator.py and its own sub-calls, only on a cache miss, including this session's own shape_profile_inference.py addition), retrieves passages per claim, runs the free shape check, runs the entailment judge, builds the gap report, and assembles the result with cited passages. Control returns to jobs.py to write the Excel report, mark the job done, and fire a webhook if configured. The client later reads the job status and downloads the report via two more api.py routes.">
+          <defs>
+            <marker id="arrow3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="currentColor" />
+            </marker>
+          </defs>
+
+          <text x="450" y="26" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" font-weight="500" letter-spacing="0.04em" fill="var(--accent)">HTTP LAYER — claimvalidator/api.py</text>
+          <rect x="220" y="38" width="460" height="52" rx="6" fill="var(--surface)" stroke="var(--line-strong)" stroke-width="1.4"/>
+          <text x="450" y="60" text-anchor="middle" font-family="IBM Plex Mono" font-size="12.5" font-weight="500" fill="var(--ink)">submit_validation()</text>
+          <text x="450" y="76" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="var(--muted)">POST /api/validations — creates the Job row, queues the background task</text>
+
+          <line x1="450" y1="90" x2="450" y2="118" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#arrow3)"/>
+          <text x="460" y="108" font-family="IBM Plex Mono" font-size="10" fill="var(--accent)">returns 202 immediately · background.add_task(run_validation_job)</text>
+
+          <text x="450" y="140" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" font-weight="500" letter-spacing="0.04em" fill="var(--accent)">BACKGROUND WORKER — claimvalidator/jobs.py</text>
+          <rect x="220" y="152" width="460" height="48" rx="6" fill="var(--surface)" stroke="var(--line-strong)" stroke-width="1.4"/>
+          <text x="450" y="172" text-anchor="middle" font-family="IBM Plex Mono" font-size="12.5" font-weight="500" fill="var(--ink)">run_validation_job()</text>
+          <text x="450" y="188" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="var(--muted)">loads the Job row, calls the orchestrator below</text>
+
+          <line x1="450" y1="200" x2="450" y2="228" stroke="var(--line-strong)" stroke-width="1.4" marker-end="url(#arrow3)"/>
+
+          <text x="450" y="248" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" font-weight="500" letter-spacing="0.04em" fill="var(--accent)">ORCHESTRATION — claimvalidator/pipeline.py :: run_validation()</text>
+
+          <rect x="220" y="260" width="460" height="44" rx="6" fill="var(--surface)" stroke="var(--line-strong)" stroke-width="1.4"/>
+          <text x="450" y="278" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" font-weight="500" fill="var(--ink)">resolve_ontology_key()</text>
+          <text x="450" y="294" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="var(--muted)">claimvalidator/document_identity.py — or a direct lookup if ontology_key was given</text>
+          <line x1="450" y1="304" x2="450" y2="326" stroke="var(--line-strong)" stroke-width="1.3" marker-end="url(#arrow3)"/>
+
+          <rect x="220" y="326" width="460" height="44" rx="6" fill="var(--surface)" stroke="var(--line-strong)" stroke-width="1.4"/>
+          <text x="450" y="344" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" font-weight="500" fill="var(--ink)">OntologyStore.has_index()</text>
+          <text x="450" y="360" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="var(--muted)">phases/ontology_store.py — a cache hit skips straight past the next group</text>
+          <line x1="450" y1="370" x2="450" y2="396" stroke="var(--line-strong)" stroke-width="1.3" stroke-dasharray="3 3" marker-end="url(#arrow3)"/>
+          <text x="700" y="390" text-anchor="end" font-family="IBM Plex Mono" font-size="9.5" fill="var(--faint)">cache miss only ↓</text>
+
+          <rect x="195" y="396" width="510" height="270" rx="10" fill="var(--surface-2)" stroke="var(--tenant-a)" stroke-width="1.2" stroke-dasharray="5 4"/>
+          <text x="212" y="416" font-family="IBM Plex Mono" font-size="10" font-weight="500" letter-spacing="0.03em" fill="var(--tenant-a)">phases/phase1_orchestrator.py :: run_phase1() — cache miss only</text>
+
+          <rect x="220" y="426" width="460" height="38" rx="5" fill="var(--surface)" stroke="var(--line)"/>
+          <text x="450" y="442" text-anchor="middle" font-family="IBM Plex Mono" font-size="11.5" font-weight="500" fill="var(--ink)">load_multiple_documents()</text>
+          <text x="450" y="456" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="var(--muted)">phase1_document_loader.py</text>
+          <line x1="450" y1="464" x2="450" y2="480" stroke="var(--line)" stroke-width="1.2" marker-end="url(#arrow3)"/>
+
+          <rect x="220" y="480" width="460" height="38" rx="5" fill="var(--surface)" stroke="var(--line)"/>
+          <text x="450" y="496" text-anchor="middle" font-family="IBM Plex Mono" font-size="11.5" font-weight="500" fill="var(--ink)">create_rag_index()</text>
+          <text x="450" y="510" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="var(--muted)">phase1_rag_indexer.py — chunks the document, builds the lexical index</text>
+          <line x1="450" y1="518" x2="450" y2="534" stroke="var(--line)" stroke-width="1.2" marker-end="url(#arrow3)"/>
+
+          <rect x="220" y="534" width="460" height="38" rx="5" fill="var(--surface)" stroke="var(--line)"/>
+          <text x="450" y="550" text-anchor="middle" font-family="IBM Plex Mono" font-size="11.5" font-weight="500" fill="var(--ink)">extract_ontology_generic()</text>
+          <text x="450" y="564" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="var(--muted)">phase1_generic_extractor.py — concept types discovered per document</text>
+          <line x1="450" y1="572" x2="450" y2="588" stroke="var(--line)" stroke-width="1.2" marker-end="url(#arrow3)"/>
+
+          <rect x="220" y="588" width="460" height="38" rx="5" fill="var(--surface)" stroke="var(--line)"/>
+          <text x="450" y="604" text-anchor="middle" font-family="IBM Plex Mono" font-size="11.5" font-weight="500" fill="var(--ink)">run_phase1b()</text>
+          <text x="450" y="618" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="var(--muted)">phase1b_validation.py — completeness + type checks on the ontology itself</text>
+          <line x1="450" y1="626" x2="450" y2="642" stroke="var(--line)" stroke-width="1.2" marker-end="url(#arrow3)"/>
+
+          <rect x="220" y="642" width="460" height="38" rx="5" fill="var(--surface)" stroke="var(--accent)" stroke-width="1.2"/>
+          <text x="450" y="658" text-anchor="middle" font-family="IBM Plex Mono" font-size="11.5" font-weight="500" fill="var(--accent)">infer_shape_profile()</text>
+          <text x="450" y="672" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="var(--faint)">shape_profile_inference.py — one LLM call, once per document</text>
+
+          <line x1="450" y1="666" x2="450" y2="700" stroke="var(--line-strong)" stroke-width="1.4" marker-end="url(#arrow3)"/>
+          <text x="700" y="690" text-anchor="end" font-family="IBM Plex Mono" font-size="9.5" fill="var(--faint)">for every submitted claim ↓</text>
+
+          <rect x="220" y="700" width="460" height="50" rx="6" fill="var(--surface)" stroke="var(--line-strong)" stroke-width="1.4"/>
+          <text x="450" y="720" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" font-weight="500" fill="var(--ink)">retrieve_for_claim()</text>
+          <text x="450" y="736" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="var(--muted)">claim_retrieval.py — → RAGIndexSearcher.retrieve_union(), falls back to expand_query()</text>
+          <line x1="450" y1="750" x2="450" y2="776" stroke="var(--line-strong)" stroke-width="1.4" marker-end="url(#arrow3)"/>
+
+          <rect x="220" y="776" width="460" height="44" rx="6" fill="var(--surface)" stroke="var(--line-strong)" stroke-width="1.4"/>
+          <text x="450" y="794" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" font-weight="500" fill="var(--ink)">check_requirement_shapes()</text>
+          <text x="450" y="810" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="var(--muted)">requirement_shapes.py — via claim_shims.py's shims; free, deterministic, no model call</text>
+          <line x1="450" y1="820" x2="450" y2="846" stroke="var(--line-strong)" stroke-width="1.4" marker-end="url(#arrow3)"/>
+
+          <rect x="220" y="846" width="460" height="50" rx="6" fill="var(--surface)" stroke="var(--line-strong)" stroke-width="1.4"/>
+          <text x="450" y="866" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" font-weight="500" fill="var(--ink)">judge_entailment()</text>
+          <text x="450" y="882" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="var(--muted)">entailment.py — 3-run majority vote (or logprob_judge.py's one-call path)</text>
+          <line x1="450" y1="896" x2="450" y2="922" stroke="var(--line-strong)" stroke-width="1.4" marker-end="url(#arrow3)"/>
+
+          <rect x="220" y="922" width="460" height="44" rx="6" fill="var(--surface)" stroke="var(--line-strong)" stroke-width="1.4"/>
+          <text x="450" y="940" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" font-weight="500" fill="var(--ink)">build_gap_report()</text>
+          <text x="450" y="956" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="var(--muted)">gap_report.py — independent concept census; never merged with the verdict above</text>
+          <line x1="450" y1="966" x2="450" y2="992" stroke="var(--line-strong)" stroke-width="1.4" marker-end="url(#arrow3)"/>
+
+          <rect x="220" y="992" width="460" height="50" rx="6" fill="var(--surface)" stroke="var(--accent)" stroke-width="1.4"/>
+          <text x="450" y="1012" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" font-weight="500" fill="var(--accent)">ClaimResult(...) → ValidationResult</text>
+          <text x="450" y="1028" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="var(--faint)">back in pipeline.py — cited_passages resolved here too, same chunks, no new LLM call</text>
+
+          <line x1="450" y1="1042" x2="450" y2="1068" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#arrow3)"/>
+          <text x="460" y="1060" font-family="IBM Plex Mono" font-size="10" fill="var(--accent)">returned to jobs.py</text>
+
+          <text x="450" y="1090" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" font-weight="500" letter-spacing="0.04em" fill="var(--accent)">BACK IN claimvalidator/jobs.py</text>
+
+          <rect x="220" y="1102" width="460" height="44" rx="6" fill="var(--surface)" stroke="var(--line-strong)" stroke-width="1.4"/>
+          <text x="450" y="1120" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" font-weight="500" fill="var(--ink)">build_excel_report()</text>
+          <text x="450" y="1136" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="var(--muted)">report_excel.py — from the same in-memory result; JSON and Excel can never drift apart</text>
+          <line x1="450" y1="1146" x2="450" y2="1168" stroke="var(--line-strong)" stroke-width="1.4" marker-end="url(#arrow3)"/>
+
+          <rect x="220" y="1168" width="460" height="38" rx="6" fill="var(--surface)" stroke="var(--line-strong)" stroke-width="1.4"/>
+          <text x="450" y="1184" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" font-weight="500" fill="var(--ink)">mark_done()</text>
+          <text x="450" y="1198" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="var(--muted)">jobs.py — Job row updated, status: done</text>
+          <line x1="450" y1="1206" x2="450" y2="1228" stroke="var(--line-strong)" stroke-width="1.2" stroke-dasharray="3 3" marker-end="url(#arrow3)"/>
+          <text x="700" y="1222" text-anchor="end" font-family="IBM Plex Mono" font-size="9.5" fill="var(--faint)">only if webhook_url was set</text>
+
+          <rect x="220" y="1228" width="460" height="38" rx="6" fill="none" stroke="var(--line)" stroke-width="1.2" stroke-dasharray="4 3"/>
+          <text x="450" y="1244" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" font-weight="500" fill="var(--muted)">deliver()</text>
+          <text x="450" y="1258" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="var(--faint)">webhooks.py — optional, fires once, best-effort</text>
+
+          <line x1="450" y1="1266" x2="450" y2="1296" stroke="var(--accent)" stroke-width="1.4" stroke-dasharray="3 3" marker-end="url(#arrow3)"/>
+          <text x="460" y="1286" font-family="IBM Plex Mono" font-size="10" fill="var(--accent)">later, on the client's own polling schedule</text>
+
+          <text x="450" y="1316" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" font-weight="500" letter-spacing="0.04em" fill="var(--accent)">CLIENT-DRIVEN — back in claimvalidator/api.py</text>
+
+          <rect x="220" y="1328" width="460" height="44" rx="6" fill="var(--surface)" stroke="var(--line-strong)" stroke-width="1.4"/>
+          <text x="450" y="1346" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" font-weight="500" fill="var(--ink)">get_validation()</text>
+          <text x="450" y="1362" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="var(--muted)">GET /api/validations/{job_id} — reads the Job row directly, no re-computation</text>
+          <line x1="450" y1="1372" x2="450" y2="1394" stroke="var(--line-strong)" stroke-width="1.4" marker-end="url(#arrow3)"/>
+
+          <rect x="220" y="1394" width="460" height="44" rx="6" fill="var(--surface)" stroke="var(--line-strong)" stroke-width="1.4"/>
+          <text x="450" y="1412" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" font-weight="500" fill="var(--ink)">get_validation_report()</text>
+          <text x="450" y="1428" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="var(--muted)">GET .../report — FileResponse streams the .xlsx from the mounted share</text>
+        </svg>
+      </div>
+      <figcaption>Every box is one real function, and every arrow is one real call, traced from <code>claimvalidator/pipeline.py</code>'s own imports rather than summarized from memory. The dashed frame is the one genuinely conditional block — it only runs on an ontology cache miss; everything above and below it runs on every single job.</figcaption>
     </figure>
   </section>
 
