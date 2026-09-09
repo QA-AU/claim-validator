@@ -182,8 +182,10 @@ diagnose the first time (see infra/README.md's postmortem).
 - `infra/` — the three Bicep templates and their own README covering the
   full deployment sequence and every real bug found deploying them.
 - `docs/` — the user-facing API manual, the architecture/flow diagrams,
-  and the original Azure-readiness assessment this deployment was scoped
-  from.
+  the original Azure-readiness assessment this deployment was scoped
+  from, and an [executive overview](docs/executive-overview.md) (the
+  problem, how this solves it, where it's used — no implementation
+  detail).
 - `scripts/validate_claims.py` — the no-DB, no-HTTP path; also the script
   that proved the shims against a real model before anything else was
   built on top of them.
