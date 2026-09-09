@@ -5,13 +5,14 @@ a Quality tab metric like "contradicted: 2" was actually about.
 """
 
 from claimvalidator.pipeline import ClaimResult, ValidationResult
-from claimvalidator.report_excel import _claim_ids_for, _claims_sheet
+from claimvalidator.report_excel import _cited_passages_cell, _claim_ids_for, _claims_sheet
 
 
 def _claim(id, **overrides):
     defaults = dict(
         id=id, text="t", shape_ok=True, shape_reason=None, verdict="entails",
-        judged=True, agreement="3/3", cited_chunks=[0], cited_passages=[], reason="r",
+        judged=True, agreement="3/3", cited_chunks=[0], cited_passages=[],
+        cited_sources=[], reason="r",
     )
     defaults.update(overrides)
     return ClaimResult(**defaults)
@@ -64,6 +65,24 @@ def test_claims_sheet_writes_a_cited_passages_column():
     # "-" alone starts with a formula-trigger character (write_row's own
     # defuse guard) — "'-" is the correct, already-defused value.
     assert sheet.cell(row=3, column=idx).value == "'-"
+
+
+def test_cited_passages_cell_shows_source_only_when_it_actually_varies():
+    # A single-document validation (everything tested live so far) must
+    # render exactly as it did before this field existed — no visual noise
+    # for the common case.
+    single_source = _claim(
+        "C1", cited_chunks=[0, 1], cited_passages=["p1", "p2"],
+        cited_sources=["a.txt", "a.txt"],
+    )
+    assert _cited_passages_cell(single_source) == "[0] p1\n[1] p2"
+
+    # Only once an ontology spans more than one file does the source appear.
+    multi_source = _claim(
+        "C2", cited_chunks=[0, 1], cited_passages=["p1", "p2"],
+        cited_sources=["a.txt", "b.txt"],
+    )
+    assert _cited_passages_cell(multi_source) == "[0] (a.txt) p1\n[1] (b.txt) p2"
 
 
 def test_a_metric_with_no_claim_id_meaning_says_so_rather_than_blank():
