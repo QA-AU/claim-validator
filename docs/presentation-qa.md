@@ -14,6 +14,12 @@ No single pass/fail. Every claim gets one of four verdicts: `entails` (supported
 **Q: How do you know the verdict itself is reliable, not just confidently wrong?**
 Each claim is judged three separate times and reported by majority vote; the agreement ratio (e.g. `2/3`) ships with the verdict, not thrown away. Low agreement is itself a signal worth reviewing even when the majority verdict looks fine.
 
+**Q: Has anyone scored it against a known answer key, not just eyeballed the output?**
+Yes — most recently against a real [OpenSpec](https://github.com/Fission-AI/OpenSpec) capability spec (the `openspec list` command spec, from spec-driven-development tooling). 16 claims were hand-written with a target verdict fixed *before* the run — 7 to entail, 5 to contradict, 2 `mentions_only`, 2 `no_evidence` — then scored against that key. Result: **14/16 exact**. Both misses were boundary calls (`mentions_only` vs `contradicts`; `no_evidence` vs `mentions_only`, with the judge itself splitting 2/3 on that one), not wrong-direction errors — nothing false was called `entails`, and no real contradiction was missed. Full breakdown is in the paper's Evidence section.
+
+**Q: That compound-claim issue (#3) — how often does it actually bite?**
+Not always. In the OpenSpec test above, two claims were built specifically to trigger it: one bundling four separately-true assertions, one with a single false clause set between two true ones. Both were judged correctly 3/3 — the false-clause one with that clause named in the judge's reason. The failure mode is real but conditional: it depends on retrieval surfacing every part of the claim, not on the claim being compound per se.
+
 **Q: If it flags something, how does a QA engineer actually verify it without re-reading the whole document?**
 That's what `cited_passages` (shipped and live-tested) is for — the actual sentences the judge read, in citation order, right next to the verdict, both in the JSON and the Excel report's "Cited passages" column. No more starting from a bare chunk index.
 
@@ -47,6 +53,9 @@ Anthropic Claude models, selected via a model-tier config rather than hardcoded 
 
 **Q: How expensive is a validation run — are you calling the LLM per claim, three times, plus retrieval?**
 Retrieval and the ontology extraction are one-time, cached by content hash. Judging is 3 calls per claim (for the majority-vote design). Cited-passage and cited-source surfacing added *zero* new LLM calls — that data was already loaded in memory at verdict-construction time; it was just never returned before.
+
+**Q: Give me a real cost figure for a typical run.**
+A 16-claim validation against a ~3.7 KB document, judged by Haiku (the default cheap tier): 22 LLM calls total (18 entailment + 4 gap-report), ~77K tokens (70.7K in / 6.0K out). The ontology build for that document was a separate one-time call. That's the whole job — from the OpenSpec answer-key test.
 
 **Q: Is the ontology extraction generic, or does it assume a domain (e.g. requirements)?**
 Generic — concept types are discovered per-document, not assumed in advance. It's been run against software requirements, legal text, a compliance standard (RFC 2119), and plain public-health claims, same pipeline, no reconfiguration.
@@ -100,6 +109,9 @@ No — `content_hash()` hashes the bytes of every file in the set together in an
 
 **Q: What actually happens on a 3-way judge split with no clear majority?**
 The result records `judged: True` but `decided: False` — surfaced in the report as "undecided," distinct from a claim that was never judged at all (e.g., because it failed the shape check first). It's not silently coerced into whichever verdict happened to come first.
+
+**Q: How clean is the line between `no_evidence` and `mentions_only` in practice?**
+It's the fuzziest of the four boundaries, and the agreement ratio tells you when a verdict is sitting on it. `no_evidence` means retrieval found nothing on-topic at all; `mentions_only` means it found something adjacent that just doesn't address the specific claim — and "adjacent" is a judgment call. In the OpenSpec test, a claim about a CLI flag the document never mentions was labelled `no_evidence` in the answer key; the tool returned `mentions_only` at 2/3 agreement, anchoring on the document's "output format" requirement as an on-topic passage that stays silent on the flag. Defensible either way — and the split `2/3` is the visible signal that it's a borderline call, not a confident one.
 
 **Q: Why is `require_subject` forced to `False` in the shape-check rules, even when a shape profile is inferred?**
 Because the bare-claim shim (`_ShapeClaim`) has no real subject/criteria field structure — those checks were designed for structured software requirements (`GET /projects`-style), not free-text `id + text` claims. Clamping happens regardless of what the LLM proposes when inferring a shape profile: `require_subject` is always forced `False`, `id_pattern` is always dropped, and `"expected_behavior"` is force-injected into `require_any_of`. A pattern the model proposes without also setting `wants_subject_check` is logged as a note but explicitly not stored — a real defect this design point closes: a proposed pattern with no signal that the document even has distinguishable subjects isn't safe to silently apply as a filter.
