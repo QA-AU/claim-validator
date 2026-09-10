@@ -1,0 +1,167 @@
+[
+  {
+    "id": "visual-regression-gate.R1",
+    "text": "The gate SHALL open each supplied page in headless Chromium at the caller-specified viewport size and capture a full-page screenshot.",
+    "source_ref": "spec.md › Requirement: Page capture"
+  },
+  {
+    "id": "visual-regression-gate.R1.S1.A1",
+    "text": "When a page URL and a viewport size are supplied, open the page in headless Chromium at that viewport.",
+    "source_ref": "spec.md › Requirement: Page capture › Scenario: A page is captured › THEN[1]"
+  },
+  {
+    "id": "visual-regression-gate.R1.S1.A2",
+    "text": "When a page URL and a viewport size are supplied, capture a screenshot once the page has settled.",
+    "source_ref": "spec.md › Requirement: Page capture › Scenario: A page is captured › AND[2]"
+  },
+  {
+    "id": "visual-regression-gate.R2",
+    "text": "The gate SHALL wait for the network to be idle and for all web fonts to have finished loading before it captures a screenshot.",
+    "source_ref": "spec.md › Requirement: Readiness wait before capture"
+  },
+  {
+    "id": "visual-regression-gate.R2.S1.A1",
+    "text": "When the page has in-flight network requests or unloaded web fonts, wait until the network has been idle for 500 ms.",
+    "source_ref": "spec.md › Requirement: Readiness wait before capture › Scenario: A page is still loading resources › THEN[1]"
+  },
+  {
+    "id": "visual-regression-gate.R2.S1.A2",
+    "text": "When the page has in-flight network requests or unloaded web fonts, wait until `document.fonts.ready` has resolved.",
+    "source_ref": "spec.md › Requirement: Readiness wait before capture › Scenario: A page is still loading resources › AND[2]"
+  },
+  {
+    "id": "visual-regression-gate.R2.S1.A3",
+    "text": "When the page has in-flight network requests or unloaded web fonts, only then capture the screenshot.",
+    "source_ref": "spec.md › Requirement: Readiness wait before capture › Scenario: A page is still loading resources › AND[3]"
+  },
+  {
+    "id": "visual-regression-gate.R3",
+    "text": "The gate SHALL compare each captured screenshot to the stored baseline image for that page, pixel by pixel.",
+    "source_ref": "spec.md › Requirement: Baseline comparison"
+  },
+  {
+    "id": "visual-regression-gate.R3.S1.A1",
+    "text": "When a page has a stored baseline, compare the new screenshot to it pixel by pixel.",
+    "source_ref": "spec.md › Requirement: Baseline comparison › Scenario: A baseline exists for the page › THEN[1]"
+  },
+  {
+    "id": "visual-regression-gate.R3.S1.A2",
+    "text": "When a page has a stored baseline, compute the percentage of pixels that differ.",
+    "source_ref": "spec.md › Requirement: Baseline comparison › Scenario: A baseline exists for the page › AND[2]"
+  },
+  {
+    "id": "visual-regression-gate.R4",
+    "text": "The gate SHALL fail a page when more than 1% of its pixels differ from the baseline, and pass it otherwise.",
+    "source_ref": "spec.md › Requirement: Difference threshold"
+  },
+  {
+    "id": "visual-regression-gate.R4.S1.A1",
+    "text": "When 0.5% of a page's pixels differ from its baseline, pass the page.",
+    "source_ref": "spec.md › Requirement: Difference threshold › Scenario: A page has changed slightly › THEN[1]"
+  },
+  {
+    "id": "visual-regression-gate.R4.S2.A1",
+    "text": "When 3% of a page's pixels differ from its baseline, fail the page.",
+    "source_ref": "spec.md › Requirement: Difference threshold › Scenario: A page has changed substantially › THEN[1]"
+  },
+  {
+    "id": "visual-regression-gate.R5",
+    "text": "The gate SHALL exclude caller-specified regions, identified by CSS selector, from the comparison by masking them in both images first.",
+    "source_ref": "spec.md › Requirement: Masked regions"
+  },
+  {
+    "id": "visual-regression-gate.R5.S1.A1",
+    "text": "When the caller supplies CSS selectors for regions to ignore, fill those regions with a flat colour in both the baseline and the new screenshot.",
+    "source_ref": "spec.md › Requirement: Masked regions › Scenario: A page declares masked regions › THEN[1]"
+  },
+  {
+    "id": "visual-regression-gate.R5.S1.A2",
+    "text": "When the caller supplies CSS selectors for regions to ignore, compare the masked images.",
+    "source_ref": "spec.md › Requirement: Masked regions › Scenario: A page declares masked regions › AND[2]"
+  },
+  {
+    "id": "visual-regression-gate.R6",
+    "text": "The gate SHALL store the captured screenshot as the baseline and pass the page when no baseline yet exists for it.",
+    "source_ref": "spec.md › Requirement: First run for a page"
+  },
+  {
+    "id": "visual-regression-gate.R6.S1.A1",
+    "text": "When a page has no stored baseline, save the current screenshot as that page's baseline.",
+    "source_ref": "spec.md › Requirement: First run for a page › Scenario: A page is seen for the first time › THEN[1]"
+  },
+  {
+    "id": "visual-regression-gate.R6.S1.A2",
+    "text": "When a page has no stored baseline, report the page as passed.",
+    "source_ref": "spec.md › Requirement: First run for a page › Scenario: A page is seen for the first time › AND[2]"
+  },
+  {
+    "id": "visual-regression-gate.R7",
+    "text": "The gate SHALL update a page's baseline automatically when the difference is below 2%, and SHALL otherwise require the caller to pass `--update-baselines`.",
+    "source_ref": "spec.md › Requirement: Baseline update policy"
+  },
+  {
+    "id": "visual-regression-gate.R7.S1.A1",
+    "text": "When a page differs from its baseline by less than 2%, replace the stored baseline with the new screenshot.",
+    "source_ref": "spec.md › Requirement: Baseline update policy › Scenario: A small change is detected › THEN[1]"
+  },
+  {
+    "id": "visual-regression-gate.R7.S2.A1",
+    "text": "When a page differs from its baseline by 2% or more, leave the baseline unchanged unless `--update-baselines` was passed.",
+    "source_ref": "spec.md › Requirement: Baseline update policy › Scenario: A large change is detected › THEN[1]"
+  },
+  {
+    "id": "visual-regression-gate.R8",
+    "text": "The gate SHALL capture every page at 2x device pixel ratio for retina fidelity.",
+    "source_ref": "spec.md › Requirement: Device pixel ratio"
+  },
+  {
+    "id": "visual-regression-gate.R8.S1.A1",
+    "text": "When a screenshot is taken, render the page at a device pixel ratio of 2.",
+    "source_ref": "spec.md › Requirement: Device pixel ratio › Scenario: A page is captured › THEN[1]"
+  },
+  {
+    "id": "visual-regression-gate.R9",
+    "text": "The gate SHALL produce an HTML report showing the baseline, current, and diff image for every page, side by side.",
+    "source_ref": "spec.md › Requirement: Report output"
+  },
+  {
+    "id": "visual-regression-gate.R9.S1.A1",
+    "text": "When every page has been compared, write an HTML report.",
+    "source_ref": "spec.md › Requirement: Report output › Scenario: A run completes › THEN[1]"
+  },
+  {
+    "id": "visual-regression-gate.R9.S1.A2",
+    "text": "When every page has been compared, include, per page, the baseline image, the current image, and a diff image.",
+    "source_ref": "spec.md › Requirement: Report output › Scenario: A run completes › AND[2]"
+  },
+  {
+    "id": "visual-regression-gate.R10",
+    "text": "The gate SHALL run an axe-core accessibility scan on every page and fail the page when a serious or critical violation is found.",
+    "source_ref": "spec.md › Requirement: Accessibility check"
+  },
+  {
+    "id": "visual-regression-gate.R10.S1.A1",
+    "text": "When axe-core reports a violation of impact `serious` or `critical`, fail the page.",
+    "source_ref": "spec.md › Requirement: Accessibility check › Scenario: A page has an accessibility violation › THEN[1]"
+  },
+  {
+    "id": "visual-regression-gate.R10.S1.A2",
+    "text": "When axe-core reports a violation of impact `serious` or `critical`, list the violation in the report.",
+    "source_ref": "spec.md › Requirement: Accessibility check › Scenario: A page has an accessibility violation › AND[2]"
+  },
+  {
+    "id": "visual-regression-gate.R11",
+    "text": "The gate SHALL additionally capture each page in headless Firefox and headless WebKit and compare each against a per-browser baseline.",
+    "source_ref": "spec.md › Requirement: Cross-browser capture"
+  },
+  {
+    "id": "visual-regression-gate.R11.S1.A1",
+    "text": "When a page is submitted for comparison, capture it in Chromium, Firefox, and WebKit.",
+    "source_ref": "spec.md › Requirement: Cross-browser capture › Scenario: A page is checked across browsers › THEN[1]"
+  },
+  {
+    "id": "visual-regression-gate.R11.S1.A2",
+    "text": "When a page is submitted for comparison, compare each capture against that browser's own baseline.",
+    "source_ref": "spec.md › Requirement: Cross-browser capture › Scenario: A page is checked across browsers › AND[2]"
+  }
+]

@@ -1,0 +1,167 @@
+[
+  {
+    "id": "contract-verifier.R1",
+    "text": "The verifier SHALL accept an OpenAPI 3.x document supplied as either YAML or JSON and parse it into an internal operation list.",
+    "source_ref": "spec.md › Requirement: OpenAPI document loading"
+  },
+  {
+    "id": "contract-verifier.R1.S1.A1",
+    "text": "When the caller passes a file ending in `.yaml` or `.yml`, parse it as YAML.",
+    "source_ref": "spec.md › Requirement: OpenAPI document loading › Scenario: A YAML document is supplied › THEN[1]"
+  },
+  {
+    "id": "contract-verifier.R1.S1.A2",
+    "text": "When the caller passes a file ending in `.yaml` or `.yml`, produce one internal operation entry per path-and-method pair.",
+    "source_ref": "spec.md › Requirement: OpenAPI document loading › Scenario: A YAML document is supplied › AND[2]"
+  },
+  {
+    "id": "contract-verifier.R1.S2.A1",
+    "text": "When the caller passes a file ending in `.json`, parse it as JSON.",
+    "source_ref": "spec.md › Requirement: OpenAPI document loading › Scenario: A JSON document is supplied › THEN[1]"
+  },
+  {
+    "id": "contract-verifier.R1.S2.A2",
+    "text": "When the caller passes a file ending in `.json`, produce the same internal operation list as the equivalent YAML.",
+    "source_ref": "spec.md › Requirement: OpenAPI document loading › Scenario: A JSON document is supplied › AND[2]"
+  },
+  {
+    "id": "contract-verifier.R2",
+    "text": "The verifier SHALL build exactly one request per operation, preferring the `example` values declared in the document and falling back to values generated from the parameter or schema type when no example is given.",
+    "source_ref": "spec.md › Requirement: Request generation per operation"
+  },
+  {
+    "id": "contract-verifier.R2.S1.A1",
+    "text": "When an operation's parameters and request body all declare `example` values, use those example values verbatim in the generated request.",
+    "source_ref": "spec.md › Requirement: Request generation per operation › Scenario: An operation declares examples › THEN[1]"
+  },
+  {
+    "id": "contract-verifier.R2.S2.A1",
+    "text": "When an operation parameter has a type but no `example`, generate a value of that type (string, integer, boolean, array, object).",
+    "source_ref": "spec.md › Requirement: Request generation per operation › Scenario: An operation declares no examples › THEN[1]"
+  },
+  {
+    "id": "contract-verifier.R3",
+    "text": "The verifier SHALL check that each response's status code is documented for that operation and that the response body validates against the schema the document associates with that status code.",
+    "source_ref": "spec.md › Requirement: Response validation"
+  },
+  {
+    "id": "contract-verifier.R3.S1.A1",
+    "text": "When the service returns a status code not listed for the operation, mark the operation failed.",
+    "source_ref": "spec.md › Requirement: Response validation › Scenario: An undocumented status code is returned › THEN[1]"
+  },
+  {
+    "id": "contract-verifier.R3.S1.A2",
+    "text": "When the service returns a status code not listed for the operation, record the returned status and the list of documented statuses.",
+    "source_ref": "spec.md › Requirement: Response validation › Scenario: An undocumented status code is returned › AND[2]"
+  },
+  {
+    "id": "contract-verifier.R3.S2.A1",
+    "text": "When the response body omits a field the schema marks as required, mark the operation failed.",
+    "source_ref": "spec.md › Requirement: Response validation › Scenario: The response body is missing a required field › THEN[1]"
+  },
+  {
+    "id": "contract-verifier.R3.S2.A2",
+    "text": "When the response body omits a field the schema marks as required, record the missing field's name.",
+    "source_ref": "spec.md › Requirement: Response validation › Scenario: The response body is missing a required field › AND[2]"
+  },
+  {
+    "id": "contract-verifier.R4",
+    "text": "The verifier SHALL attach the caller-supplied bearer token to the `Authorization` header of every request it sends, without modification.",
+    "source_ref": "spec.md › Requirement: Authentication passthrough"
+  },
+  {
+    "id": "contract-verifier.R4.S1.A1",
+    "text": "When the caller provides a bearer token, every generated request carries `Authorization: Bearer <token>`.",
+    "source_ref": "spec.md › Requirement: Authentication passthrough › Scenario: A bearer token is supplied › THEN[1]"
+  },
+  {
+    "id": "contract-verifier.R5",
+    "text": "The verifier SHALL record the operation, the expected value, and the actual value for every failed check, and SHALL continue checking the remaining operations.",
+    "source_ref": "spec.md › Requirement: Failure handling"
+  },
+  {
+    "id": "contract-verifier.R5.S1.A1",
+    "text": "When an operation's response fails a check, append its failure detail to the report.",
+    "source_ref": "spec.md › Requirement: Failure handling › Scenario: An operation fails midway through a run › THEN[1]"
+  },
+  {
+    "id": "contract-verifier.R5.S1.A2",
+    "text": "When an operation's response fails a check, proceed to the next operation without aborting the run.",
+    "source_ref": "spec.md › Requirement: Failure handling › Scenario: An operation fails midway through a run › AND[2]"
+  },
+  {
+    "id": "contract-verifier.R6",
+    "text": "The verifier SHALL send no more than 25 requests per second to the target service.",
+    "source_ref": "spec.md › Requirement: Rate limiting"
+  },
+  {
+    "id": "contract-verifier.R6.S1.A1",
+    "text": "When the document contains more operations than the per-second limit, spread the requests so no one-second window exceeds 25 requests.",
+    "source_ref": "spec.md › Requirement: Rate limiting › Scenario: A large document is verified › THEN[1]"
+  },
+  {
+    "id": "contract-verifier.R7",
+    "text": "The verifier SHALL retry a failed request up to three times with exponential backoff before marking the operation failed.",
+    "source_ref": "spec.md › Requirement: Retry on transient failure"
+  },
+  {
+    "id": "contract-verifier.R7.S1.A1",
+    "text": "When a request receives an HTTP 503 response, retry the request after a growing delay, up to three attempts.",
+    "source_ref": "spec.md › Requirement: Retry on transient failure › Scenario: A request returns 503 › THEN[1]"
+  },
+  {
+    "id": "contract-verifier.R7.S1.A2",
+    "text": "When a request receives an HTTP 503 response, mark the operation failed only if all attempts fail.",
+    "source_ref": "spec.md › Requirement: Retry on transient failure › Scenario: A request returns 503 › AND[2]"
+  },
+  {
+    "id": "contract-verifier.R8",
+    "text": "The verifier SHALL emit a single JSON report containing the run totals (operations checked, passed, failed) and a per-operation detail list.",
+    "source_ref": "spec.md › Requirement: Report format"
+  },
+  {
+    "id": "contract-verifier.R8.S1.A1",
+    "text": "When every selected operation has been checked, write a JSON object with `checked`, `passed`, and `failed` counts.",
+    "source_ref": "spec.md › Requirement: Report format › Scenario: A run completes › THEN[1]"
+  },
+  {
+    "id": "contract-verifier.R8.S1.A2",
+    "text": "When every selected operation has been checked, include a `operations` array with one entry per operation and its result.",
+    "source_ref": "spec.md › Requirement: Report format › Scenario: A run completes › AND[2]"
+  },
+  {
+    "id": "contract-verifier.R9",
+    "text": "The verifier SHALL skip `POST`, `PUT`, `PATCH`, and `DELETE` operations unless the caller explicitly enables write operations.",
+    "source_ref": "spec.md › Requirement: Write-operation protection"
+  },
+  {
+    "id": "contract-verifier.R9.S1.A1",
+    "text": "When the caller does not pass `--include-writes`, exercise only `GET` and `HEAD` operations.",
+    "source_ref": "spec.md › Requirement: Write-operation protection › Scenario: Writes are not enabled › THEN[1]"
+  },
+  {
+    "id": "contract-verifier.R9.S1.A2",
+    "text": "When the caller does not pass `--include-writes`, list each skipped write operation in the report as `skipped`.",
+    "source_ref": "spec.md › Requirement: Write-operation protection › Scenario: Writes are not enabled › AND[2]"
+  },
+  {
+    "id": "contract-verifier.R10",
+    "text": "The verifier SHALL run up to 8 operations concurrently to reduce total run time.",
+    "source_ref": "spec.md › Requirement: Parallel execution"
+  },
+  {
+    "id": "contract-verifier.R10.S1.A1",
+    "text": "When more than 8 operations remain to be checked, keep 8 requests in flight at once until the queue drains.",
+    "source_ref": "spec.md › Requirement: Parallel execution › Scenario: A run has many independent operations › THEN[1]"
+  },
+  {
+    "id": "contract-verifier.R11",
+    "text": "The verifier SHALL delete any resources it creates during a write-enabled run before the run finishes.",
+    "source_ref": "spec.md › Requirement: Created-resource cleanup"
+  },
+  {
+    "id": "contract-verifier.R11.S1.A1",
+    "text": "When a `POST` operation creates a resource during the run, issue the corresponding `DELETE` for that resource before reporting.",
+    "source_ref": "spec.md › Requirement: Created-resource cleanup › Scenario: A write-enabled run creates a resource › THEN[1]"
+  }
+]

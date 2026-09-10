@@ -226,9 +226,15 @@ def test_provenance_map_is_keyed_by_claim_id_and_carries_origin():
 
 # ---- golden fixtures ----------------------------------------------------------
 
+EXAMPLES = ROOT / "examples"
+
 @pytest.mark.parametrize("spec,golden,extra", [
     (CLI_LIST, FIX / "cli-list.claims.json", []),
     (SAMPLE_CHANGE, FIX / "sample-change.claims.json", ["--include-removed"]),
+    (EXAMPLES / "api-testing" / "openspec" / "specs",
+     EXAMPLES / "api-testing" / "expected-claims.json", []),
+    (EXAMPLES / "ui-testing" / "openspec" / "specs",
+     EXAMPLES / "ui-testing" / "expected-claims.json", []),
 ])
 def test_cli_output_matches_committed_golden_file(spec, golden, extra):
     result = subprocess.run(
@@ -236,3 +242,18 @@ def test_cli_output_matches_committed_golden_file(spec, golden, extra):
         capture_output=True, text=True, check=True,
     )
     assert json.loads(result.stdout) == json.loads(golden.read_text())
+
+
+def test_the_shipped_examples_have_the_verdict_seeds_their_readmes_promise():
+    # Each example README lists requirements deliberately written to disagree
+    # with or overreach the brief. If the spec text is edited, this catches
+    # a seed silently disappearing.
+    api = json.loads((EXAMPLES / "api-testing" / "expected-claims.json").read_text())
+    api_by_id = {c["id"]: c["text"] for c in api}
+    assert "25 requests per second" in api_by_id["contract-verifier.R6"]        # brief: 10
+    assert "three times" in api_by_id["contract-verifier.R7"]                    # brief: once
+
+    ui = json.loads((EXAMPLES / "ui-testing" / "expected-claims.json").read_text())
+    ui_by_id = {c["id"]: c["text"] for c in ui}
+    assert "1% of its pixels" in ui_by_id["visual-regression-gate.R4"]          # brief: 0.1%
+    assert "2x device pixel ratio" in ui_by_id["visual-regression-gate.R8"]     # brief: 1x
