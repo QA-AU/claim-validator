@@ -95,6 +95,15 @@ statement backed by the source document."
 
 ---
 
+## Try it without an OpenSpec project
+
+[`tools/openspec-adapter/examples/`](../tools/openspec-adapter/examples/)
+ships two input pairs — an **API-testing** spec (`contract-verifier`) and
+a **UI-testing** spec (`visual-regression-gate`), each with the source
+brief it was written from. Both specs have a few deliberately planted
+grounding defects, so validating them produces a real mix of verdicts.
+Point the pipeline at either folder to see the whole thing work.
+
 ## Steps
 
 1. **Generate** the specs with OpenSpec as normal.

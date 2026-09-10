@@ -34,7 +34,10 @@ into this:
 so claim-validator can judge each generated requirement against the source
 document it was written from. See
 [`docs/openspec-workflow.md`](../../docs/openspec-workflow.md) for the full
-workflow and why you would do this.
+workflow and why you would do this, and
+[`examples/`](examples/) for two ready-made input pairs (an API-testing
+spec and a UI-testing spec, each with its source brief) you can run
+straight through the pipeline.
 
 ## It is standalone, and not part of claim-validator
 
