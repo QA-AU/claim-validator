@@ -200,6 +200,22 @@ def test_json_output_is_exactly_the_three_claim_input_fields():
     assert all(set(entry) == {"id", "text", "source_ref"} for entry in parsed)
 
 
+def test_archived_changes_are_skipped_unless_asked_for(tmp_path):
+    active = tmp_path / "openspec" / "changes" / "add-x" / "specs" / "cap"
+    archived = tmp_path / "openspec" / "changes" / "archive" / "old" / "specs" / "cap"
+    for d in (active, archived):
+        d.mkdir(parents=True)
+        (d / "spec.md").write_text(
+            "# c\n\n## ADDED Requirements\n\n### Requirement: R\n"
+            "The system SHALL do a thing.\n"
+        )
+    changes_dir = str(tmp_path / "openspec" / "changes")
+    assert len(o2c._iter_spec_files([changes_dir])) == 1
+    assert len(o2c._iter_spec_files([changes_dir], include_archived=True)) == 2
+    # an explicitly named archived file is always honored
+    assert len(o2c._iter_spec_files([str(archived / "spec.md")])) == 1
+
+
 def test_provenance_map_is_keyed_by_claim_id_and_carries_origin():
     reqs = o2c.parse_spec(SAMPLE_CHANGE)
     claims = o2c.build_claims(reqs, "sample-change")

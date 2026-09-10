@@ -108,6 +108,14 @@ statement backed by the source document."
        --map claims.map.json -o claims.json --stats
    ```
 
+   The OpenSpec project usually lives in its own repo — point the adapter
+   straight at it (`python tools/openspec-adapter/openspec_to_claims.py
+   ~/my-service/openspec/changes/<change>/specs/ -o claims.json`), or use
+   `tools/openspec-adapter/run.sh ~/my-service <out-dir>`, which picks
+   `openspec/changes/`, skips archived changes, and prints the API calls
+   to run next. See the adapter's
+   [README](../tools/openspec-adapter/README.md#running-against-an-openspec-project-in-another-folder).
+
    Default granularity is `assertion` — one claim per `THEN`/`AND` bullet,
    plus one per requirement's `SHALL` statement. Keep it there: Claim
    Validator's compound-claim retrieval gap (issue #3) is triggered by

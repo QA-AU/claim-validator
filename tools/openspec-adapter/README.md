@@ -71,6 +71,7 @@ is auto-detected per file.
 | `--granularity {assertion,scenario,requirement}` | `assertion` (default): one claim per `THEN`/`AND` bullet, plus one per requirement's `SHALL` statement. `scenario`: one compound claim per scenario. `requirement`: only the `SHALL` statement. |
 | `--capability NAME` | Override the capability id used in claim ids / provenance (default: the `spec.md`'s parent directory name). |
 | `--include-removed` | Also emit `## REMOVED Requirements` (skipped by default — a removal has nothing to ground-check). |
+| `--include-archived` | Also read `spec.md` under an `archive/` directory (skipped by default — OpenSpec's completed changes, not a proposal under review). |
 | `--format {json,csv}` | Output format (default: `json`). CSV columns are `id,text,source_ref`. |
 | `--map PATH` | Also write a provenance map: `{claim_id: {file, requirement, scenario, marker, delta_op, text}}`. |
 | `-o, --output PATH` | Write output here (default: stdout). |
@@ -88,6 +89,39 @@ python tools/openspec-adapter/openspec_to_claims.py \
 #    the source brief to claim-validator's existing API, poll, download the
 #    report. The adapter does not do this step and does not know the API.
 ```
+
+### Running against an OpenSpec project in another folder
+
+The OpenSpec project normally lives in its own repo, separate from this
+one. Point the adapter straight at it — `openspec_to_claims.py` takes any
+file or directory path and recurses a directory for `spec.md`:
+
+```bash
+# one change proposal in an external project
+python tools/openspec-adapter/openspec_to_claims.py \
+    ~/my-service/openspec/changes/add-rate-limiting/specs/ \
+    -o ~/my-service/claims.json --map ~/my-service/claims.map.json --stats
+
+# all active change proposals in that project (archived ones are skipped)
+python tools/openspec-adapter/openspec_to_claims.py \
+    ~/my-service/openspec/changes/ -o claims.json --stats
+
+# the living specs instead of a proposal
+python tools/openspec-adapter/openspec_to_claims.py \
+    ~/my-service/openspec/specs/ -o claims.json --stats
+```
+
+`run.sh` wraps this: give it the project root (or any of the paths above)
+and an output directory, and it picks `openspec/changes/` by default,
+writes `claims.json` + `claims.map.json`, and prints the API calls to run
+next.
+
+```bash
+tools/openspec-adapter/run.sh ~/my-service ~/my-service/openspec-claims
+```
+
+`spec.md` files under an `archive/` directory (OpenSpec's completed
+changes) are skipped unless you pass `--include-archived`.
 
 ### Choosing granularity
 

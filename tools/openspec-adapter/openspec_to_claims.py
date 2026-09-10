@@ -33,6 +33,9 @@ Options:
     --include-removed  Also emit claims for `## REMOVED Requirements`
                        (skipped by default — a removal has nothing to
                        ground-check against a source document).
+    --include-archived Also read spec.md files under an `archive/` directory
+                       (skipped by default — OpenSpec keeps completed
+                       changes there; they are history, not a proposal).
     --format {json,csv}   Output format (default: json).
     --map PATH         Also write a provenance map: {claim_id: {...}} with
                        the file, requirement, scenario, bullet, and delta
@@ -350,12 +353,18 @@ def build_claims(
 # I/O
 # --------------------------------------------------------------------------
 
-def _iter_spec_files(paths: List[str]) -> List[Path]:
+def _iter_spec_files(paths: List[str], include_archived: bool = False) -> List[Path]:
     out: List[Path] = []
     for p in paths:
         pp = Path(p)
         if pp.is_dir():
-            out.extend(sorted(pp.rglob("spec.md")))
+            found = sorted(pp.rglob("spec.md"))
+            if not include_archived:
+                # OpenSpec keeps completed changes under openspec/changes/archive/.
+                # Those are history, not a proposal under review — skip them
+                # unless asked. An explicitly named file is always honored.
+                found = [f for f in found if "archive" not in f.parts]
+            out.extend(found)
         elif pp.is_file():
             out.append(pp)
         else:
@@ -411,6 +420,9 @@ def main(argv: Optional[List[str]] = None) -> int:
                     help="override the capability id (default: spec.md parent dir name)")
     ap.add_argument("--include-removed", action="store_true",
                     help="also emit REMOVED requirements (skipped by default)")
+    ap.add_argument("--include-archived", action="store_true",
+                    help="also read spec.md files under an archive/ directory "
+                         "(skipped by default — completed changes, not proposals)")
     ap.add_argument("--format", choices=["json", "csv"], default="json")
     ap.add_argument("--map", dest="map_path", default=None,
                     help="also write a provenance map JSON to this path")
@@ -418,7 +430,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     ap.add_argument("--stats", action="store_true", help="print a summary to stderr")
     args = ap.parse_args(argv)
 
-    files = _iter_spec_files(args.paths)
+    files = _iter_spec_files(args.paths, include_archived=args.include_archived)
 
     all_claims: List[Claim] = []
     per_cap_offset: dict = {}
