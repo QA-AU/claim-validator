@@ -1,0 +1,37 @@
+[
+  {
+    "id": "sample-change.R1",
+    "text": "The service SHALL expire every issued access token after a fixed lifetime and reject expired tokens on every protected endpoint.",
+    "source_ref": "spec.md › ADDED › Requirement: Token expiry"
+  },
+  {
+    "id": "sample-change.R1.S1.A1",
+    "text": "When a request presents an access token issued more than 3600 seconds ago, respond with HTTP 401.",
+    "source_ref": "spec.md › ADDED › Requirement: Token expiry › Scenario: A token past its lifetime is used › THEN[1]"
+  },
+  {
+    "id": "sample-change.R1.S1.A2",
+    "text": "When a request presents an access token issued more than 3600 seconds ago, include an error code of `token_expired`.",
+    "source_ref": "spec.md › ADDED › Requirement: Token expiry › Scenario: A token past its lifetime is used › AND[2]"
+  },
+  {
+    "id": "sample-change.R1.S2.A1",
+    "text": "When a request presents a token issued within the last 3600 seconds, process the request normally.",
+    "source_ref": "spec.md › ADDED › Requirement: Token expiry › Scenario: A fresh token is used › THEN[1]"
+  },
+  {
+    "id": "sample-change.R2",
+    "text": "The service SHALL issue an access token on a successful password grant, and the response SHALL now also include a `refresh_token`.",
+    "source_ref": "spec.md › MODIFIED › Requirement: Token issuance"
+  },
+  {
+    "id": "sample-change.R2.S1.A1",
+    "text": "When valid credentials are posted to `/oauth/token`, return an `access_token` and a `refresh_token`.",
+    "source_ref": "spec.md › MODIFIED › Requirement: Token issuance › Scenario: Successful password grant › THEN[1]"
+  },
+  {
+    "id": "sample-change.R3",
+    "text": "The service previously accepted a long-lived static API key in the `X-API-Key` header. This is removed.",
+    "source_ref": "spec.md › REMOVED › Requirement: Static API keys"
+  }
+]
