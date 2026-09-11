@@ -54,6 +54,29 @@ def test_markdown_bold_between_operator_and_number_does_not_break_extraction():
     assert above.value == 0.1 and above.outcome == "negative"
 
 
+def test_a_markdown_heading_with_no_terminal_punctuation_does_not_poison_the_next_sentence():
+    # Found live: "## Pass and fail\n\nA page fails when more than 0.1%..."
+    # has no period after the heading, so without a heading boundary this
+    # becomes one "sentence" carrying THREE outcome words ("Pass", "fail"
+    # from the heading text itself, "fails" from the actual rule) -- which
+    # this module's own ambiguity guard then correctly refused to touch,
+    # on text that should never have been treated as one sentence.
+    passage = "## Pass and fail\n\nA page fails when more than 0.1% of its pixels differ from the baseline."
+    rules = _extract_threshold_rules(passage)
+    assert len(rules) == 1
+    assert rules[0].comparator == ">" and rules[0].value == 0.1 and rules[0].outcome == "negative"
+
+
+def test_two_overlapping_passages_repeating_the_same_rule_still_resolves():
+    # Retrieved passages commonly overlap at chunk boundaries -- the same
+    # sentence can come back in two passages verbatim. Two AGREEING rules
+    # must not be mistaken for two CONFLICTING ones.
+    claim = "A 3% difference fails the page."
+    passages = [_THRESHOLD_PASSAGE, _THRESHOLD_PASSAGE]  # duplicated on purpose
+    result = check_numeric_consistency(claim, passages)
+    assert result is not None and result.verdict == "entails"
+
+
 def test_the_real_brief_sentence_pair_yields_two_opposite_rules():
     rules = _extract_threshold_rules(_THRESHOLD_PASSAGE)
     assert len(rules) == 2

@@ -73,6 +73,25 @@ _COMPARISONS: List[Tuple[str, str]] = [
 ]
 
 _SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?])\s+")
+# A markdown heading line has no terminal punctuation, so without this a
+# heading merges into the very next sentence as one "sentence" for outcome-
+# word counting — found live: "## Pass and fail\n\nA page fails when more
+# than 0.1%..." carries THREE outcome words ("Pass", "fail" from the
+# heading, "fails" from the actual rule), which this module's own
+# ambiguity guard (exactly one outcome word, or abstain) then correctly
+# refused to touch — correct behavior, on text that shouldn't have been
+# one "sentence" in the first place.
+_HEADING_RE = re.compile(r"(?m)^#{1,6}\s+.*$")
+_PARAGRAPH_BREAK_RE = re.compile(r"\n\s*\n")
+
+
+def _sentences(text: str) -> List[str]:
+    """Split into sentences, treating a markdown heading line and a blank
+    paragraph break as hard boundaries even without terminal punctuation —
+    a heading is a label, not a clause the words around it belong to."""
+    text = _HEADING_RE.sub(" ", text)
+    text = _PARAGRAPH_BREAK_RE.sub(". ", text)
+    return _SENTENCE_SPLIT_RE.split(text)
 
 
 def _parse_number(text: str) -> float:
@@ -142,7 +161,7 @@ def _extract_threshold_rules(text: str) -> List[ThresholdRule]:
     rules: List[ThresholdRule] = []
     last_number: Optional[float] = None
 
-    for sentence in _SENTENCE_SPLIT_RE.split(text):
+    for sentence in _sentences(text):
         outcome_words = _outcome_words_in(sentence)
         numbers_here = _NUMBER_RE.findall(sentence)
 
@@ -205,9 +224,15 @@ def check_numeric_consistency(claim_text: str, passages: List[str]) -> Optional[
     if not rules:
         return None
 
-    covering = [r for r in rules if r.covers(value)]
+    # Retrieved passages routinely overlap at chunk boundaries (the same
+    # sentence can come back twice, once at the tail of one chunk and again
+    # at the head of the next) - collapse rules that are the literal same
+    # fact before checking for ambiguity, so two passages AGREEING isn't
+    # mistaken for two passages CONFLICTING.
+    covering = list({(r.comparator, r.value, r.outcome): r
+                      for r in rules if r.covers(value)}.values())
     if len(covering) != 1:
-        return None  # no coverage, or ambiguous multi-rule coverage - abstain
+        return None  # no coverage, or genuinely conflicting rules - abstain
 
     rule = covering[0]
     consistent = rule.outcome == claim_outcome
