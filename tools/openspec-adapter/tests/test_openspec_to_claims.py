@@ -109,6 +109,26 @@ def test_requirement_narrative_becomes_its_own_shall_claim():
     assert r7.source_ref == "spec.md › Requirement: Sorting"
 
 
+def test_a_sequence_bullet_is_not_folded_under_the_when_condition(tmp_path):
+    # Issue #5: "only then capture the screenshot" describes what happens
+    # AFTER the WHEN condition resolves, not an outcome OF that condition —
+    # folding the WHEN in front of it asserts the opposite of the intent.
+    spec = tmp_path / "spec.md"
+    spec.write_text(
+        "# X\n\n## Requirements\n\n### Requirement: R\nThe system SHALL wait.\n\n"
+        "#### Scenario: still loading\n"
+        "- **WHEN** the page has unresolved work\n"
+        "- **THEN** wait for it to resolve\n"
+        "- **AND** only then capture the screenshot\n"
+    )
+    claims = o2c.build_claims(o2c.parse_spec(spec), "x")
+    a1 = next(c for c in claims if c.id == "x.R1.S1.A1")
+    a2 = next(c for c in claims if c.id == "x.R1.S1.A2")
+    assert a1.text.startswith("When ")           # the ordinary bullet keeps its WHEN
+    assert a2.text == "Only then capture the screenshot."   # the sequence bullet does not
+    assert not a2.text.lower().startswith("when")
+
+
 def test_removed_requirements_are_skipped_by_default_and_optional_on_request():
     reqs = o2c.parse_spec(SAMPLE_CHANGE)
     default = o2c.build_claims(reqs, "sample-change", include_removed=False)
