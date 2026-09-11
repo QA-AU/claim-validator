@@ -252,7 +252,26 @@ def _condition(whens: List[str]) -> str:
     return " and ".join(w.strip().rstrip(".;,") for w in whens if w.strip())
 
 
+# A THEN/AND bullet that begins with one of these describes SEQUENCE
+# relative to the scenario's other steps ("wait for X; wait for Y; only
+# THEN capture") rather than an outcome triggered by the WHEN condition
+# itself. Folding the WHEN in as-is inverts the meaning: "When the page is
+# still loading, only then capture the screenshot" asserts the opposite of
+# "wait until it's done loading, then capture" — see issue #5, found live
+# on exactly this bullet in the ui-testing example.
+_ORDERING_PREFIXES = (
+    "only then", "then ", "after that", "afterward", "afterwards",
+    "subsequently", "finally", "next,", "thereafter", "once ",
+)
+
+
 def _assertion_claim_text(whens: List[str], assertion: str) -> str:
+    stripped = assertion.strip()
+    if stripped.lower().startswith(_ORDERING_PREFIXES):
+        # A sequence step, not a triggered outcome — leave the WHEN off so
+        # it isn't asserted as this step's condition. The scenario's other
+        # bullets already carry the WHEN and read as the sequence.
+        return _as_sentence(stripped)
     cond = _condition(whens)
     if cond:
         return _as_sentence(f"When {_lower_first(cond)}, {_lower_first(assertion)}")

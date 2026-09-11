@@ -101,7 +101,12 @@ cited_passages:
 Work through these tests IN ORDER and stop at the first that applies:
 
 1. CONTRADICTS   — do the passages specify something INCOMPATIBLE with the
-                    claim for the same case?
+                    claim for the same case? For a numeric threshold or range,
+                    judge by whether the claim's value is consistent with it,
+                    not by whether the exact number matches (passages say
+                    "fails above 0.1%"; a claim that "3% fails" is NOT a
+                    contradiction — a claim putting a value on the WRONG side
+                    of the threshold is).
 2. NO_EVIDENCE   — are the passages about entirely different things?
 3. MENTIONS_ONLY — the passages concern the same subject and are simply
                     SILENT on what the claim asserts.

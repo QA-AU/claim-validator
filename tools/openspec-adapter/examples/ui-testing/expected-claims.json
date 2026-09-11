@@ -31,7 +31,7 @@
   },
   {
     "id": "visual-regression-gate.R2.S1.A3",
-    "text": "When the page has in-flight network requests or unloaded web fonts, only then capture the screenshot.",
+    "text": "Only then capture the screenshot.",
     "source_ref": "spec.md › Requirement: Readiness wait before capture › Scenario: A page is still loading resources › AND[3]"
   },
   {

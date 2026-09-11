@@ -8,7 +8,7 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
-from phases.entailment import judge_entailment
+from phases.entailment import VERDICT_CONTRADICTS, VERDICT_ENTAILS, judge_entailment
 from phases.llm_usage import Usage, usage_of
 from phases.ontology_store import OntologyStore
 from phases.phase1_models import Ontology
@@ -22,6 +22,7 @@ from claimvalidator.claim_shims import ResolvedClaim, _ClaimSet, _JudgeClaim, sh
 from claimvalidator.document_identity import resolve_ontology_key
 from claimvalidator.gap_report import GapReport, build_gap_report
 from claimvalidator.logprob_judge import LogprobsUnsupportedError, judge_entailment_logprob
+from claimvalidator.numeric_threshold_check import check_numeric_consistency
 
 logger = logging.getLogger(__name__)
 
@@ -169,6 +170,17 @@ class ClaimResult:
     # See ClaimInput.source_ref's docstring — pure pass-through, never
     # read by anything upstream of here.
     source_ref: Optional[str] = None
+    # A deterministic, non-LLM check (claimvalidator/numeric_threshold_check.py
+    # — see issue #4) corrected this verdict: the claim named a specific
+    # numeric value and outcome, a cited passage stated a threshold rule for
+    # the same quantity, and the two disagreed with what the judge said.
+    # Distinct from escalated/escalated_from above — that mechanism means "a
+    # stronger model re-judged this"; this one means "arithmetic on the
+    # passage's own stated rule settled it, no model involved." Narrow by
+    # design: most claims never trigger it, and it never fires on anything
+    # ambiguous (see that module's docstring for exactly what it abstains on).
+    structurally_overridden: bool = False
+    structurally_overridden_from: str = ""
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -189,6 +201,8 @@ class ClaimResult:
             "confidence": self.confidence,
             "decided": self.decided,
             "source_ref": self.source_ref,
+            "structurally_overridden": self.structurally_overridden,
+            "structurally_overridden_from": self.structurally_overridden_from,
         }
 
 
@@ -430,6 +444,27 @@ def run_validation(
     per_claim: List[ClaimResult] = []
     for claim in claims:
         verdict = verdicts_by_id.get(claim.id)
+        cited_passages = _resolve_cited_passages(claim.source_chunks, chunks)
+
+        # Deterministic numeric-threshold correction (issue #4) — see
+        # claimvalidator/numeric_threshold_check.py for exactly what this
+        # does and does not touch. Scoped to entails/contradicts only:
+        # mentions_only/no_evidence mean something a regex match on its own
+        # shouldn't unilaterally reclassify. Mutates the EntailmentVerdict
+        # in place (mirroring how _escalate() already does this for model
+        # escalation) so the quality dict's aggregate counts, built later
+        # from this same entailment_report, stay consistent with what
+        # per_claim reports below — not a second, divergent source of truth.
+        structurally_overridden = False
+        structurally_overridden_from = ""
+        if verdict and verdict.judged and verdict.verdict in (VERDICT_ENTAILS, VERDICT_CONTRADICTS):
+            override = check_numeric_consistency(claim.text, cited_passages)
+            if override is not None and override.verdict != verdict.verdict:
+                structurally_overridden = True
+                structurally_overridden_from = verdict.verdict
+                verdict.verdict = override.verdict
+                verdict.reason = override.explanation
+
         per_claim.append(ClaimResult(
             id=claim.id,
             text=claim.text,
@@ -439,7 +474,7 @@ def run_validation(
             judged=bool(verdict and verdict.judged),
             agreement=_agreement_label(verdict),
             cited_chunks=claim.source_chunks,
-            cited_passages=_resolve_cited_passages(claim.source_chunks, chunks),
+            cited_passages=cited_passages,
             cited_sources=_resolve_cited_sources(claim.source_chunks, searcher),
             reason=(verdict.reason if verdict else "no citation found by retrieval"),
             escalated=bool(verdict and verdict.escalated),
@@ -449,6 +484,8 @@ def run_validation(
             confidence=(verdict.confidence if verdict else None),
             decided=(verdict.decided if verdict else True),
             source_ref=claim.source_ref,
+            structurally_overridden=structurally_overridden,
+            structurally_overridden_from=structurally_overridden_from,
         ))
 
     completeness_tracker = RunTracker(db_session, workflow_id, name=document_id or "validation",
@@ -477,6 +514,10 @@ def run_validation(
         1 for v in entailment_report.verdicts
         if v.escalated and v.escalated_from and v.escalated_from != v.verdict
     )
+    # Computed from per_claim, not from entailment_report, because the
+    # deterministic override (issue #4) is recorded on ClaimResult, not on
+    # EntailmentVerdict — see the per-claim loop above.
+    structurally_overridden = sum(1 for c in per_claim if c.structurally_overridden)
 
     # Almost always one client throughout — build/reuse, retrieval, judging,
     # census — so its accumulated usage is the whole run's cost. Combined
@@ -512,6 +553,7 @@ def run_validation(
         "escalated": escalated,
         "escalation_failed_batches": entailment_report.escalation_failed_batches,
         "overturned": overturned,
+        "structurally_overridden": structurally_overridden,
         "main_model": _model_label(llm_client),
         "judge_model": _model_label(judge_client),
         "judge_method": "logprob" if use_logprob_judge else "majority_vote",

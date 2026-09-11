@@ -165,10 +165,12 @@ diagnose the first time (see infra/README.md's postmortem).
 
 ## Layout
 
-- `phases/` — copied from the source repo (verbatim, except two additive
-  edits noted in their own docstrings: `ontology_store.py`'s content-hash
-  caching plus `created_by` attribution, `phase1_storage.py`'s one import
-  redirected to the extracted `run_report_stem.py`).
+- `phases/` — copied from the source repo (verbatim, except additive edits
+  noted at the point of change: `ontology_store.py`'s content-hash caching
+  plus `created_by` attribution, `phase1_storage.py`'s one import redirected
+  to the extracted `run_report_stem.py`, and `entailment.py::_build_prompt`'s
+  threshold/range reasoning paragraph — the judge's first prompt change,
+  fixing issue #4).
 - `claimvalidator/` — everything new: the retrieval adapter, the duck-typed
   shims that let a bare `id + text` claim satisfy `judge_entailment`'s and
   `check_requirement_shapes`'s existing contracts, the gap report, the
