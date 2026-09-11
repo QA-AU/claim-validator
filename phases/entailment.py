@@ -456,6 +456,36 @@ def _claim_of(requirement) -> str:
     return " | ".join(p for p in parts if p)
 
 
+# claim-validator: the "different value" rule below was, on its own, both
+# under- and over-firing on any claim stating a threshold or range rather
+# than a fixed value — see issue #4. "the limit is 25/s" vs a document's
+# "10/s" is a real conflict the original rule caught correctly; "a 3%
+# difference fails" vs a document's "fails above 0.1%" is not a conflict at
+# all (3% is on the failing side of that threshold), and the same rule was
+# calling it one. The paragraph below teaches the one distinction that was
+# missing — consistent-with-a-threshold vs a genuinely different fixed
+# value — without touching the rest of the rubric, which was not the part
+# that was wrong.
+_THRESHOLD_GUIDANCE = """
+Numeric values, thresholds and ranges: when the claim and the passages both
+involve a number, threshold, range or boundary, decide by whether the claim
+is CONSISTENT WITH what the passages specify — not by whether the exact
+numbers match.
+- If the passages state a threshold ("fails when more than X", "at most N",
+  "at least N") and the claim states an outcome for a specific value, the
+  verdict is "entails" when that value is on the side of the threshold that
+  produces the outcome the claim states — even if that exact value is never
+  named in the passages. Example: passages say "fails above 0.1%"; a claim
+  that "a 3% difference fails" is "entails" (3% is on the failing side); a
+  claim that "a 0.5% difference passes" is "contradicts" (0.5% is also on
+  the failing side, so a pass is wrong).
+- A claim that restates the passages' own fixed value with a different
+  number is still "contradicts" (passages say "the limit is 10 per second";
+  claim says "the limit is 25 per second" — not a threshold, a specific
+  stated value, and the claim's is different).
+"""
+
+
 def _build_prompt(items) -> str:
     blocks = []
     for requirement, passages in items:
@@ -491,9 +521,11 @@ For each item return an object:
 - verdict: exactly one of "contradicts", "no_evidence", "mentions_only", "entails"
 - reason: a short phrase quoting the deciding words, unless the verdict is "entails"
 
-If your reason would say the passage specifies a different value than the claim
-expects, the verdict is "contradicts" — not "mentions_only".
-
+If your reason would say the passage specifies a different FIXED value for the
+same quantity than the claim expects, the verdict is "contradicts" — not
+"mentions_only". See the threshold/range note below before applying this to a
+claim about a numeric boundary rather than a single stated value.
+{_THRESHOLD_GUIDANCE}
 Judge ONLY against the passages shown. Common industry practice is not evidence:
 if a claim states what an API usually does but this document specifies something
 else, that is "contradicts"; if the document is simply silent, that is
