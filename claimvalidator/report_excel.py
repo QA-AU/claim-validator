@@ -362,6 +362,17 @@ _METRIC_EXPLANATIONS = {
         "less, than an ordinary verdict.",
         "Informational",
     ),
+    "retrieval_widened_for_clauses": (
+        "Claims that looked compound (multiple facts joined by a "
+        "coordinating conjunction, issue #3) and got extra, separately "
+        "retrieved passages beyond what the whole-claim query alone found.",
+        "The claim itself and its verdict are unaffected — only how much "
+        "gets cited for it. A one-clause claim never triggers this; a "
+        "genuinely compound one now has a fairer chance at evidence for "
+        "every fact it states, not just whichever fact's wording dominated "
+        "a single combined search.",
+        "Informational",
+    ),
     "runs": (
         "How many times the judge repeated itself on each claim before "
         "taking a majority verdict.",
@@ -454,6 +465,7 @@ _CLAIM_ID_FILTERS = {
     "escalated": lambda c: c.escalated,
     "overturned": lambda c: c.escalated and c.escalated_from and c.escalated_from != c.verdict,
     "structurally_overridden": lambda c: c.structurally_overridden,
+    "retrieval_widened_for_clauses": lambda c: c.retrieval_widened_for_clauses,
 }
 
 _NOT_PER_CLAIM = "(whole-run figure, not per-claim)"

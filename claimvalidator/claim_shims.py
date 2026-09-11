@@ -63,6 +63,13 @@ class ResolvedClaim:
     # never read by anything in between (retrieval, shape check, the judge
     # all only ever see .text).
     source_ref: Optional[str] = None
+    # Set by claim_retrieval.py::retrieve_for_claim (issue #3) when this
+    # claim looked compound enough to retrieve separately per clause, and
+    # that actually added chunks the whole-claim probe alone didn't find.
+    # Carried onto ClaimResult for the same reason structurally_overridden
+    # is (see numeric_threshold_check.py) — a correction mechanism this
+    # quiet should still be auditable, not silent.
+    retrieval_widened_for_clauses: bool = False
 
 
 class _ShapeClaim:
