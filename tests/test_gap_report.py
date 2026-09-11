@@ -10,6 +10,7 @@ from types import SimpleNamespace
 from claimvalidator.claim_shims import ResolvedClaim
 from claimvalidator.gap_report import _content_tokens, _stem, build_gap_report
 from phases.census import CensusResult, CensusSpread
+from phases.phase1_models import slugify
 
 
 def _ontology(names_and_descriptions):
@@ -220,3 +221,169 @@ def test_a_bare_plural_still_falls_short_of_a_long_descriptive_phrase():
     phrase = _content_tokens("element with role button that closes the dialog")
     overlap = len(buttons & phrase) / len(buttons | phrase)
     assert 0.0 < overlap < 0.5
+
+
+# ---------------------------------------------------------------- issue #2: name reconciliation fallback
+#
+# _best_fuzzy_match (tested above) is left completely unchanged by this fix
+# — every test above still passes unmodified. These tests cover the new
+# third tier: for whatever _best_fuzzy_match still can't place,
+# build_gap_report now falls back to phases.name_reconciliation.
+# reconcile_names, the same LLM-judged mechanism phase1b_validation.py
+# already runs in production for a different reconciliation job.
+
+import json
+
+from tests.conftest import FakeLLMClient
+
+
+def _judge_response(pairs):
+    return json.dumps([{"b": b, "a": a, "confident": c} for b, a, c in pairs])
+
+
+def test_a_near_zero_overlap_paraphrase_resolves_via_the_reconciliation_fallback(monkeypatch):
+    # The real diagnostic case from _best_fuzzy_match's own docstring: these
+    # two names score 0.286 by Jaccard — well under the 0.5 free-tier
+    # threshold — so the free tier alone leaves this a false gap.
+    a = "ASCII alphanumerics and hyphens in build metadata"
+    b = "Build metadata identifiers composition"
+    spread = CensusSpread(concept="semver_rule", counts=[1], seen_in={slugify(a): 1},
+                           display={slugify(a): a}, runs=1)
+    result = CensusResult(concept="semver_rule", names=[b], chunk_of={slugify(b): 12})
+    monkeypatch.setattr("claimvalidator.gap_report.census_repeated",
+                         lambda *a_, **k: {"semver_rule": spread})
+    monkeypatch.setattr("claimvalidator.gap_report.census_many",
+                         lambda *a_, **k: {"semver_rule": result})
+
+    # census_names (LIST B, what's being placed) is `residual` = [a];
+    # sampled_names (LIST A, what it's matched against) is `result_names` =
+    # [b] — so the judge response's "b" field is `a` and "a" field is `b`.
+    client = FakeLLMClient([_judge_response([(a, b, True)])])
+    report = build_gap_report(_ontology([("semver_rule", "d")]), ["c"] * 20,
+                               llm_client=client, claims=[])
+
+    gap = report.per_concept["semver_rule"]
+    assert gap.never_addressed == [a]  # located, but no claim cited chunk 12
+    assert "chunk 12" in gap.never_addressed_reasons[a]
+    assert client.call_count == 1
+
+
+def test_the_free_tier_resolving_a_name_never_reaches_the_llm_fallback(monkeypatch):
+    # A name _best_fuzzy_match already resolves for free must not also pay
+    # for a reconciliation call — this fallback is for the residual only.
+    spread = CensusSpread(
+        concept="keyboard_interaction", counts=[3], seen_in={"escape-key-closes-dialog": 3},
+        display={"escape-key-closes-dialog": "Escape key closes dialog"}, runs=3,
+    )
+    result = CensusResult(
+        concept="keyboard_interaction", names=["Pressing Escape closes the dialog"],
+        chunk_of={"pressing-escape-closes-the-dialog": 7},
+    )
+    monkeypatch.setattr("claimvalidator.gap_report.census_repeated",
+                         lambda *a, **k: {"keyboard_interaction": spread})
+    monkeypatch.setattr("claimvalidator.gap_report.census_many",
+                         lambda *a, **k: {"keyboard_interaction": result})
+
+    client = FakeLLMClient([])  # any call at all raises — proves none happened
+    claims = [ResolvedClaim(id="C1", text="pressing escape closes the dialog", source_chunks=[7])]
+    report = build_gap_report(_ontology([("keyboard_interaction", "d")]), ["c"] * 10,
+                               llm_client=client, claims=claims)
+
+    assert report.per_concept["keyboard_interaction"].addressed_count == 1
+    assert client.call_count == 0
+
+
+def test_a_genuinely_unrelated_pair_still_reports_no_verified_citation(monkeypatch):
+    # The judge can say "not a match" too — the fallback must not force one.
+    spread = CensusSpread(concept="widget", counts=[1], seen_in={"foo": 1}, display={"foo": "Foo"}, runs=1)
+    result = CensusResult(concept="widget", names=["Bar"], chunk_of={"bar": 3})
+    monkeypatch.setattr("claimvalidator.gap_report.census_repeated",
+                         lambda *a, **k: {"widget": spread})
+    monkeypatch.setattr("claimvalidator.gap_report.census_many",
+                         lambda *a, **k: {"widget": result})
+
+    client = FakeLLMClient([_judge_response([("Bar", None, True)])])
+    report = build_gap_report(_ontology([("widget", "d")]), ["c"] * 10,
+                               llm_client=client, claims=[])
+
+    reason = report.per_concept["widget"].never_addressed_reasons["Foo"]
+    assert "no verified citation" in reason
+
+
+def test_an_ambiguous_pairing_gets_its_own_reason_not_lumped_with_no_citation(monkeypatch):
+    spread = CensusSpread(concept="api_operation", counts=[2], seen_in={"a": 1, "b": 1},
+                           display={"a": "list_orders", "b": "create_orders"}, runs=1)
+    result = CensusResult(concept="api_operation", names=["POST /orders/bulk"],
+                           chunk_of={"post-orders-bulk": 5})
+    monkeypatch.setattr("claimvalidator.gap_report.census_repeated",
+                         lambda *a, **k: {"api_operation": spread})
+    monkeypatch.setattr("claimvalidator.gap_report.census_many",
+                         lambda *a, **k: {"api_operation": result})
+
+    # The judge genuinely can't tell which of the two this refers to.
+    client = FakeLLMClient([_judge_response([("list_orders", "POST /orders/bulk", False)])])
+    report = build_gap_report(_ontology([("api_operation", "d")]), ["c"] * 10,
+                               llm_client=client, claims=[])
+
+    gap = report.per_concept["api_operation"]
+    assert "list_orders" in gap.never_addressed
+    reason = gap.never_addressed_reasons["list_orders"]
+    assert "ambiguous" in reason
+    assert "no verified citation" not in reason
+
+
+def test_a_broken_llm_client_degrades_to_todays_behaviour_not_a_crash(monkeypatch):
+    # Exercises reconcile_names'/_judge's OWN internal per-batch try/except
+    # (phases/name_reconciliation.py) — a failed model call there is
+    # swallowed and the affected names simply end up unmatched, never
+    # raised. See the next test for gap_report.py's own, independent
+    # try/except around the whole reconcile_names call.
+    a = "ASCII alphanumerics and hyphens in build metadata"
+    b = "Build metadata identifiers composition"
+    spread = CensusSpread(concept="semver_rule", counts=[1], seen_in={slugify(a): 1},
+                           display={slugify(a): a}, runs=1)
+    result = CensusResult(concept="semver_rule", names=[b], chunk_of={slugify(b): 12})
+    monkeypatch.setattr("claimvalidator.gap_report.census_repeated",
+                         lambda *a_, **k: {"semver_rule": spread})
+    monkeypatch.setattr("claimvalidator.gap_report.census_many",
+                         lambda *a_, **k: {"semver_rule": result})
+
+    class BrokenClient:
+        def generate(self, prompt, system_prompt=None):
+            raise RuntimeError("simulated model failure")
+
+    # Must not raise — the residual name just stays unresolved, exactly as
+    # it would have before this fallback existed.
+    report = build_gap_report(_ontology([("semver_rule", "d")]), ["c"] * 20,
+                               llm_client=BrokenClient(), claims=[])
+
+    reason = report.per_concept["semver_rule"].never_addressed_reasons[a]
+    assert "no verified citation" in reason
+
+
+def test_reconcile_names_itself_raising_still_degrades_not_crashes(monkeypatch):
+    # Belt and suspenders: even if reconcile_names raised OUTSIDE its own
+    # internal per-batch guard (a bug in the module itself, not a model
+    # failure), gap_report.py's own try/except around the call must still
+    # catch it — this fallback existing must never make the gap report
+    # itself less reliable than it was before.
+    a = "ASCII alphanumerics and hyphens in build metadata"
+    b = "Build metadata identifiers composition"
+    spread = CensusSpread(concept="semver_rule", counts=[1], seen_in={slugify(a): 1},
+                           display={slugify(a): a}, runs=1)
+    result = CensusResult(concept="semver_rule", names=[b], chunk_of={slugify(b): 12})
+    monkeypatch.setattr("claimvalidator.gap_report.census_repeated",
+                         lambda *a_, **k: {"semver_rule": spread})
+    monkeypatch.setattr("claimvalidator.gap_report.census_many",
+                         lambda *a_, **k: {"semver_rule": result})
+
+    def _boom(*args, **kwargs):
+        raise RuntimeError("simulated bug inside reconcile_names itself")
+
+    monkeypatch.setattr("claimvalidator.gap_report.reconcile_names", _boom)
+
+    report = build_gap_report(_ontology([("semver_rule", "d")]), ["c"] * 20,
+                               llm_client=object(), claims=[])
+
+    reason = report.per_concept["semver_rule"].never_addressed_reasons[a]
+    assert "no verified citation" in reason
