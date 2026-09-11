@@ -16,8 +16,17 @@ A ready-to-use input pair for the
 | Difference threshold (`R4`) | fail above **1%** of pixels | fail above **0.1%** | `contradicts` |
 | Baseline update policy (`R7`) | **auto-update** when diff < 2% | **never** auto-update — always `--update-baselines` | `contradicts` |
 | Device pixel ratio (`R8`) | capture at **2x** | capture at **1x**, 2x is out of scope | `contradicts` |
-| Accessibility check (`R9`) | run axe-core, fail on serious violations | *(brief lists a11y as out of scope)* | `no_evidence` |
-| Cross-browser capture (`R10`) | also capture in Firefox and WebKit | *(brief says Chromium only, cross-browser out of scope)* | `no_evidence` |
+| Accessibility check (`R10`) | run axe-core, fail on serious violations | lists accessibility auditing as **explicitly out of scope** | `contradicts` |
+| Cross-browser capture (`R11`) | also capture in Firefox and WebKit | lists cross-browser (Firefox/WebKit) as **explicitly out of scope** — Chromium only | `contradicts` |
+
+`R10`/`R11` are `contradicts`, not `no_evidence`: the brief doesn't just
+omit accessibility auditing and cross-browser capture — its "Explicitly
+out of scope for v1" section actively excludes them by name. A requirement
+adding a feature the source document explicitly rules out conflicts with
+it; `no_evidence` is only the right verdict when the source is silent on a
+topic, not when it has said no to it. (An earlier version of this table
+had both wrong on that basis, live-verified: the tool correctly returned
+`contradicts` 3/3 for both, quoting the "out of scope" line back.)
 
 The other ~6 requirements are faithfully grounded in the brief and should
 come back `entails`.
