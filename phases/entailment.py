@@ -487,20 +487,35 @@ _THRESHOLD_PROCEDURE = """A claim can state an outcome for a NUMBER the passages
         that number.
      d. Same outcome -> not a contradiction (continue to test 2-4 below).
         Different outcome -> "contradicts".
+        STOP HERE once you reach (d). Do not re-examine the claim's number
+        against the passages' boundary number a second time afterward — a
+        boundary number (0.1% in the example below) is not "the value the
+        passages give for this quantity" in the fixed-value sense, it is
+        the cutoff the procedure above already used. Re-applying "the
+        claim's number differs from the passages' number, so contradicts"
+        AFTER finishing this procedure is exactly the mistake this
+        procedure exists to prevent, and produces the wrong verdict even
+        when steps (a)-(d) were followed correctly.
    Worked example, passages: "fails when more than 0.1% of pixels differ;
    at or below that is a pass":
      - claim "a 3% difference fails the page": (a) above 0.1% -> fails.
        (b) 3% > 0.1% -> the rule says fail. (c) claim says fail. (d) SAME
-       outcome -> not a contradiction -> entails.
+       outcome -> not a contradiction -> entails. FINAL — do not also
+       flag "3% is a different number than 0.1%" as a conflict; 0.1% was
+       the boundary, not a competing value for the same fact.
      - claim "a 0.5% difference passes the page": (a) above 0.1% -> fails.
        (b) 0.5% > 0.1% -> the rule says fail. (c) claim says pass.
-       (d) DIFFERENT outcome -> contradicts.
+       (d) DIFFERENT outcome -> contradicts. FINAL.
    This procedure applies only to a genuine threshold/boundary. A passage
-   stating one FIXED value for a quantity (not a boundary) still
-   contradicts a claim stating a different fixed value for it (passages:
-   "the limit is 10 per second"; claim: "the limit is 25 per second" —
-   there is no boundary here, both numbers claim to BE the value, so
-   compare them directly as before)."""
+   stating one FIXED value for a quantity — a single number the passages
+   assert IS the value, not a cutoff above/below which something happens —
+   still contradicts a claim stating a different fixed value for it
+   (passages: "the limit is 10 per second"; claim: "the limit is 25 per second"
+   — there is no boundary here, both numbers claim to BE the value, so
+   compare them directly as before). If you are unsure whether a number is
+   a boundary or a fixed value, ask: does the passage describe what
+   happens ABOVE or BELOW it? If yes, it is a boundary — use the procedure
+   above and stop at (d)."""
 
 
 def _build_prompt(items) -> str:
