@@ -181,6 +181,14 @@ class ClaimResult:
     # ambiguous (see that module's docstring for exactly what it abstains on).
     structurally_overridden: bool = False
     structurally_overridden_from: str = ""
+    # Set when this claim looked compound (issue #3) and retrieving
+    # separately per clause actually added a chunk the whole-claim query
+    # alone didn't find — see claimvalidator/claim_retrieval.py. Most
+    # claims are not compound and never set this; when it is set, the
+    # extra cited passage(s) are already reflected in cited_chunks/
+    # cited_passages above like any other citation — this only says *why*
+    # there are more of them than a single probe would have found.
+    retrieval_widened_for_clauses: bool = False
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -203,6 +211,7 @@ class ClaimResult:
             "source_ref": self.source_ref,
             "structurally_overridden": self.structurally_overridden,
             "structurally_overridden_from": self.structurally_overridden_from,
+            "retrieval_widened_for_clauses": self.retrieval_widened_for_clauses,
         }
 
 
@@ -340,11 +349,15 @@ def run_validation(
     retrieval_tracker.step_start("retrieve")
     retrieval_usage_before = _usage_snapshot(llm_client)
     found_nothing = 0
+    widened_for_clauses = 0
     for claim in claims:
         result = retrieve_for_claim(claim.text, ontology, searcher, llm_client)
         claim.source_chunks = result.chunk_indices
+        claim.retrieval_widened_for_clauses = result.widened_for_clauses
         if not result.chunk_indices:
             found_nothing += 1
+        if result.widened_for_clauses:
+            widened_for_clauses += 1
     phase_usage["retrieval"] = _usage_delta(retrieval_usage_before, _usage_snapshot(llm_client), rates)
     retrieval_tracker.step_complete("retrieve", claims=len(claims), found_nothing=found_nothing)
     retrieval_tracker.finish(
@@ -486,6 +499,7 @@ def run_validation(
             source_ref=claim.source_ref,
             structurally_overridden=structurally_overridden,
             structurally_overridden_from=structurally_overridden_from,
+            retrieval_widened_for_clauses=claim.retrieval_widened_for_clauses,
         ))
 
     completeness_tracker = RunTracker(db_session, workflow_id, name=document_id or "validation",
@@ -544,6 +558,11 @@ def run_validation(
         "shape_profile_source": ontology_meta.shape_profile_source if ontology_meta else "default",
         "shape_profile_overridden_by_request": bool(shape_rule_overrides),
         "retrieval_found_nothing": found_nothing,
+        # Issue #3: claims that looked compound and got a per-clause
+        # retrieval widening that actually found something the single
+        # whole-claim probe missed. See claim_retrieval.py::
+        # _split_claim_into_clauses — most claims never trigger this.
+        "retrieval_widened_for_clauses": widened_for_clauses,
         "judged": len(entailment_report.judged),
         "entailed": len(entailment_report.entailed),
         "mentions_only": len(entailment_report.mentions_only),
