@@ -462,28 +462,45 @@ def _claim_of(requirement) -> str:
 # "10/s" is a real conflict the original rule caught correctly; "a 3%
 # difference fails" vs a document's "fails above 0.1%" is not a conflict at
 # all (3% is on the failing side of that threshold), and the same rule was
-# calling it one. The paragraph below teaches the one distinction that was
-# missing — consistent-with-a-threshold vs a genuinely different fixed
-# value — without touching the rest of the rubric, which was not the part
-# that was wrong.
-_THRESHOLD_GUIDANCE = """
-Numeric values, thresholds and ranges: when the claim and the passages both
-involve a number, threshold, range or boundary, decide by whether the claim
-is CONSISTENT WITH what the passages specify — not by whether the exact
-numbers match.
-- If the passages state a threshold ("fails when more than X", "at most N",
-  "at least N") and the claim states an outcome for a specific value, the
-  verdict is "entails" when that value is on the side of the threshold that
-  produces the outcome the claim states — even if that exact value is never
-  named in the passages. Example: passages say "fails above 0.1%"; a claim
-  that "a 3% difference fails" is "entails" (3% is on the failing side); a
-  claim that "a 0.5% difference passes" is "contradicts" (0.5% is also on
-  the failing side, so a pass is wrong).
-- A claim that restates the passages' own fixed value with a different
-  number is still "contradicts" (passages say "the limit is 10 per second";
-  claim says "the limit is 25 per second" — not a threshold, a specific
-  stated value, and the claim's is different).
-"""
+# calling it one — restated almost verbatim in the model's own reason text,
+# unmoved by a first attempt at this fix that stated the distinction as
+# prose appended after the JSON-format instructions. That version also
+# regressed a previously-correct verdict (a claim's own reasoning computed
+# "0.5% exceeds 0.1%" and then concluded the wrong outcome from it). This
+# version instead puts a forced, numbered arithmetic procedure directly
+# inside the "contradicts" test itself — the decision point where the
+# mistake happens — with the two exact failing cases worked through so the
+# correct conclusion for each is spelled out, not left for the model to
+# derive from a general rule.
+_THRESHOLD_PROCEDURE = """A claim can state an outcome for a NUMBER the passages never name, while the
+   passages state a THRESHOLD or boundary rule instead (e.g. passages: "fails
+   when more than 0.1% differ"; claim: "a 3% difference fails"). Comparing
+   the two numbers directly ("3% is not 0.1%, so contradicts") is WRONG here.
+   Instead, for a claim naming a specific value against a passage stating a
+   threshold/boundary rule for the same quantity, work through these steps
+   in order before deciding:
+     a. Find the passages' rule and which outcome it produces above/below
+        the boundary.
+     b. Apply that rule to the CLAIM's number to get the outcome the
+        PASSAGES would produce for it.
+     c. Compare that computed outcome to the outcome the CLAIM states for
+        that number.
+     d. Same outcome -> not a contradiction (continue to test 2-4 below).
+        Different outcome -> "contradicts".
+   Worked example, passages: "fails when more than 0.1% of pixels differ;
+   at or below that is a pass":
+     - claim "a 3% difference fails the page": (a) above 0.1% -> fails.
+       (b) 3% > 0.1% -> the rule says fail. (c) claim says fail. (d) SAME
+       outcome -> not a contradiction -> entails.
+     - claim "a 0.5% difference passes the page": (a) above 0.1% -> fails.
+       (b) 0.5% > 0.1% -> the rule says fail. (c) claim says pass.
+       (d) DIFFERENT outcome -> contradicts.
+   This procedure applies only to a genuine threshold/boundary. A passage
+   stating one FIXED value for a quantity (not a boundary) still
+   contradicts a claim stating a different fixed value for it (passages:
+   "the limit is 10 per second"; claim: "the limit is 25 per second" —
+   there is no boundary here, both numbers claim to BE the value, so
+   compare them directly as before)."""
 
 
 def _build_prompt(items) -> str:
@@ -510,6 +527,16 @@ it — so the order decides the verdict, not which description sounds closest.
                      claim for the same case? A different status code, error
                      code, limit or default counts. Choose this even though such
                      a passage also fails to establish the claim.
+
+                     If the claim states a different FIXED value for the same
+                     quantity than the passages give (a status code, a limit,
+                     a default), that alone is "contradicts".
+
+                     If instead the claim names a number and the passages
+                     state a THRESHOLD or boundary rule for that same
+                     quantity (not a fixed value), do not compare the two
+                     numbers directly — follow this procedure first:
+                     {_THRESHOLD_PROCEDURE}
 2. "no_evidence"   — are the passages about entirely different things?
 3. "mentions_only" — the passages concern the same endpoints, fields or codes,
                      and are simply SILENT on what the claim asserts. Nothing in
@@ -521,11 +548,6 @@ For each item return an object:
 - verdict: exactly one of "contradicts", "no_evidence", "mentions_only", "entails"
 - reason: a short phrase quoting the deciding words, unless the verdict is "entails"
 
-If your reason would say the passage specifies a different FIXED value for the
-same quantity than the claim expects, the verdict is "contradicts" — not
-"mentions_only". See the threshold/range note below before applying this to a
-claim about a numeric boundary rather than a single stated value.
-{_THRESHOLD_GUIDANCE}
 Judge ONLY against the passages shown. Common industry practice is not evidence:
 if a claim states what an API usually does but this document specifies something
 else, that is "contradicts"; if the document is simply silent, that is

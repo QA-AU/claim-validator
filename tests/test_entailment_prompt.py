@@ -20,18 +20,22 @@ def _prompt_for(claim_text: str) -> str:
     return _build_prompt([(requirement, [(0, "some passage text")])])
 
 
-def test_prompt_includes_threshold_and_range_guidance():
+def test_prompt_includes_the_threshold_reasoning_procedure():
     prompt = _build_prompt([])
-    assert "CONSISTENT WITH" in prompt
-    assert "threshold" in prompt.lower()
+    assert "THRESHOLD or boundary rule" in prompt
+    assert "work through these steps" in prompt.lower()
 
 
-def test_prompt_distinguishes_a_threshold_from_a_fixed_value():
+def test_prompt_worked_example_spells_out_the_correct_answer_for_both_directions():
     prompt = _build_prompt([])
-    # The example pair this guidance exists to fix (see issue #4): a value on
-    # the correct side of a stated threshold is not the same case as a value
-    # that just differs from a document's own fixed number.
-    assert "fails above 0.1%" in prompt
+    # The exact pair this fix exists for (issue #4): a value on the failing
+    # side of a stated threshold is "entails" when the claim also says fail,
+    # and "contradicts" when the claim says pass — spelled out, not left for
+    # the model to derive from a general rule.
+    assert '"a 3% difference fails the page"' in prompt
+    assert '"a 0.5% difference passes the page"' in prompt
+    assert "SAME" in prompt and "not a contradiction -> entails" in prompt
+    assert "DIFFERENT outcome -> contradicts" in prompt
     assert "limit is 25 per second" in prompt
 
 
