@@ -116,6 +116,19 @@ def test_claim_with_two_numbers_abstains():
     assert _extract_claim_value_outcome("A 3% or 5% difference fails the page.") is None
 
 
+def test_a_flag_being_passed_is_not_mistaken_for_an_outcome_word():
+    # Found live: this module wrongly overrode an already-correct "entails"
+    # to "contradicts" on this exact claim. "was passed" here means a CLI
+    # flag was supplied, not that a check passed — "passed" is genuinely
+    # ambiguous between those two senses and was removed from the
+    # vocabulary for exactly this reason.
+    claim = (
+        "When a page differs from its baseline by 2% or more, leave the "
+        "baseline unchanged unless `--update-baselines` was passed."
+    )
+    assert _extract_claim_value_outcome(claim) is None
+
+
 def test_claim_with_no_recognized_outcome_word_abstains():
     assert _extract_claim_value_outcome("The gate captures at 2x device pixel ratio.") is None
 

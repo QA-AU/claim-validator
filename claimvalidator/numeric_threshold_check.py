@@ -46,8 +46,14 @@ VERDICT_CONTRADICTS = "contradicts"
 # optional thousands separators and a trailing "%"), not parsing it.
 _NUMBER_RE = re.compile(r'(?<!\w)(\d{1,3}(?:,\d{3})*(?:\.\d+)?|\.\d+)\s*%?')
 
+# Deliberately NOT "passed" — found live, a real false positive: "unless
+# `--update-baselines` was passed" (a flag being supplied) uses the exact
+# same past-participle form as "the check passed" (an outcome), and there
+# is no word-list way to tell those two senses apart. Losing that one form
+# is the safe trade; "pass"/"passes" alone are far less ambiguous in
+# practice ("the flag pass" and "the flag passes" are not idiomatic).
 _POSITIVE_OUTCOME_WORDS = {
-    "pass", "passes", "passed", "allow", "allowed", "accept", "accepted",
+    "pass", "passes", "allow", "allowed", "accept", "accepted",
     "succeed", "succeeds", "success", "valid", "ok", "permitted", "granted",
 }
 _NEGATIVE_OUTCOME_WORDS = {
