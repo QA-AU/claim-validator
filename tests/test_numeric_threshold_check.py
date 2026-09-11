@@ -209,3 +209,33 @@ def test_a_device_pixel_ratio_claim_is_left_to_the_judge():
 
 def test_no_threshold_rule_anywhere_abstains():
     assert check_numeric_consistency("A 3% difference fails the page.", ["Nothing relevant here."]) is None
+
+
+# ---- issue #6: a claim restating the document's own threshold rule ---------
+
+def test_a_claim_restating_the_document_own_threshold_phrase_abstains():
+    # The live false positive: the claim isn't reporting an instance value,
+    # it's restating the same "more than X" rule the passage states. The
+    # number here is a threshold, not a value the outcome word applies to,
+    # so this module must abstain rather than compare it as if it were one.
+    claim = "It fails a page when more than 0.1% of its pixels differ from the baseline."
+    assert _extract_claim_value_outcome(claim) is None
+    assert check_numeric_consistency(claim, [_THRESHOLD_PASSAGE]) is None
+
+
+def test_a_claim_restating_the_passage_own_at_or_below_phrase_also_abstains():
+    claim = "Anything at or below 0.1% difference is a pass."
+    assert _extract_claim_value_outcome(claim) is None
+    assert check_numeric_consistency(claim, [_THRESHOLD_PASSAGE]) is None
+
+
+def test_an_instance_value_claim_with_no_comparator_phrase_still_extracts():
+    # Regression guard: this fix must not make the module abstain on the
+    # ordinary case it was built for — a claim reporting a bare value, with
+    # no comparison-operator phrase of its own around the number.
+    assert _extract_claim_value_outcome("A 3% difference fails the page.") == (3.0, "negative")
+
+
+def test_an_instance_value_claim_still_resolves_end_to_end():
+    result = check_numeric_consistency("A 3% difference fails the page.", [_THRESHOLD_PASSAGE])
+    assert result is not None and result.verdict == "entails"

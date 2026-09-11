@@ -196,16 +196,37 @@ def _extract_threshold_rules(text: str) -> List[ThresholdRule]:
     return rules
 
 
+def _claim_states_a_threshold(claim_text: str) -> bool:
+    """True when the claim's own number sits directly in a comparison-
+    operator phrase ("more than 0.1%") rather than being a bare instance
+    value the claim reports an outcome for. Same adjacency shape
+    `_extract_threshold_rules` looks for in passage text - finding it here
+    means the claim is restating a threshold rule (e.g. "it fails when more
+    than 0.1% differ"), not reporting a specific measurement, and this
+    module has nothing to compare that restatement against - see issue #6,
+    where treating the claim's own threshold number as an instance value
+    produced a false `contradicts` on a claim that verbatim-restated the
+    passage's own rule."""
+    for op_pattern, _ in _COMPARISONS:
+        if re.search(op_pattern + r"\s*" + _NUMBER_RE.pattern, claim_text, re.IGNORECASE):
+            return True
+    return False
+
+
 def _extract_claim_value_outcome(claim_text: str) -> Optional[Tuple[float, str]]:
     """Exactly one number and exactly one outcome word in the claim, or
-    None. Two-or-more numbers (likely compound - see issue #3) or zero/two+
-    recognized outcome words abstains rather than guesses."""
+    None. Two-or-more numbers (likely compound - see issue #3), zero/two+
+    recognized outcome words, or the claim's number itself being a
+    threshold phrase rather than an instance value (see issue #6) all
+    abstain rather than guess."""
     claim_text = _strip_markdown_emphasis(claim_text)
     numbers = _NUMBER_RE.findall(claim_text)
     if len(numbers) != 1:
         return None
     outcome_words = _outcome_words_in(claim_text)
     if len(outcome_words) != 1:
+        return None
+    if _claim_states_a_threshold(claim_text):
         return None
     return _parse_number(numbers[0]), _outcome_of(outcome_words[0])
 
