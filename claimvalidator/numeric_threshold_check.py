@@ -79,6 +79,15 @@ def _parse_number(text: str) -> float:
     return float(text.replace(",", ""))
 
 
+def _strip_markdown_emphasis(text: str) -> str:
+    """Source briefs routinely bold the exact number/word this module looks
+    for ("fails when more than **0.1% of its pixels**") — found live: the
+    bold markers sat directly between an operator phrase and its number,
+    breaking the adjacency match entirely and silently dropping the rule.
+    Stripped once, up front, rather than woven into every regex."""
+    return text.replace("**", "").replace("__", "")
+
+
 def _outcome_words_in(text: str) -> List[str]:
     words = re.findall(r"[a-zA-Z]+", text.lower())
     return [w for w in words if w in _POSITIVE_OUTCOME_WORDS or w in _NEGATIVE_OUTCOME_WORDS]
@@ -129,6 +138,7 @@ def _extract_threshold_rules(text: str) -> List[ThresholdRule]:
     sentence that refers back to it by pronoun rather than repeating it).
     See the module docstring for why a sentence missing the operator or the
     outcome word yields nothing regardless."""
+    text = _strip_markdown_emphasis(text)
     rules: List[ThresholdRule] = []
     last_number: Optional[float] = None
 
@@ -165,6 +175,7 @@ def _extract_claim_value_outcome(claim_text: str) -> Optional[Tuple[float, str]]
     """Exactly one number and exactly one outcome word in the claim, or
     None. Two-or-more numbers (likely compound - see issue #3) or zero/two+
     recognized outcome words abstains rather than guesses."""
+    claim_text = _strip_markdown_emphasis(claim_text)
     numbers = _NUMBER_RE.findall(claim_text)
     if len(numbers) != 1:
         return None

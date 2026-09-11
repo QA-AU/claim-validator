@@ -11,10 +11,12 @@ from claimvalidator.numeric_threshold_check import (
     check_numeric_consistency,
 )
 
-# The real brief sentences this module exists to get right (from
-# tools/openspec-adapter/examples/ui-testing/source-brief.md).
+# The real brief sentences this module exists to get right, byte-for-byte
+# from tools/openspec-adapter/examples/ui-testing/source-brief.md — bold
+# markers included on purpose (see test_markdown_bold_between_operator_and_
+# number_does_not_break_extraction below for exactly why that matters).
 _THRESHOLD_PASSAGE = (
-    "A page fails when more than 0.1% of its pixels differ from the "
+    "A page **fails** when more than **0.1% of its pixels** differ from the "
     "baseline. Anything at or below that is a pass."
 )
 
@@ -34,6 +36,23 @@ def test_bare_integer_parses():
 
 
 # ---- threshold-rule extraction ----------------------------------------------
+
+def test_markdown_bold_between_operator_and_number_does_not_break_extraction():
+    # Found live: the real brief bolds exactly the words this module looks
+    # for ("fails when more than **0.1% of its pixels**"), and the bold
+    # markers sat directly between the operator phrase and its number,
+    # breaking the original adjacency match and silently dropping the rule
+    # (issue #4 follow-up — a claim that should have been caught wasn't,
+    # because the deterministic check itself abstained without noticing).
+    passage = (
+        "A page **fails** when more than **0.1% of its pixels** differ "
+        "from the baseline. Anything at or below that is a pass."
+    )
+    rules = _extract_threshold_rules(passage)
+    assert len(rules) == 2
+    above = next(r for r in rules if r.comparator == ">")
+    assert above.value == 0.1 and above.outcome == "negative"
+
 
 def test_the_real_brief_sentence_pair_yields_two_opposite_rules():
     rules = _extract_threshold_rules(_THRESHOLD_PASSAGE)
