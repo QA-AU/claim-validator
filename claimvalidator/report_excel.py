@@ -349,6 +349,19 @@ _METRIC_EXPLANATIONS = {
         "not just that it ran.",
         "Informational",
     ),
+    "structurally_overridden": (
+        "Verdicts corrected by a deterministic, non-LLM check on numeric "
+        "thresholds (claimvalidator/numeric_threshold_check.py, issue #4) "
+        "instead of a model — the claim named a specific value and outcome, "
+        "a cited passage stated a threshold rule for it, and the two "
+        "disagreed with what the judge said.",
+        "Rare by design: it only fires on an unambiguous single-number, "
+        "single-outcome-word match, and abstains on anything it isn't "
+        "certain about. Each one listed is arithmetic on the passage's own "
+        "stated rule, not a model's opinion — worth trusting more, not "
+        "less, than an ordinary verdict.",
+        "Informational",
+    ),
     "runs": (
         "How many times the judge repeated itself on each claim before "
         "taking a majority verdict.",
@@ -440,6 +453,7 @@ _CLAIM_ID_FILTERS = {
     "undecided": lambda c: c.judged and not c.decided,
     "escalated": lambda c: c.escalated,
     "overturned": lambda c: c.escalated and c.escalated_from and c.escalated_from != c.verdict,
+    "structurally_overridden": lambda c: c.structurally_overridden,
 }
 
 _NOT_PER_CLAIM = "(whole-run figure, not per-claim)"
