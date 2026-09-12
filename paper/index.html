@@ -1,0 +1,1143 @@
+<title>Claim Validator</title>
+<style>
+  :root {
+    --bg: #faf9f5;
+    --surface: #ffffff;
+    --surface-2: #f1efe8;
+    --ink: #1c1a17;
+    --ink-soft: #4a463f;
+    --muted: #726c60;
+    --accent: #2b5d5a;
+    --accent-soft: #dce7e4;
+    --rule: #dedacf;
+    --v-entail: #2f6e43;      --v-entail-bg: #e4efe3;
+    --v-contradict: #a3341f; --v-contradict-bg: #f5e4de;
+    --v-mentions: #8f6b13;   --v-mentions-bg: #f3ead3;
+    --v-noevid: #5b5e63;     --v-noevid-bg: #e7e6e2;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #15171a;
+      --surface: #1d1f22;
+      --surface-2: #23262a;
+      --ink: #ece9e1;
+      --ink-soft: #c7c3b8;
+      --muted: #9a9686;
+      --accent: #6fb3ac;
+      --accent-soft: #203330;
+      --rule: #33352f;
+      --v-entail: #6fcb8c;      --v-entail-bg: #1e3324;
+      --v-contradict: #e28268; --v-contradict-bg: #3a211a;
+      --v-mentions: #d8b24b;   --v-mentions-bg: #362c15;
+      --v-noevid: #aba9a0;     --v-noevid-bg: #2a2b28;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #15171a;
+    --surface: #1d1f22;
+    --surface-2: #23262a;
+    --ink: #ece9e1;
+    --ink-soft: #c7c3b8;
+    --muted: #9a9686;
+    --accent: #6fb3ac;
+    --accent-soft: #203330;
+    --rule: #33352f;
+    --v-entail: #6fcb8c;      --v-entail-bg: #1e3324;
+    --v-contradict: #e28268; --v-contradict-bg: #3a211a;
+    --v-mentions: #d8b24b;   --v-mentions-bg: #362c15;
+    --v-noevid: #aba9a0;     --v-noevid-bg: #2a2b28;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
+    font-size: 17px;
+    line-height: 1.65;
+  }
+  h1, h2, h3, .display {
+    font-family: "Fraunces", Georgia, serif;
+    font-weight: 600;
+    color: var(--ink);
+    text-wrap: balance;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 64px 24px 96px; }
+
+  /* ---- masthead ---- */
+  .masthead { text-align: center; margin-bottom: 8px; }
+  .kicker {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 18px;
+  }
+  .masthead h1 {
+    font-size: 46px;
+    line-height: 1.08;
+    margin: 0 0 10px;
+    font-optical-sizing: auto;
+  }
+  .subtitle {
+    font-family: "Source Serif 4", serif;
+    font-style: italic;
+    font-size: 19px;
+    color: var(--ink-soft);
+    margin: 0 auto 26px;
+    max-width: 46ch;
+  }
+  .byline {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    flex-wrap: wrap;
+    margin-bottom: 34px;
+  }
+  hr.rule { border: none; border-top: 1px solid var(--rule); margin: 0 0 40px; }
+  hr.rule.thin { margin: 40px 0; }
+
+  nav.toc {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px 14px;
+    margin: 0 0 44px;
+  }
+  nav.toc a { color: var(--muted); text-decoration: none; border-bottom: 1px dotted var(--rule); }
+  nav.toc a:hover { color: var(--accent); border-bottom-color: var(--accent); }
+  nav.toc span.sep { color: var(--rule); }
+
+  section { margin-bottom: 56px; scroll-margin-top: 20px; }
+  h2 {
+    font-size: 26px;
+    margin: 0 0 6px;
+    padding-top: 4px;
+  }
+  .section-no {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    color: var(--accent);
+    letter-spacing: 0.06em;
+    display: block;
+    margin-bottom: 6px;
+  }
+  .proposed-tag {
+    display: inline-block;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border: 1px dashed var(--rule);
+    border-radius: 999px;
+    padding: 3px 11px;
+    margin-bottom: 14px;
+  }
+  .shipped-tag {
+    display: inline-block;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--v-entail);
+    background: var(--v-entail-bg);
+    border: 1px solid transparent;
+    border-radius: 999px;
+    padding: 3px 11px;
+    margin-bottom: 14px;
+  }
+  h2 + p.lede {
+    color: var(--ink-soft);
+    font-size: 18px;
+    margin-top: 10px;
+  }
+  h3 { font-size: 18px; margin: 26px 0 8px; }
+  p { margin: 0 0 16px; }
+  a { color: var(--accent); }
+  code, .mono {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.86em;
+    background: var(--surface-2);
+    padding: 0.05em 0.4em;
+    border-radius: 3px;
+  }
+
+  blockquote.finding {
+    margin: 22px 0;
+    padding: 4px 0 4px 20px;
+    border-left: 3px solid var(--accent);
+    color: var(--ink-soft);
+    font-style: italic;
+    font-size: 16.5px;
+  }
+
+  /* ---- timeline (origins) ---- */
+  .timeline { border-left: 2px solid var(--rule); margin-left: 6px; padding-left: 24px; }
+  .tl-item { position: relative; margin-bottom: 26px; }
+  .tl-item:last-child { margin-bottom: 0; }
+  .tl-item::before {
+    content: "";
+    position: absolute; left: -29px; top: 6px;
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--accent);
+  }
+  .tl-item .tl-tag {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 4px;
+  }
+  .tl-item p { margin: 0; color: var(--ink-soft); }
+  .tl-item strong { color: var(--ink); }
+
+  /* ---- diagram ---- */
+  figure.diagram {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 20px 8px 12px;
+    margin: 0 0 40px;
+  }
+  figure.diagram svg { display: block; width: 100%; height: auto; color: var(--ink-soft); }
+  figcaption {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 10px;
+    padding: 0 12px;
+  }
+
+  /* ---- verdict legend ---- */
+  .legend { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 20px 0 8px; }
+  .v-card {
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 14px 16px;
+    background: var(--surface);
+  }
+  .v-badge {
+    display: inline-block;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 999px;
+    margin-bottom: 8px;
+    letter-spacing: 0.02em;
+  }
+  .v-badge.entail { color: var(--v-entail); background: var(--v-entail-bg); }
+  .v-badge.contradict { color: var(--v-contradict); background: var(--v-contradict-bg); }
+  .v-badge.mentions { color: var(--v-mentions); background: var(--v-mentions-bg); }
+  .v-badge.noevid { color: var(--v-noevid); background: var(--v-noevid-bg); }
+  .v-card p { margin: 0; font-size: 14.5px; color: var(--ink-soft); }
+  .v-card p.action { margin-top: 6px; font-size: 13px; color: var(--muted); }
+
+  /* ---- specimen (evidence cards) ---- */
+  .specimen {
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    background: var(--surface);
+    margin: 0 0 18px;
+    overflow: hidden;
+  }
+  .specimen-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--rule);
+  }
+  .specimen-doc {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .specimen-doc b { color: var(--ink-soft); }
+  .specimen-body { padding: 16px; }
+  .specimen-claim { font-size: 15.5px; margin-bottom: 10px; }
+  .specimen-claim .rid {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    color: var(--accent);
+    margin-right: 6px;
+  }
+  .specimen-note {
+    font-size: 14.5px;
+    color: var(--ink-soft);
+    border-top: 1px dashed var(--rule);
+    padding-top: 10px;
+    margin: 0;
+  }
+  .specimen-note b { color: var(--ink); }
+
+  /* ---- coverage table ---- */
+  .table-wrap { overflow-x: auto; margin: 8px 0 20px; }
+  table { border-collapse: collapse; width: 100%; font-size: 14.5px; }
+  table.data { min-width: 560px; }
+  th, td {
+    text-align: left;
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--rule);
+    font-variant-numeric: tabular-nums;
+  }
+  th {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    font-weight: 500;
+  }
+  td.num { text-align: right; }
+  tr:last-child td { border-bottom: none; }
+  td.model { font-family: "IBM Plex Mono", monospace; font-size: 12.5px; color: var(--ink-soft); }
+
+  /* ---- boundaries list ---- */
+  ul.bounds { list-style: none; margin: 0; padding: 0; }
+  ul.bounds li {
+    padding: 10px 0 10px 26px;
+    border-bottom: 1px solid var(--rule);
+    position: relative;
+    color: var(--ink-soft);
+    font-size: 15.5px;
+  }
+  ul.bounds li:last-child { border-bottom: none; }
+  ul.bounds li::before {
+    content: "—";
+    position: absolute; left: 0; color: var(--v-contradict);
+  }
+  ul.bounds li b { color: var(--ink); }
+
+  /* ---- comparison ---- */
+  .compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin: 8px 0 24px;
+  }
+  .compare-col {
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 16px 18px;
+  }
+  .compare-col.them { background: var(--surface); }
+  .compare-col.us { background: var(--accent-soft); border-color: var(--accent); }
+  .compare-col h4 {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 0 0 10px;
+    color: var(--ink-soft);
+  }
+  .compare-col.us h4 { color: var(--accent); }
+  .compare-col p { font-size: 14.5px; color: var(--ink-soft); margin: 0 0 10px; }
+  .compare-col p:last-child { margin-bottom: 0; }
+
+  .pull {
+    font-family: "Fraunces", serif;
+    font-weight: 500;
+    font-size: 24px;
+    line-height: 1.35;
+    text-wrap: balance;
+    color: var(--ink);
+    margin: 34px 0;
+    padding: 0 8px;
+  }
+  .pull .accent { color: var(--accent); }
+
+  .colophon {
+    margin-top: 60px;
+    padding-top: 24px;
+    border-top: 1px solid var(--rule);
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11.5px;
+    color: var(--muted);
+    line-height: 1.9;
+  }
+
+  @media (max-width: 620px) {
+    .wrap { padding: 44px 18px 72px; }
+    .masthead h1 { font-size: 34px; }
+    .legend, .compare { grid-template-columns: 1fr; }
+    table.data { min-width: 460px; }
+  }
+</style>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<div class="wrap">
+
+  <div class="masthead">
+    <p class="kicker">A working paper</p>
+    <h1>True, False, or Never Even Claimed</h1>
+    <p class="subtitle">How Claim Validator validates a large language model's output — and what it still misses.</p>
+    <div class="byline">
+      <span>Independent claim validation service</span>
+      <span>·</span>
+      <span>September 2026 (updated)</span>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <nav class="toc">
+    <a href="#origins">Origins</a><span class="sep">/</span>
+    <a href="#mechanism">Mechanism</a><span class="sep">/</span>
+    <a href="#architecture">Architecture</a><span class="sep">/</span>
+    <a href="#scope">Scope</a><span class="sep">/</span>
+    <a href="#verdicts">Verdicts</a><span class="sep">/</span>
+    <a href="#citedpassages">Cited passages</a><span class="sep">/</span>
+    <a href="#multidoc">Multi-document</a><span class="sep">/</span>
+    <a href="#quality">Quality checks</a><span class="sep">/</span>
+    <a href="#evidence">Evidence</a><span class="sep">/</span>
+    <a href="#modelswap">Model swap</a><span class="sep">/</span>
+    <a href="#coverage">Coverage</a><span class="sep">/</span>
+    <a href="#boundaries">Boundaries</a><span class="sep">/</span>
+    <a href="#futureshape">Learned shapes</a><span class="sep">/</span>
+    <a href="#structural">Structural fixes</a><span class="sep">/</span>
+    <a href="#openspec">OpenSpec</a><span class="sep">/</span>
+    <a href="#compared">Compared</a><span class="sep">/</span>
+    <a href="#stakes">Why it matters</a>
+  </nav>
+
+  <section id="origins">
+    <span class="section-no">01</span>
+    <h2>Origins</h2>
+    <p class="lede">It started as frustration with a small number, not a big idea.</p>
+
+    <p>An LLM generating claims about a document gets it wrong in a small minority of cases — by rough experience, on the order of 5% or less. That sounds like a solved problem until it's the thing you're actually staking on: a low error rate isn't a zero one, and there are only two ways to live with the difference. Read back over everything the model produced, by hand, every time — which quietly erases the reason for using the model at all. Or don't, and accept that the handful of wrong claims a run happens to contain will sit undetected in whatever consumes them next, compounding into cascading, harder-to-trace errors further down the pipeline. Neither is a real answer.</p>
+
+    <blockquote class="finding">The point of the LLM was to not do the work by hand. Re-checking its output by hand, in full, every time, is the same work — it just moved.</blockquote>
+
+    <p>DeepEval was the first thing tried, and it does answer the right question — is this text actually grounded in the source. What it doesn't give is a way in when the answer is no. A Faithfulness score tells you <em>that</em> a response scored low; pinpointing <em>which</em> specific statement was the problem, and why, from the number alone, is genuinely hard. That gap — a verdict with nothing behind it to inspect — is the specific thing this tool was built to close: not a replacement metric, but claim-level verdicts that each point back at the exact passage they're based on, so a low result is a place to start reading, not a dead end.</p>
+
+    <p>The judging core that does this — the part that reads a document, builds a structured map of what it's about, and decides whether a piece of text is actually backed by it — did not start as a validator at all. It began as a private, general-purpose research pipeline for discovering an <em>ontology</em> inside an arbitrary document: whatever concept types the document itself contains, extracted per-document rather than assumed in advance, then indexed for retrieval and checked with an LLM-as-judge entailment step. Claim Validator reuses that pipeline as a library rather than rewriting it, and everything genuinely new sits in a thin layer around it: an async job/API service, a set of shims that let a bare <code>id + text</code> claim satisfy contracts the underlying judge was never written to expect, and an Excel/JSON reporting layer.</p>
+
+    <div class="timeline">
+      <div class="tl-item">
+        <span class="tl-tag">Proof, before infrastructure</span>
+        <p>Before any API existed, a single script proved the actual risk: could a bare claim — no test case, no requirement ID, no prior structure — satisfy the reused judge's contract against a <strong>real model</strong>, not a mock. It could. Everything else was built on top of that result, not before it.</p>
+      </div>
+      <div class="tl-item">
+        <span class="tl-tag">Scoped, not guessed, for Azure</span>
+        <p>Deployment was scoped from a written Azure-readiness assessment before a single resource was created, then built as three Bicep templates deployed for real against a live subscription — including the deployment bugs that only exist at that stage: a container image built <code>arm64</code> on Apple Silicon that pulled "successfully" everywhere except Azure Container Apps, a first-deploy role-assignment propagation race, a Postgres Azure-AD authentication function signature that only fails at connection time. Each was found live and fixed, not designed around in the abstract.</p>
+      </div>
+      <div class="tl-item">
+        <span class="tl-tag">A real identity system, built and then set aside</span>
+        <p>A full Entra ID (Azure AD) app-registration path was built out — app roles, a service principal, role assignment via Microsoft Graph — as an optional, per-tenant authentication mode. The default posture was then deliberately kept simpler: <strong>deploy it yourself, call it with a bearer token.</strong> No centrally managed identity provider standing between a user and their own deployment. Entra ID stays available for whoever wants real per-user job privacy; it is opt-in, not assumed.</p>
+      </div>
+      <div class="tl-item">
+        <span class="tl-tag">A gap found in its own gate</span>
+        <p>The bearer token guarding each tenant was, until recently, computed by <code>uniqueString(...)</code> — a deterministic hash, not a random secret, with two of its three inputs already documented in this project's own public repository. Found, replaced with a properly random deployer-supplied secret, and rotated live on every running tenant with before/after verification that the old scheme's tokens now fail and the new ones work.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="mechanism">
+    <span class="section-no">02</span>
+    <h2>What actually happens to a claim</h2>
+    <p class="lede">One document, a bare list of claims, and two independent questions asked about them — never conflated into one score.</p>
+
+    <figure class="diagram">
+      <svg viewBox="0 0 680 340" role="img" aria-label="A reference document is turned into an ontology and RAG index, cached by content hash. Submitted claims are retrieved against that index and judged three times for a majority verdict, while a separate concept census produces a gap report — the two outputs are never merged into one score.">
+        <defs>
+          <marker id="cv-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="currentColor"></path>
+          </marker>
+        </defs>
+        <!-- Document -->
+        <rect x="20" y="20" width="140" height="46" rx="5" fill="none" stroke="currentColor"></rect>
+        <text x="90" y="48" text-anchor="middle" font-size="12.5" fill="currentColor">Reference document</text>
+
+        <!-- arrow down to ontology -->
+        <line x1="90" y1="66" x2="90" y2="96" stroke="currentColor" marker-end="url(#cv-arrow)"></line>
+
+        <!-- Ontology/RAG box -->
+        <rect x="10" y="98" width="160" height="58" rx="5" fill="none" stroke="currentColor"></rect>
+        <text x="90" y="122" text-anchor="middle" font-size="12.5" fill="currentColor">Ontology + RAG index</text>
+        <text x="90" y="138" text-anchor="middle" font-size="10.5" fill="currentColor" opacity="0.75">cached by content hash</text>
+
+        <!-- Claims box -->
+        <rect x="260" y="20" width="150" height="46" rx="5" fill="none" stroke="currentColor"></rect>
+        <text x="335" y="48" text-anchor="middle" font-size="12.5" fill="currentColor">Claims (id + text)</text>
+
+        <!-- from ontology to retrieval -->
+        <line x1="170" y1="127" x2="255" y2="127" stroke="currentColor" marker-end="url(#cv-arrow)"></line>
+        <!-- from claims down to retrieval -->
+        <line x1="335" y1="66" x2="335" y2="96" stroke="currentColor" marker-end="url(#cv-arrow)"></line>
+
+        <!-- Retrieval box -->
+        <rect x="255" y="98" width="160" height="58" rx="5" fill="none" stroke="currentColor"></rect>
+        <text x="335" y="122" text-anchor="middle" font-size="12.5" fill="currentColor">Retrieval, per claim</text>
+        <text x="335" y="138" text-anchor="middle" font-size="10.5" fill="currentColor" opacity="0.75">cited passages</text>
+
+        <!-- to judge -->
+        <line x1="335" y1="156" x2="335" y2="186" stroke="currentColor" marker-end="url(#cv-arrow)"></line>
+
+        <!-- Judge box -->
+        <rect x="245" y="188" width="180" height="58" rx="5" fill="none" stroke="currentColor"></rect>
+        <text x="335" y="212" text-anchor="middle" font-size="12.5" fill="currentColor">Entailment judge</text>
+        <text x="335" y="228" text-anchor="middle" font-size="10.5" fill="currentColor" opacity="0.75">run 3×, majority vote</text>
+
+        <!-- to verdict -->
+        <line x1="335" y1="246" x2="335" y2="276" stroke="currentColor" marker-end="url(#cv-arrow)"></line>
+        <rect x="255" y="278" width="160" height="46" rx="5" fill="none" stroke="currentColor"></rect>
+        <text x="335" y="306" text-anchor="middle" font-size="12.5" fill="currentColor">Per-claim verdict</text>
+
+        <!-- census branch, independent of claims -->
+        <line x1="170" y1="127" x2="170" y2="127" stroke="none"></line>
+        <line x1="90" y1="156" x2="90" y2="186" stroke="currentColor" marker-end="url(#cv-arrow)"></line>
+        <rect x="10" y="188" width="160" height="58" rx="5" fill="none" stroke="currentColor" stroke-dasharray="4 3"></rect>
+        <text x="90" y="212" text-anchor="middle" font-size="12.5" fill="currentColor">Concept census</text>
+        <text x="90" y="228" text-anchor="middle" font-size="10.5" fill="currentColor" opacity="0.75">independent of claims</text>
+
+        <line x1="90" y1="246" x2="90" y2="276" stroke="currentColor" marker-end="url(#cv-arrow)"></line>
+        <rect x="10" y="278" width="160" height="46" rx="5" fill="none" stroke="currentColor" stroke-dasharray="4 3"></rect>
+        <text x="90" y="306" text-anchor="middle" font-size="12.5" fill="currentColor">Gap report</text>
+
+        <!-- converge to report -->
+        <line x1="90" y1="324" x2="90" y2="334" stroke="currentColor"></line>
+        <line x1="335" y1="324" x2="335" y2="334" stroke="currentColor"></line>
+        <line x1="90" y1="334" x2="335" y2="334" stroke="currentColor"></line>
+        <line x1="212" y1="334" x2="212" y2="332" stroke="currentColor" marker-end="url(#cv-arrow)"></line>
+        <text x="212" y="330" text-anchor="middle" font-size="10.5" fill="currentColor" opacity="0.85">both ship in one JSON + Excel report — never merged into one score</text>
+      </svg>
+      <figcaption>Correctness and coverage are computed independently and reported side by side, on purpose: a claim set can be entirely correct and still leave most of a document untouched, or leave nothing untouched and still contain one confidently wrong statement.</figcaption>
+    </figure>
+
+    <p>Two things are worth naming about that diagram. First, the ontology is built once and reused — the same document resubmitted under a different name, or no name, is caught by content hash and never re-indexed. Second, claims never touch the judge directly: they're retrieved against first, so a verdict is always anchored to a specific cited passage a human can go back and re-read, not a bare model opinion.</p>
+  </section>
+
+  <section id="architecture">
+    <span class="section-no">03</span>
+    <h2>One tenant, one silo — sharing as little as possible</h2>
+    <p class="lede">The judging mechanism in the last section runs the same way regardless of who's calling it. Who can reach whose data is a separate question, answered at the infrastructure level, not the application level.</p>
+
+    <p>Every deployment is a <strong>silo</strong>: one Container App, one database, one Key Vault holding that tenant's own Anthropic key and bearer token, one storage share, per tenant. Nothing about one tenant's data or spend is reachable through another tenant's credentials. Two tenants share exactly three things, and none of them carry tenant data: the Container Apps compute environment, the Postgres server (each tenant gets its own separate database on it, not a shared one), and the image registry. A fourth shared resource, the audit-log workspace, does carry activity records from both tenants — but only operation metadata (what was read, written, or deleted, and when), never document content or secrets.</p>
+
+    <p>None of that isolation runs on passwords. Each Container App gets its own Azure-managed identity — a credential nothing types in and nothing can leak, because there's no secret value to begin with — and every connection it makes is a specific, named RBAC role assignment scoped to exactly one resource: <code>Key Vault Secrets User</code> on its own vault, <code>AcrPull</code> on the shared registry, and its own Postgres role, granted through a single shared identity (<code>pg-admin-identity</code>) that exists only to do the granting at setup time and is never used at runtime by either tenant. There is no Postgres admin password anywhere in this project — not in Key Vault, not in a Container App's config, not in the Bicep templates that provision any of it.</p>
+
+    <figure class="diagram">
+      <svg viewBox="0 0 780 690" role="img" aria-label="A caller, outside Azure, sends a reference document and a batch of claims across the trust boundary into usera-claimval's Container App. Inside one Azure subscription and resource group, two tenants — usera and userb — each run a Container App with its own system-assigned managed identity, granted role-based access to only its own Key Vault, its own database, and the shared registry. A separate shared identity, pg-admin-identity, is the only thing ever used to grant a tenant's Container App its database role, at setup time, never at runtime. The two tenants share the compute environment, the Postgres server with separate databases, the registry, and an audit-log workspace that records activity metadata only, never document content. Every connector is drawn as horizontal and vertical segments only.">
+        <defs>
+          <marker id="arch-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="currentColor"></path>
+          </marker>
+          <marker id="arch-arrow-rbac" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--accent)"></path>
+          </marker>
+        </defs>
+
+        <!-- Caller: outside Azure entirely -->
+        <circle cx="90" cy="38" r="11" fill="none" stroke="currentColor" stroke-width="1.3"></circle>
+        <path d="M71,72 Q71,55 90,55 Q109,55 109,72" fill="none" stroke="currentColor" stroke-width="1.3"></path>
+        <text x="128" y="35" font-size="13" font-weight="600">Caller</text>
+        <text x="128" y="50" font-size="9.5" opacity="0.7">any HTTP client — Authorization: Bearer &lt;token&gt;</text>
+
+        <!-- the two real inputs, crossing into Azure -->
+        <line x1="170" y1="78" x2="170" y2="145" stroke="currentColor" marker-end="url(#arch-arrow)"></line>
+        <text x="8" y="118" font-size="9.5" fill="currentColor" opacity="0.85">1. reference document</text>
+        <text x="8" y="130" font-size="9.5" fill="currentColor" opacity="0.85">(a file)</text>
+
+        <line x1="224" y1="78" x2="224" y2="145" stroke="currentColor" marker-end="url(#arch-arrow)"></line>
+        <text x="232" y="118" font-size="9.5" fill="currentColor" opacity="0.85">2. claims —</text>
+        <text x="232" y="130" font-size="9.5" fill="currentColor" opacity="0.85">the questions to check</text>
+
+        <!-- Azure / resource-group boundary -->
+        <rect x="10" y="115" width="760" height="515" rx="10" fill="var(--accent-soft)" opacity="0.3" stroke="currentColor" stroke-width="1.2" stroke-dasharray="2 4"></rect>
+        <text x="28" y="135" font-size="11.5" fill="currentColor" opacity="0.75">Microsoft Azure — subscription · resource group "claim-validator-rg"</text>
+
+        <!-- usera tenant box -->
+        <rect x="32" y="145" width="330" height="200" rx="6" fill="var(--surface)" stroke="currentColor" stroke-width="1.4"></rect>
+        <text x="197" y="163" text-anchor="middle" font-size="12.5" font-weight="600">usera-claimval</text>
+        <text x="197" y="177" text-anchor="middle" font-size="9" opacity="0.7">private — unreachable with userb's credentials</text>
+        <line x1="32" y1="185" x2="362" y2="185" stroke="currentColor" opacity="0.35"></line>
+
+        <rect x="52" y="197" width="290" height="38" rx="4" fill="none" stroke="currentColor"></rect>
+        <text x="197" y="212" text-anchor="middle" font-size="12">Container App</text>
+        <text x="197" y="225" text-anchor="middle" font-size="8.5" opacity="0.65">system-assigned managed identity</text>
+
+        <rect x="52" y="257" width="138" height="34" rx="4" fill="none" stroke="currentColor"></rect>
+        <text x="121" y="278" text-anchor="middle" font-size="11">Key Vault</text>
+
+        <rect x="204" y="257" width="138" height="34" rx="4" fill="none" stroke="currentColor"></rect>
+        <text x="273" y="278" text-anchor="middle" font-size="11">File share</text>
+
+        <line x1="121" y1="235" x2="121" y2="257" stroke="var(--accent)" marker-end="url(#arch-arrow-rbac)"></line>
+        <text x="48" y="249" text-anchor="end" font-size="8" fill="var(--accent)">Key Vault Secrets User</text>
+
+        <line x1="273" y1="235" x2="273" y2="257" stroke="currentColor" marker-end="url(#arch-arrow)"></line>
+        <text x="283" y="249" font-size="8" fill="currentColor" opacity="0.8">persists data</text>
+
+        <!-- userb tenant box, mirrored, de-emphasized -->
+        <rect x="418" y="145" width="330" height="200" rx="6" fill="var(--surface)" stroke="currentColor" stroke-width="1.4" stroke-dasharray="5 4" opacity="0.55"></rect>
+        <text x="583" y="163" text-anchor="middle" font-size="12.5" font-weight="600" fill="currentColor" opacity="0.6">userb-claimval</text>
+        <text x="583" y="177" text-anchor="middle" font-size="9" fill="currentColor" opacity="0.55">identical shape — own identity, own secrets</text>
+        <text x="583" y="216" text-anchor="middle" font-size="12" fill="currentColor" opacity="0.7">Container App</text>
+        <text x="583" y="278" text-anchor="middle" font-size="11" fill="currentColor" opacity="0.55">Key Vault · File share</text>
+
+        <!-- shared band -->
+        <rect x="32" y="433" width="716" height="180" rx="6" fill="var(--surface-2)" opacity="0.5" stroke="currentColor" stroke-width="1.2" stroke-dasharray="2 3"></rect>
+        <text x="48" y="426" font-size="11" fill="currentColor" opacity="0.75">Shared across both tenants — none of these hold tenant document content or secrets</text>
+
+        <rect x="47" y="451" width="164" height="42" rx="4" fill="var(--surface)" stroke="currentColor"></rect>
+        <text x="129" y="469" text-anchor="middle" font-size="11">Compute environment</text>
+        <text x="129" y="482" text-anchor="middle" font-size="9" opacity="0.75">hosts both Container Apps</text>
+
+        <rect x="226" y="451" width="164" height="42" rx="4" fill="var(--surface)" stroke="currentColor"></rect>
+        <text x="308" y="469" text-anchor="middle" font-size="11">Postgres server</text>
+        <text x="308" y="482" text-anchor="middle" font-size="9" opacity="0.75">usera_db · userb_db, separate</text>
+
+        <rect x="405" y="451" width="164" height="42" rx="4" fill="var(--surface)" stroke="currentColor"></rect>
+        <text x="487" y="469" text-anchor="middle" font-size="11">Container</text>
+        <text x="487" y="482" text-anchor="middle" font-size="11">registry</text>
+
+        <rect x="584" y="451" width="164" height="42" rx="4" fill="var(--surface)" stroke="currentColor"></rect>
+        <text x="666" y="469" text-anchor="middle" font-size="11">Log Analytics</text>
+        <text x="666" y="482" text-anchor="middle" font-size="9" opacity="0.75">cv-logs — audit metadata only</text>
+
+        <!-- usera's connections down to shared band — every path horizontal/vertical only,
+             staggered bend heights (longest reach bends first) so none of the four cross -->
+        <polyline points="90,345 90,420 129,420 129,451" fill="none" stroke="currentColor" marker-end="url(#arch-arrow)"></polyline>
+        <text x="10" y="415" font-size="9" fill="currentColor" opacity="0.8">runs inside</text>
+
+        <polyline points="200,345 200,405 308,405 308,451" fill="none" stroke="var(--accent)" marker-end="url(#arch-arrow-rbac)"></polyline>
+        <text x="204" y="400" font-size="9" fill="var(--accent)">Postgres AAD role</text>
+
+        <polyline points="280,345 280,385 487,385 487,451" fill="none" stroke="var(--accent)" marker-end="url(#arch-arrow-rbac)"></polyline>
+        <text x="392" y="380" text-anchor="middle" font-size="9" fill="var(--accent)">AcrPull</text>
+
+        <polyline points="320,291 320,365 666,365 666,451" fill="none" stroke="currentColor" marker-end="url(#arch-arrow)"></polyline>
+        <text x="500" y="360" text-anchor="middle" font-size="9" fill="currentColor" opacity="0.8">read/write/delete logs</text>
+
+        <polyline points="350,493 350,525 625,525 625,493" fill="none" stroke="currentColor" stroke-dasharray="3 3" marker-end="url(#arch-arrow)"></polyline>
+        <text x="487" y="538" text-anchor="middle" font-size="9" fill="currentColor" opacity="0.7">query logs</text>
+
+        <!-- userb's connection into the same shared band — one straight vertical, routed
+             clear of the read/write/delete-logs line above -->
+        <line x1="700" y1="345" x2="700" y2="451" stroke="currentColor" stroke-dasharray="5 4" opacity="0.55" marker-end="url(#arch-arrow)"></line>
+        <text x="704" y="400" font-size="9" fill="currentColor" opacity="0.6">userb: same shared resources</text>
+
+        <!-- pg-admin-identity: the one identity used to grant DB access, at setup time only -->
+        <rect x="226" y="563" width="164" height="42" rx="4" fill="none" stroke="var(--accent)" stroke-width="1.2"></rect>
+        <text x="308" y="581" text-anchor="middle" font-size="11" fill="var(--accent)">pg-admin-identity</text>
+        <text x="308" y="594" text-anchor="middle" font-size="8.5" fill="var(--accent)" opacity="0.85">shared, setup-time only</text>
+        <line x1="308" y1="563" x2="308" y2="493" stroke="var(--accent)" marker-end="url(#arch-arrow-rbac)"></line>
+        <text x="314" y="520" font-size="9" fill="var(--accent)">grants DB role via AAD —</text>
+        <text x="314" y="532" font-size="9" fill="var(--accent)">never a tenant's own identity</text>
+
+        <!-- legend, deliberately drawn below/outside the Azure boundary -->
+        <line x1="47" y1="655" x2="80" y2="655" stroke="currentColor" marker-end="url(#arch-arrow)"></line>
+        <text x="88" y="658.5" font-size="10" fill="currentColor" opacity="0.8">data / runtime connection</text>
+        <line x1="330" y1="655" x2="363" y2="655" stroke="var(--accent)" marker-end="url(#arch-arrow-rbac)"></line>
+        <text x="371" y="658.5" font-size="10" fill="var(--accent)">RBAC role grant — identity-based, scoped to one resource</text>
+      </svg>
+      <figcaption>A caller outside Azure entirely sends a document and a batch of claims across the trust boundary. Accent-colored arrows are real, scoped RBAC role assignments — least-privilege, one identity to one resource — not network paths. Two tenants stay fully isolated in everything holding their actual data or credentials, sharing only compute, a database server (separate databases), a registry, and an audit log that records what happened, never what was in it. Every connection is drawn as a right-angle path rather than a straight diagonal, so which specific box a line starts and ends at stays unambiguous even where several connections cross the same open space.</figcaption>
+    </figure>
+
+    <p>Within one tenant, jobs and reports are scoped further still, down to the individual caller (<code>owner_user_id</code> on the <code>Job</code> row) — real per-person privacy when that tenant is configured for Entra ID auth, or one shared identity for everyone holding the same bearer token under the default shared-secret mode described in the Origins section. Ontologies are the one thing genuinely shared <em>within</em> a tenant, not across tenants: built once, immutable, listed for anyone on that tenant to browse and reuse, never edited or deleted through the API — the same immutability this paper's evidence section relied on to reuse ontologies across two separate test rounds without rebuilding them.</p>
+
+    <p>None of this is aspirational. Both tenants shown here are real, running deployments — <code>usera-claimval</code> is the one every live result in this paper came from — provisioned by three Bicep templates deployed in order (a one-time admin identity, the shared environment, then a template per tenant), with real deployment failures found and fixed at that stage rather than designed around in the abstract: a region that silently didn't support Container Apps, a first-deploy role-assignment race, an image built for the wrong CPU architecture that pulled "successfully" everywhere except Azure and failed there with a misleading authorization error. The full account, including the fixes, is in the project's own <code>infra/README.md</code> — kept as a real deployment history, not a clean-room design document.</p>
+  </section>
+
+  <section id="scope">
+    <span class="section-no">04</span>
+    <h2>What it needs to know, and what it deliberately doesn't ask</h2>
+    <p class="lede">"Requirements" were the first use case, not a boundary. What the engine takes as input — and refuses to take — says as much about its design as the verdicts do.</p>
+
+    <h3>Any claim, not just requirements</h3>
+    <p>The shape-check module this project reuses was originally built for software requirements, and its default rule demands something requirement-shaped: a named subject, an operation like <code>GET /projects</code>. Claim-validator's own layer overrides that outright — its rule set explicitly sets <code>require_subject: False</code>, with the reasoning stated directly in the code: a claim just needs non-trivial, checkable text, nothing else. A submitted claim is exactly two required fields, <code>id</code> and <code>text</code> — nothing else about its shape is assumed.</p>
+    <p>This isn't theoretical. Across the two rounds of testing in this paper, the same engine validated software requirements (Petstore, gRPC, WAI-ARIA), legal claims about a license (Apache), compliance claims about an internet standard (RFC 2119), and plain factual claims lifted from public-health guidance (CDC, WHO) — none of which are "requirements" in any software sense. Same pipeline, same four verdicts, no configuration needed to switch domains.</p>
+
+    <h3>No field for who or what produced a claim</h3>
+    <p>The one provenance field a claim can carry is <code>source_ref</code> — free text like <em>"chatbot response, sentence 2."</em> Its own docstring says exactly what it's for: <em>"purely a pass-through... never read by validation logic, only carried into the report."</em> There's no field for which model wrote a claim, what version, or what prompt produced it. Retrieval, the shape check, and the judge only ever see <code>.text</code>.</p>
+
+    <h3>No field for intent, either — and that's on purpose</h3>
+    <p>There's also no way to tell the engine, on a validation request, "these are requirements an LLM generated from an API spec" — no intent, genre, or origin field exists on <code>POST /api/validations</code> at all. Two adjacent, easy-to-conflate levers do exist, and are worth telling apart from that:</p>
+    <ul class="bounds">
+      <li><b>Background description</b>, but only at ontology build time (<code>POST /api/ontologies</code>) — a domain seed for what concept types get discovered when the document is first read, nothing more. It never reaches the judge and has no effect on any claim's verdict.</li>
+      <li><b>Shape-rule overrides</b>, per validation job, for a caller who genuinely wants stricter pre-checks — requiring a named subject again, say, because these really are structured software requirements and that structure is worth enforcing before a claim is even judged. Still only the free, deterministic pre-check; still never the entailment judge itself.</li>
+    </ul>
+    <p>Nothing about a claim's declared purpose changes how it gets judged. That's not a missing feature — it's the same principle behind the missing provenance field, applied one level further: the entailment judge is supposed to be blind to who wrote a claim and why, so it can't be talked into trusting one more because it arrived framed as coming from a careful process. It reads the claim, reads the document, and answers the same question every time.</p>
+  </section>
+
+  <section id="verdicts">
+    <span class="section-no">05</span>
+    <h2>Four verdicts, not a score</h2>
+    <p class="lede">A single 1–5 groundedness number can't distinguish a fabrication from an unaddressed claim. This tool refuses to collapse them.</p>
+
+    <div class="legend">
+      <div class="v-card">
+        <span class="v-badge entail">entails</span>
+        <p>The cited passage actually supports the claim.</p>
+        <p class="action">Working as intended — nothing to do.</p>
+      </div>
+      <div class="v-card">
+        <span class="v-badge contradict">contradicts</span>
+        <p>The cited passage says something that conflicts with the claim.</p>
+        <p class="action">The most actionable finding this tool produces.</p>
+      </div>
+      <div class="v-card">
+        <span class="v-badge mentions">mentions_only</span>
+        <p>An on-topic passage exists, but stays silent on the specific thing claimed.</p>
+        <p class="action">Not automatically wrong — often over-specific. Worth a look.</p>
+      </div>
+      <div class="v-card">
+        <span class="v-badge noevid">no_evidence</span>
+        <p>Nothing in the document supports or contradicts it at all.</p>
+        <p class="action">A plausible-sounding claim the document never makes.</p>
+      </div>
+    </div>
+    <p>Every claim is judged <strong>three separate times</strong>; the reported verdict is whichever the judge agreed with itself on most. Disagreement across those three runs is itself a signal, kept alongside the verdict rather than thrown away in an average.</p>
+  </section>
+
+  <section id="citedpassages">
+    <span class="section-no">06</span>
+    <span class="shipped-tag">Shipped — live-tested</span>
+    <h2>Reading the passage, not just the reason</h2>
+    <p class="lede">A verdict is only as checkable as what's next to it. Until this shipped, "next to it" was a paraphrase and a number that meant nothing on its own.</p>
+
+    <p>Every verdict already carries a <code>reason</code> — the judge's own account of what it saw — and <code>cited_chunks</code>, the index numbers of whichever passages retrieval pulled up. The reason is usually a fair summary. The index numbers were never independently useful: neither the JSON result nor the Excel report exposed the actual passage text behind them, so confirming a verdict for real meant either trusting the paraphrase or going to search the source document by hand, with nothing but a bare integer to start from.</p>
+
+    <div class="compare">
+      <div class="compare-col them">
+        <h4>Before</h4>
+        <p><code>"cited_chunks": [2, 0, 1, 3]</code></p>
+        <p><code>"reason": "The passages state 'expires_in'... directly contradicting the claim"</code></p>
+        <p>Four numbers with nothing to resolve them against, and a paraphrase you either trust or don't.</p>
+      </div>
+      <div class="compare-col us">
+        <h4>Now</h4>
+        <p><code>"cited_passages": ["...\"expires_in\": Integer... Token lifetime in seconds...", "...Token Expiration (3600 second TTL)..."]</code></p>
+        <p>The actual sentences the judge read, in the same order as the indices — the same passage a human would land on searching the source by hand, already in front of them.</p>
+      </div>
+    </div>
+
+    <p>The fix stayed inside a boundary the project had already drawn for itself earlier this paper: no free-text "ask the document a question" endpoint. Considered directly and rejected — the point is a human proofreading the real source, not trusting a second AI-generated answer instead of the first claim. Surfacing the passage the judge already retrieved isn't a query feature; it's exposing computation that had already happened, one step earlier than it used to stop.</p>
+
+    <blockquote class="finding">Confirmed live, not just designed: resubmitted a claim already documented earlier in this paper — <em>"Authentication tokens never expire once issued"</em> — against the same live tenant. It still landed on <code>contradicts</code>, exactly as before, but this time the result carried the actual sentences behind that call: <em>"expires_in": Integer ... Token lifetime in seconds</em> and <em>Token Expiration (3600 second TTL)</em> — the real passage a person would otherwise have had to go find themselves.</blockquote>
+
+    <p>Free, by construction: the passage text was already loaded in memory at the exact point a verdict gets built — retrieval had already pulled it to hand the judge something to read. Surfacing it added no LLM call, no latency, no new cost; it's the same data, just no longer thrown away after the judge finished with it. 225 tests passing (from 219), verified against a real downloaded report on the live tenant before shipping.</p>
+  </section>
+
+  <section id="multidoc">
+    <span class="section-no">07</span>
+    <span class="shipped-tag">Shipped — live-tested</span>
+    <h2>More than one document, one ontology</h2>
+    <p class="lede">A reference document was never actually limited to one file — a caller just had nowhere to see which of several it was reading from. Both halves are covered here: the combining, which already existed, and the attribution, which didn't.</p>
+
+    <p>An ontology has never been tied to a single file. The engine already treats a document upload as a "document set" — its own content-hash function is named exactly that, hashing every file's bytes together, order-independent, so the same set of files resubmitted in any order still hits the cache. Every document in the set gets chunked and merged into one combined retrieval index, and one unified list of concept types gets discovered across all of them together, not one ontology per file. A caller reaches this by uploading each related document separately, then passing every resulting file path together in one <code>files</code> list to a single ontology or validation request — several regulatory documents, a spec plus its amendments, a policy and its appendices, checked as the one thing they actually are.</p>
+
+    <p>What was missing was attribution. A claim's citation already carried the retrieved passage text (previous section), but with more than one document behind an ontology, nothing said <em>which</em> file that passage came from. Each retrieved chunk already tracked its own source file internally — a real, working, already-tested method nobody was calling from the API layer. Fixed the same way the passage text itself was: expose data that was already being computed, add nothing new to compute.</p>
+
+    <blockquote class="finding">Confirmed live: two documents with nothing in common — an API specification and a page of standard poker hand rankings — uploaded separately, then combined into one ontology in a single call. The build found seven concept types spanning both. A claim about the rate limit correctly cited the API spec; claims about poker hands correctly cited the rankings page — each citation now naming its actual source file, not just an index number meaningless without one.</blockquote>
+
+    <p>The same discipline as everywhere else in this section: the common case stays exactly as it was. A citation from a single-document ontology — every real result shown earlier in this paper — renders identically to before, no filename clutter on the normal case. The source only appears once a claim's own citations genuinely span more than one document, which is precisely the situation where knowing which one stops being optional. 229 tests passing (from 225), verified against a real downloaded report from the two-document run before shipping.</p>
+  </section>
+
+  <section id="quality">
+    <span class="section-no">08</span>
+    <h2>What gets checked besides "is it true"</h2>
+    <p class="lede">Before the judge ever runs, and after every verdict is in, two more layers ask questions the entailment check alone can't.</p>
+
+    <h3>The shape check — free, before any model is called</h3>
+    <p>Every claim is tested against a "does this even have enough here to check" rule before a single token is spent judging it: a subject, a title, at least one stated criterion. Deterministic, no LLM call involved, and nothing is ever deleted on the strength of it — a claim that fails is flagged, not dropped. A claim can be well-written and entirely true and still fail this check, because it states nothing checkable at all — a different defect from being wrong.</p>
+    <blockquote class="finding">A real defect this check exists because of: an ontology once filed 19 OpenAPI tags as if they were endpoints. The generated requirements about them looked well-formed — each one had a subject — and every check passed, because a present subject isn't automatically a valid one. <code>projects</code> is a tag; <code>GET /projects</code> is an operation on it. The fix was pattern-matching what a subject actually looks like, not just confirming that one exists.</blockquote>
+
+    <h3>The quality sheet — after every claim is judged</h3>
+    <p>Every finished report carries an aggregate Quality tab, and every metric on it is sorted into one of four buckets by what a person should do about it next — the same triage logic the verdicts themselves use, applied to the report as a whole:</p>
+
+    <div class="legend">
+      <div class="v-card">
+        <span class="v-badge entail">Quality</span>
+        <p>Working as intended — the number this whole exercise exists to produce.</p>
+      </div>
+      <div class="v-card">
+        <span class="v-badge contradict">Incorrect</span>
+        <p>An actionable defect. Read this row first.</p>
+      </div>
+      <div class="v-card">
+        <span class="v-badge mentions">Human check</span>
+        <p>Not wrong by itself, but worth a look before trusting it either way.</p>
+      </div>
+      <div class="v-card">
+        <span class="v-badge noevid">Informational</span>
+        <p>A count to sanity-check against another count, not a verdict on anything.</p>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Metric</th><th>What it measures</th><th>Bucket</th></tr></thead>
+        <tbody>
+          <tr><td>entailed</td><td>Claims the cited or retrieved passage actually supports</td><td><span class="v-badge entail">Quality</span></td></tr>
+          <tr><td>contradicted</td><td>Claims that conflict with the passage they cite</td><td><span class="v-badge contradict">Incorrect</span></td></tr>
+          <tr><td>no_evidence</td><td>Plausible-sounding claims the document never actually makes</td><td><span class="v-badge contradict">Incorrect</span></td></tr>
+          <tr><td>shape_violations</td><td>Claims with no usable text to judge at all — caught for free, before any model call</td><td><span class="v-badge contradict">Incorrect</span></td></tr>
+          <tr><td>mentions_only</td><td>On-topic but silent on the specific thing claimed</td><td><span class="v-badge mentions">Human check</span></td></tr>
+          <tr><td>undecided</td><td>The judge's own three runs couldn't settle it by majority</td><td><span class="v-badge mentions">Human check</span></td></tr>
+          <tr><td>escalated / overturned</td><td>Doubtful verdicts sent to a stronger model, and how many it actually changed</td><td><span class="v-badge noevid">Informational</span></td></tr>
+          <tr><td>judge_method</td><td>How each verdict was produced — a 3-run majority vote, or (only where the model exposes it) confidence read straight from token probabilities</td><td><span class="v-badge noevid">Informational</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:14.5px;color:var(--muted);">Same discipline as the four verdicts themselves: every number on the report says what it means and what a good value looks like, rather than shipping as a bare count someone has to reverse-engineer.</p>
+  </section>
+
+  <section id="evidence">
+    <span class="section-no">09</span>
+    <h2>A slice of what it evaluates</h2>
+    <p class="lede">Eight unrelated documents, spanning API contracts, an RPC schema, a UI spec, a software license, an internet standard, public-health guidance, and a spec-driven-development capability spec — run against a live deployment, not a benchmark set built to flatter the tool. Seven are model-generated claim sets, in the table below; the eighth is a hand-authored accuracy check, at the end of this section.</p>
+
+    <div class="table-wrap">
+      <table class="data">
+        <thead>
+          <tr><th>Document</th><th>Claim author</th><th class="num">Claims</th><th class="num">Entails</th><th class="num">Contradicts</th><th class="num">Mentions only</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Swagger Petstore (OpenAPI 3.0)</td><td class="model">Haiku</td><td class="num">18</td><td class="num">16</td><td class="num">0</td><td class="num">2</td></tr>
+          <tr><td>gRPC <code>helloworld.proto</code></td><td class="model">Haiku</td><td class="num">12</td><td class="num">12</td><td class="num">0</td><td class="num">0</td></tr>
+          <tr><td>W3C WAI-ARIA Alert Dialog</td><td class="model">Haiku</td><td class="num">17</td><td class="num">15</td><td class="num">1</td><td class="num">1</td></tr>
+          <tr><td>Apache License 2.0</td><td class="model">Haiku</td><td class="num">46</td><td class="num">43</td><td class="num">2</td><td class="num">1</td></tr>
+          <tr><td>RFC 2119 (IETF)</td><td class="model">Opus</td><td class="num">26</td><td class="num">25</td><td class="num">0</td><td class="num">1</td></tr>
+          <tr><td>CDC handwashing guidance</td><td class="model">Sonnet</td><td class="num">21</td><td class="num">19</td><td class="num">1</td><td class="num">1</td></tr>
+          <tr><td>WHO food-safety fact sheet</td><td class="model">Haiku</td><td class="num">40</td><td class="num">40</td><td class="num">0</td><td class="num">0</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Real findings, in the tool's own terms:</p>
+
+    <div class="specimen">
+      <div class="specimen-head">
+        <span class="specimen-doc"><b>Swagger Petstore</b> · OpenAPI 3.0 · claims by Haiku</span>
+        <span class="v-badge mentions">mentions_only</span>
+      </div>
+      <div class="specimen-body">
+        <p class="specimen-claim">"POST /pets creates a pet and returns a 201 response."</p>
+        <p class="specimen-note"><b>What the spec actually says:</b> its <code>201</code> response is documented, verbatim, as <em>"Null response"</em> — it never actually states that a pet gets created. A second claim made the same move in reverse: <em>"…returns 200 with a Pet object when the pet exists"</em> — the spec has no distinct <code>404</code> at all, only one generic <code>default</code> error, so "when it exists" isn't a distinction the spec draws.</p>
+      </div>
+    </div>
+
+    <div class="specimen">
+      <div class="specimen-head">
+        <span class="specimen-doc"><b>W3C WAI-ARIA</b> · Alert Dialog pattern · claims by Haiku</span>
+        <span class="v-badge contradict">contradicts</span>
+      </div>
+      <div class="specimen-body">
+        <p class="specimen-claim"><span class="rid">R9</span>A keyboard-focus requirement borrowed its exception condition from a different rule elsewhere in the same spec.</p>
+        <p class="specimen-note"><b>Judge's reasoning, quoted directly:</b> <em>"initial focus caveat is 'depends on content type and size,' not 'workflow logic suggests otherwise' (that phrase applies only to Focus Return on Close)."</em> A second claim in the same run, <span class="rid">R3</span>, was flagged <code>mentions_only</code> for a related reason: the spec states a condition as a <em>prerequisite</em> for when a property should apply, not as a fact that the condition holds — the claim flattened that "if" into an "is."</p>
+      </div>
+    </div>
+
+    <div class="specimen">
+      <div class="specimen-head">
+        <span class="specimen-doc"><b>Apache License 2.0</b> · claims by Haiku</span>
+        <span class="v-badge contradict">contradicts</span>
+      </div>
+      <div class="specimen-body">
+        <p class="specimen-claim"><span class="rid">R6</span>Asserted that Derivative Works are treated as separable, linking works under the license.</p>
+        <p class="specimen-note"><b>What the license actually says:</b> the opposite — it explicitly excludes that category from Derivative Works. A plain inversion, not a nuance: the claim states the reverse of the clause it cites.</p>
+      </div>
+    </div>
+
+    <div class="specimen">
+      <div class="specimen-head">
+        <span class="specimen-doc"><b>Apache License 2.0</b> · claims by Haiku</span>
+        <span class="v-badge contradict">contradicts</span>
+      </div>
+      <div class="specimen-body">
+        <p class="specimen-claim"><span class="rid">R8</span>Restated the license's definition of "Submitted," dropping the clause carving out an exception to it.</p>
+        <p class="specimen-note"><b>Why it matters:</b> the exception isn't a footnote — it changes what actually counts as "Submitted" under the license, and therefore what a contributor has and hasn't licensed. A definition with a silently dropped exception isn't a shorter version of the same rule; it's a different rule.</p>
+      </div>
+    </div>
+
+    <div class="specimen">
+      <div class="specimen-head">
+        <span class="specimen-doc"><b>RFC 2119</b> · claims by Opus</span>
+        <span class="v-badge mentions">mentions_only</span>
+      </div>
+      <div class="specimen-body">
+        <p class="specimen-claim"><span class="rid">R24</span>Asserted that authors elaborate the security implications of their protocol's requirement levels.</p>
+        <p class="specimen-note"><b>What the RFC actually says:</b> that authors <em>should</em> — a recommendation, not an observed fact. The same "if/should" flattened into "is/does" error as the ARIA finding above — this time from Opus, the strongest of the three generation models used across this set, not a weaker one.</p>
+      </div>
+    </div>
+
+    <div class="specimen">
+      <div class="specimen-head">
+        <span class="specimen-doc"><b>CDC handwashing guidance</b> · claims by Sonnet</span>
+        <span class="v-badge mentions">mentions_only</span>
+      </div>
+      <div class="specimen-body">
+        <p class="specimen-claim"><span class="rid">R12</span>A single claim compounding two facts the source states in two separate places.</p>
+        <p class="specimen-note"><b>What happened:</b> retrieval surfaced one of the two supporting passages, and the judge — correctly, given only that passage — could confirm half the claim and not the other half. A recurring pattern: compound claims are only as verifiable as their weakest, least-retrieved half.</p>
+      </div>
+    </div>
+
+    <div class="specimen">
+      <div class="specimen-head">
+        <span class="specimen-doc"><b>gRPC <code>helloworld.proto</code> &amp; WHO food-safety fact sheet</b></span>
+        <span class="v-badge entail">entails</span>
+      </div>
+      <div class="specimen-body">
+        <p class="specimen-claim">12 of 12, and separately 40 of 40, claims entailed — no contradictions, no gaps, on two completely unrelated documents.</p>
+        <p class="specimen-note">Included deliberately: a validator that only ever finds something wrong isn't independent, it's contrarian. Clean passes on two well-written sources are themselves evidence the tool isn't manufacturing findings.</p>
+      </div>
+    </div>
+
+    <p class="specimen-note" style="border:none;padding-top:0;"><b>In plain terms:</b> the same mistake — writing something as a plain fact when the source only ever states it as a condition or a recommendation — showed up twice, in two fields that share nothing (a web-accessibility spec and an internet standard), made by two different models. It wasn't a one-off fluke tied to one odd document or one weaker model — the second time, it was the <em>strongest</em> model tested that made it, which is what makes it worth trusting as a real, recurring failure mode rather than noise. And on the two documents where the generated claims genuinely had nothing wrong with them, the tool said exactly that — full marks, nothing invented. A checker that always finds something wrong isn't really checking anything; the clean passes are what make the flagged ones credible.</p>
+
+    <hr class="rule thin">
+
+    <p><b>An eighth document, run the other way round.</b> Every row above is a model-generated claim set, checked for whatever it happened to get wrong. This one inverts the setup: 16 claims about a real <a href="https://github.com/Fission-AI/OpenSpec">OpenSpec</a> capability specification — the <code>openspec list</code> command spec, from spec-driven-development tooling — each <em>hand-written with a target verdict fixed before the run</em>: seven to entail, five to contradict, two to land <code>mentions_only</code>, two <code>no_evidence</code> (a category the table above has no column for, because model-generated sets rarely produce it), two of them deliberately compound. The question here isn't "what does it catch" but "does it land where a careful reader decided it should."</p>
+
+    <div class="specimen">
+      <div class="specimen-head">
+        <span class="specimen-doc"><b>OpenSpec <code>cli-list</code> spec</b> · claims hand-authored as a labelled set · judged by Haiku</span>
+        <span class="v-badge entail">14 / 16</span>
+      </div>
+      <div class="specimen-body">
+        <p class="specimen-claim">The two that diverged were both boundary calls, not wrong-direction errors — nothing false was called <code>entails</code>, and no real contradiction was missed.</p>
+        <p class="specimen-note"><b>Divergence one, arguably the tool's point:</b> a claim that a count is rendered "as a percentage bar" when the spec states it as plain text (<code>"requirements 12"</code>) — the answer key said <code>mentions_only</code>, the tool said <code>contradicts</code>. A stated format and a different asserted format genuinely conflict; the tool's read is defensible, maybe better than the key's. <b>Divergence two, the genuinely thin seam:</b> a claim about a <code>--json</code> flag the document never mentions — the key said <code>no_evidence</code>, the tool split 2/3 and returned <code>mentions_only</code>, anchoring on the document's output-format requirement as an on-topic passage that stays silent on the flag. The judge's own split is the tell that this is a real edge between "on-topic but silent" and "nothing here at all," not a clean miss.</p>
+        <p class="specimen-note"><b>The two compound claims, built to fail, didn't.</b> The CDC finding above shows a compound claim splitting on its least-retrieved half. Here one claim bundled four separately-checkable assertions, all true; another bundled three, with a single false clause set between two true ones. Both came back correct 3/3 — the false-clause one with that clause named in the judge's reason (<em>"Task progress is for changes mode only"</em>). The compound weakness is real but not universal: whether retrieval surfaces every part is what decides it.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="modelswap">
+    <span class="section-no">10</span>
+    <h2>Changing the model — and why one anchored judge beats two compared ones</h2>
+    <p class="lede">The model doing the work is a setting, not an identity. What matters more than which model you pick is what role it's playing, and what it's being checked against.</p>
+
+    <h3>What actually happens when you swap the model</h3>
+    <p>Which model runs is an environment variable on the deployed tenant — <code>CLAIMVAL_PROVIDER</code> / <code>CLAIMVAL_MODEL</code> — resolved through the same tiering the rest of the project uses, never a hardcoded id. Left unset, as it is on both tenants deployed this session, it falls back to the cheapest available tier — Haiku. Two roles are configurable independently, even though the deployed service doesn't currently split them: <code>main_model</code>, which builds the ontology and retrieves passages, and <code>judge_model</code>, which actually renders each verdict — the pipeline supports a cheaper judge sitting behind a stronger extractor, or vice versa. What a model swap never changes is the shape of the output: the same four verdicts, the same citation requirement, the same 3-run majority vote. It changes how good the answers are, not what's being asked — which is also why every report logs both model names on its Quality tab: comparing two runs without first checking whether the model changed between them is exactly the mistake that logging exists to catch.</p>
+
+    <h3>The generator and the judge were never the same model here</h3>
+    <p>Worth stating plainly, because the evidence section above makes it easy to miss: nothing that <em>wrote</em> a claim in this paper was the same process that <em>judged</em> it. Claim generation — Haiku, Sonnet, or Opus, chosen deliberately per document — happened in a separate script outside claim-validator entirely, because claim-validator doesn't generate claims, by design. Every one of those claim sets was then judged by the deployed service's own configured model, which was Haiku, its unconfigured default, for every single run in this set. That means two of the seven documents — RFC 2119, written by Opus; CDC guidance, written by Sonnet — were checked by a smaller, cheaper model than the one that had written the claims under test, and the cheaper model still caught a real error in both. That's not an accident of this particular run. It's the actual argument for the architecture: the judge doesn't need to be as capable as the generator, because it isn't generating anything — it only has to compare one specific sentence to one specific retrieved passage and say whether they agree.</p>
+
+    <h3>Why this beats comparing two judges against each other</h3>
+    <p>A common alternative pattern runs two different judge models over the same output and treats disagreement between them as the signal — if Model A and Model B don't agree, something's probably wrong. It reads like independent verification. Usually it isn't, for two reasons this architecture avoids on purpose:</p>
+
+    <div class="compare">
+      <div class="compare-col them">
+        <h4>Two judges, compared</h4>
+        <p>Disagreement tells you the two models saw it differently — not which one is right, or why. There's no ground truth inside the comparison itself, only two guesses measured against each other.</p>
+        <p>Agreement isn't reassurance either. Models trained on overlapping data can share the same blind spot and confidently agree on the same wrong answer — correlated mistakes look exactly like consensus.</p>
+      </div>
+      <div class="compare-col us">
+        <h4>One judge, anchored to the source</h4>
+        <p>Every verdict is checked against a specific passage retrieved from the actual reference document — not against another model's opinion. The "second opinion" is the document itself, not a second guesser.</p>
+        <p>Repeating the same judge three times measures whether one model's own reading of this one passage holds up under retry — a check on noise, not a vote between two personalities.</p>
+      </div>
+    </div>
+
+    <p>The one place a second model does get involved is escalation: when three runs can't agree, or a contradiction only holds by a bare 2-of-3 majority, a stronger model re-judges — against the very same cited passage, not a fresh independent guess — and even that second opinion is checked for its own internal consensus rather than trusted on a single pass. It's a targeted appeal to a better judge on the rare cases actually worth the extra cost, not a standing panel of two models graded against each other on everything. And because every verdict, first-pass or escalated, ships with the exact passage it was based on, a disagreement is something a person can actually go read and resolve — not two bare scores with nothing behind them to compare.</p>
+  </section>
+
+  <section id="coverage">
+    <span class="section-no">11</span>
+    <h2>Correct is not the same as complete</h2>
+    <p class="lede">The gap report asks a document-shaped question no per-claim verdict can answer: what did nobody even try to check?</p>
+
+    <p>Independently of judging any claim, the tool runs its own exhaustive census of the document's concept instances — the things it discovered the document is actually about — and reports which of those no submitted claim's citation ever touched. It's deliberately kept apart from the per-claim verdicts: a claim set can be 100% <code>entails</code> and still leave a gap report showing most of the document was never engaged with at all.</p>
+
+    <div class="table-wrap">
+      <table class="data">
+        <thead>
+          <tr><th>Document</th><th class="num">Residual gaps</th><th>Reading</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Swagger Petstore (OpenAPI 3.0)</td><td class="num">6*</td><td class="model">see note below — a stricter check than it first looks</td></tr>
+          <tr><td>Apache License 2.0</td><td class="num">4</td><td class="model">denser cross-referencing between clauses</td></tr>
+          <tr><td>RFC 2119</td><td class="num">0</td><td class="model">complete resolution</td></tr>
+          <tr><td>CDC handwashing guidance</td><td class="num">0</td><td class="model">complete resolution</td></tr>
+          <tr><td>WHO food-safety fact sheet</td><td class="num">0</td><td class="model">complete resolution</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <blockquote class="finding">*The Petstore gap report named all 6 of the spec's HTTP-response instances — <code>200</code> for <code>listPets</code>, <code>201</code> for <code>createPets</code>, and so on — as never addressed, even though the submitted claims plainly do talk about response codes in plain English. Nothing wrong with the claims: the gap report checks whether a claim's specific <em>citation</em> lines up with that exact census instance, a stricter and different question than "does a claim mention this topic at all." Worth knowing before reading a gap-report number as a verdict on the claims themselves — it's measuring something more precise than topic coverage.</blockquote>
+
+    <p class="pull">Three of the four prose documents came back with <span class="accent">every concept fully addressed</span> and one <span class="accent">didn't</span> — a distinction the per-claim verdicts alone would never have surfaced.</p>
+  </section>
+
+  <section id="boundaries">
+    <span class="section-no">12</span>
+    <h2>What it doesn't do</h2>
+    <p class="lede">Named plainly, because a tool that's vague about its own edges is harder to trust inside its actual ones.</p>
+
+    <ul class="bounds">
+      <li><b>It doesn't write claims.</b> Validate-only, by design — feed it output from an LLM, a person, or any other tool. It never generates the thing it's checking.</li>
+      <li><b>It doesn't execute anything.</b> No live system, no API call, no code path is run to check a claim — only the reference document, read as text.</li>
+      <li><b>It isn't a safety or content-moderation suite.</b> No hate/violence/self-harm/jailbreak detection, no agent or tool-call evaluation. One job, done deliberately narrowly.</li>
+      <li><b>Its coverage check has a known blind spot.</b> The gap report can occasionally list something as never-addressed when a claim did address it, if the document's own analysis named that instance differently in two internal passes with little shared vocabulary. A strong signal, documented as imperfect rather than certain.</li>
+      <li><b>Ontologies are immutable once built.</b> No edit, no versioning, no delete route — a shared asset that anyone on a tenant can reuse can't also be silently changed or removed by any one caller.</li>
+      <li><b>Anthropic-only, on purpose.</b> No OpenAI dependency anywhere in the pipeline, including at import time — a deliberate constraint, not an oversight.</li>
+      <li><b>The judge disagrees with itself, run to run.</b> Its own code documents roughly 20–25% verdict variance across identical repeated calls — real enough that this project has used it, more than once, to correctly tell "this verdict changed because of a fix" apart from "this verdict changed because the judge is the judge" in its own regression testing.</li>
+      <li><b>The structural overrides are deliberately narrow, not general reasoning.</b> The numeric-threshold checker (see Structural fixes, below) recognizes exactly one claim shape and abstains on everything else — two or more numbers, a spelled-out count, an ambiguous outcome word, or the claim's own number sitting inside a comparison phrase — by design, not as a shortcut to widen later.</li>
+      <li><b>The compound-claim splitter is asymmetric on purpose.</b> It only treats a claim as compound when a comma or semicolon precedes a coordinating "and" — missing a genuinely compound claim written without that punctuation costs nothing (today's single-query behavior, unchanged); the risk deliberately runs toward under-splitting, never toward inventing a split that wasn't there.</li>
+      <li><b>Two of this cycle's fixes have not yet been shown rescuing a real gap.</b> The compound-claim widening and the gap report's LLM-reconciliation fallback (see Structural fixes, below) were both verified live to cost nothing and change nothing on the documents available for testing — every one of them small enough that a single query, or the free matcher alone, already covers the whole thing. Proof of safety, not yet proof of a rescue.</li>
+    </ul>
+  </section>
+
+  <section id="futureshape">
+    <span class="section-no">13</span>
+    <span class="shipped-tag">Shipped — live-tested</span>
+    <h2>The shape check learns the document</h2>
+
+    <p>The shape check (section 05) asks one deliberately narrow question by default: does a claim have enough text to be worth checking at all. The underlying engine it's built on can ask a sharper, domain-shaped question — does this claim name a real, specific thing, not just a topic — but that capability was inert for claim-validator's own bare claims, because nothing supplied the "subject" a domain-aware rule would check against.</p>
+
+    <h3>How it actually works: the document teaches the rule, once</h3>
+    <p>Rather than hand-writing a rule file per domain, an LLM proposes one — a single time per document, at the point the ontology is first built (or backfilled onto one that already exists). It reads the concept types Phase 1 already discovered and proposes a rule in the exact shape the shape-check engine expects: which fields a claim needs, and — where the domain has one — a pattern for what a real "subject" looks like there.</p>
+
+    <blockquote class="finding">The model's proposal is never trusted verbatim. The object the shape check actually inspects for a bare claim exposes almost nothing domain-specific — no populated "subject," an always-empty <code>criteria</code> list — so a proposal to require a subject would flag every claim unconditionally, not selectively. The inference step forces that setting off, unconditionally, regardless of what the model asks for, and drops a proposed ID-pattern rule the same way, since a claim's ID is caller-chosen, not something the document determines. Every one of these corrections is logged, not silent.</blockquote>
+
+    <p>The model is spent <strong>once, to discover structure</strong> — not once per claim, to render an opinion. The generated rule then applies exactly as deterministically as the static default it replaces, cached alongside the ontology and reused on every later validation against that document, at the same zero marginal cost the ontology itself already enjoys.</p>
+
+    <h3>Eleven documents, real deployment, zero deviations</h3>
+    <p>Redeployed to the same live tenant this paper's evidence section ran against, then tested twice: once backfilling profiles onto the seven ontologies already built for this paper and re-validating each against its new profile, and once more against four new documents chosen to stress a different edge each — a larger, multi-operation API spec; a near-empty document, to see what happens with almost nothing to work from; a French-language document, to check the pipeline handles non-English text and accented characters cleanly end to end; and a structurally unrelated domain — standard poker hand rankings — with no API-like or legal-like shape at all.</p>
+
+    <div class="table-wrap">
+      <table class="data">
+        <thead>
+          <tr><th>Document</th><th>What it stress-tests</th><th>Profile source</th><th class="num">Shape violations</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Petstore, gRPC, WAI-ARIA, Apache, RFC 2119, CDC, WHO</td><td class="model">backfill onto pre-existing ontologies</td><td class="model">llm</td><td class="num">0 / 200 claims</td></tr>
+          <tr><td>Expanded Petstore (multi-op)</td><td class="model">richer API structure, fresh build via live HTTP</td><td class="model">llm</td><td class="num">0 / 36 claims</td></tr>
+          <tr><td>Near-empty notice</td><td class="model">almost nothing to infer from</td><td class="model">llm</td><td class="num">0 / 3 claims</td></tr>
+          <tr><td>French privacy note</td><td class="model">non-English, accented characters</td><td class="model">llm</td><td class="num">0 / 26 claims</td></tr>
+          <tr><td>Poker hand rankings</td><td class="model">no API/legal structure at all</td><td class="model">llm</td><td class="num">0 / 25 claims</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:14.5px;color:var(--muted);">All eleven documents now carry the full loop, not just the profile step: fresh-built (or backfilled) live over the real deployed API, claims generated, submitted, and judged — <strong>zero shape violations across 290 real claims</strong>, with none of the documents pre-selected to be easy.</p>
+
+    <p>Findings from actually running it, not just designing it — including a follow-up pass specifically aimed at what the first round left unproven:</p>
+    <ul class="bounds">
+      <li><b><code>require_subject</code> stayed <code>False</code> by default, every time — but that's a different, weaker claim than "the clamp fired."</b> Across all eleven real documents' production runs, the model was never once asked the loaded question — the shipped prompt only ever asks a softer, informational one ("would a subject check make sense here?"), on purpose, precisely so it never invites the dangerous key. So <code>require_subject</code> being <code>False</code> in all eleven real profiles is honestly a mix of "never proposed" and "correctly forced off" — and it's worth being precise about which, since the two read very differently.</li>
+      <li><b>Checked separately, with a real model, whether the clamp itself actually works — and it does.</b> Using a research-only prompt variant that directly asked a real model "should <code>require_subject</code> be true here," against a purpose-written strict RPC contract and the real, already-built Petstore ontology: <strong>the model said <code>true</code> both times</strong> — a real, live model genuinely wants stricter enforcement on a document built for exactly that. The raw response was then fed, unmodified, into the actual shipped clamping code (not a reimplementation) — which forced <code>require_subject</code> back to <code>False</code> and logged the expected explanation both times. The clamp isn't just correct in a mock; it's confirmed to survive contact with a real model that actually disagrees with it.</li>
+      <li><b>A minor rough edge, found only by that same test — since fixed:</b> the shipped prompt gates whether a proposed <code>subject_pattern</code> gets kept at all behind a separate field (an informational "would a subject check make sense" flag) that this research prompt never asked about — so in that one test, a perfectly valid pattern the model offered was silently dropped rather than logged as dropped. Harmless either way (the pattern is inert while enforcement stays off), but it broke this module's own rule that every correction gets explained. Fixed directly: that drop path now logs a note too, the same as the invalid-regex path already did.</li>
+      <li><b>Confirmed live, not just via the in-process test client: a bad regex gets a clean 422 from the real deployed server</b>, and a fresh document built for the first time through the real HTTP API (not a local script) gets an automatic profile exactly like the design intends. And a per-request override deliberately re-enabling <code>require_subject</code> was confirmed to correctly beat an ontology's own inferred profile on a live call — the one claim it was tested against came back exactly one shape violation, precisely because the override worked.</li>
+      <li><b>The "nothing usable" fallback has still never fired live.</b> Even the near-empty document — three sentences, deliberately chosen to starve it — still yielded enough for the ontology step to discover a few concept types and for a valid profile to follow. The failure path exists and is unit-tested with a mocked model, but across every real document tried so far, it's never once been the live outcome. Still an open question, not a settled one.</li>
+    </ul>
+
+    <h3>Where this still stops working — unchanged by any of this</h3>
+    <p>Not every domain has a syntax worth checking, and nothing in this run changes that boundary. An API spec, an RFC's "MUST/SHOULD" vocabulary, a legal citation format — these have real, learnable shapes a regex can catch for free. A domain whose interesting structure is genuinely about meaning — "does this claim distinguish an indication from a contraindication" — isn't a shape question, it's a judgment question, and answering it would mean reintroducing a second judge earlier in the pipeline. None of the eleven documents tested here were chosen to test that boundary specifically; it remains an open, named limitation rather than one anything above has closed.</p>
+
+    <h3>Where the profile actually shows up</h3>
+    <p>Not a silent setting, on any of the eleven runs above: the applied rule and its source (<code>"default"</code> / <code>"llm"</code> / <code>"llm_failed"</code>) are logged next to <code>main_model</code>/<code>judge_model</code> on every report's Quality tab, exposed on <code>GET /api/ontologies/{key}</code>, and summarized on the shared ontology listing — confirmed present, with real explanatory text, not the generic "undocumented metric" fallback, on every Excel report downloaded during this test.</p>
+  </section>
+
+  <section id="structural">
+    <span class="section-no">14</span>
+    <span class="shipped-tag">Shipped — live-tested</span>
+    <h2>Three structural corrections, layered on top of the judge</h2>
+    <p class="lede">Three defects, each found by running the tool against its own edge cases rather than by design review, closed without touching the judge's own reasoning at all.</p>
+
+    <h3>A deterministic check for one specific numeric failure</h3>
+    <p>The judge sometimes compares a claim's number to a document's threshold literally — "3% is not 0.1%, so contradicts" — instead of asking which side of the threshold 3% actually falls on. Three rounds of prompt engineering narrowed this without closing it: the model can walk the right procedure and still override itself at the last step. Code that does the arithmetic can't. A new deterministic module recognizes exactly one shape — a claim stating one number and one binary outcome word, checked against a cited passage stating a comparison operator, a number, and the same kind of outcome word — and overrides the judge's verdict only when its own arithmetic says the judge got it wrong. Everything outside that one shape (two or more numbers, a spelled-out count, an ambiguous outcome word) is left to the judge untouched, by design, not as a shortcut.</p>
+
+    <blockquote class="finding">Three live bugs closed while hardening it, each found by running it against a real brief rather than by inspection: a bolded number in a source document (<code>"more than **0.1%**"</code>) broke the operator-to-number adjacency match; a markdown heading with no terminal punctuation merged into the next sentence and tripled the apparent outcome-word count; and the word "passed" turned out to mean both "a check passed" and "a flag was passed" with no way to tell those senses apart from the word alone, so it was removed from the vocabulary entirely.</blockquote>
+
+    <p>A fourth bug surfaced later, found not while hardening this module but while testing an unrelated fix below: the checker <strong>false-<code>contradicts</code>ed a claim that simply restated the document's own threshold rule</strong> — <em>"it fails a page when more than 0.1% of its pixels differ from the baseline,"</em> a verbatim-correct echo of the brief's own sentence — because the extractor treated the claim's own number as a reported instance value rather than recognizing it sat inside the claim's own comparison phrase. Fixed the same way every other edge case in this module is handled: abstain rather than guess, this time specifically when the claim's own number is itself preceded by a recognized comparator phrase. Verified live: the exact reproduction flipped from <code>contradicts</code> (wrong) to <code>entails</code> (correct), with zero change to the ordinary instance-value case the module was built for.</p>
+
+    <h3>An open question this deterministic checker doesn't answer: untested, named rather than assumed</h3>
+    <p>The checker also abstains outright on any claim naming two or more numbers — including an ordinary range claim like "a response between 200ms and 500ms is acceptable," a single checkable fact that happens to state its bounds as two numbers rather than one (tracked as its own open issue, #8). Whether a genuinely <em>reasoning</em>-capable judge model — one that works through a numeric comparison step by step before committing to an answer — would close that gap, and the original literal-comparison failure this section opened with, better than a deterministic checker does is an open, untested question. No run behind that idea exists yet, real or otherwise; it is a hypothesis raised in conversation about this section, not a result.</p>
+
+    <blockquote class="finding">The lesson already sitting in this section, worth stating plainly before that question gets answered: this project already tried the adjacent, cheaper version of the same idea, and it did not fully hold. <code>entailment.py</code>'s own judge prompt already walks the model through an explicit, numbered comparison procedure — asking it to reason more carefully, in exactly the way a reasoning-capable model would on its own — and the model can still walk that procedure correctly and override itself at the last step. That is the reason this checker exists at all. Asking a model to reason harder about a systematic numeric-comparison failure is not the same as fixing it; moving the comparison out of the model into code that cannot second-guess its own arithmetic is what actually closed the gap. Whether a stronger, genuinely reasoning-capable model does better than a prompted procedure did is a real, separately answerable question — answering it needs a scoped A/B measured against known cases, the same discipline this paper applies everywhere else, not an assumption in either direction.</blockquote>
+
+    <h3>Reconciling two names for the same thing, without inventing new machinery</h3>
+    <p>The gap report's own fuzzy name matching — stemming plus token overlap, threshold 0.5 — has a documented, measured blind spot: two independently-named passes over the same rule scored 0.286 on a real case, below threshold, while a genuinely unrelated pair scored 0.111, too close to safely lower the bar and catch one without catching the other. The fix reused, rather than rebuilt, a batched LLM-judged name-reconciliation function already proven in production elsewhere in this codebase — wired into the gap report as an additive fallback tier that only runs on names the free matcher already gave up on, wrapped in the same try/except-degrades-gracefully pattern its original call site already used. A new <code>ambiguous</code> reason distinguishes "found real candidates, couldn't confirm the pairing" from "no evidence anywhere" — a materially different, softer finding the previous two-reason scheme had no way to say.</p>
+
+    <h3>Widening retrieval for a claim that states two facts at once</h3>
+    <p>Retrieval sends one query per claim. A claim asserting two independent facts risks the more prominent fact's own vocabulary crowding out the other's in that one shared query — the real, previously-unaddressed CDC handwashing finding earlier in this paper (a compound claim verified on only half its content) is exactly this failure. The fix detects a claim that looks syntactically compound — a comma or semicolon before a coordinating "and," never one found inside a quoted string or a code span — and, only then, retrieves separately for each clause and unions the results into the claim's own citation set. The claim and its verdict are never split; only what evidence the one verdict gets to see is widened. A non-compound claim, the ordinary case, is retrieved exactly as before — zero behavior change, zero added cost, no new LLM call anywhere in any of these three fixes.</p>
+
+    <blockquote class="finding">Live verification of the last two fixes proved something narrower and more honest than "it works": deployed against real tenants and re-run against every example document available, both mechanisms cost nothing and changed nothing on documents small enough that a single query already covers the whole thing — proof of safety, not yet proof either mechanism has rescued a genuine miss on a document large enough to have one. Said plainly rather than smoothed over, matching the same discipline the rest of this paper already applies to every other uncertain result.</blockquote>
+  </section>
+
+  <section id="openspec">
+    <span class="section-no">15</span>
+    <span class="shipped-tag">Shipped — live-tested</span>
+    <h2>Validating a spec generator's own output</h2>
+    <p class="lede"><a href="https://github.com/Fission-AI/OpenSpec">OpenSpec</a> generates requirement specs from a brief — which makes its output exactly the kind of unowned claim this tool exists to check, not an exception to needing it.</p>
+
+    <p>OpenSpec is a convention layer over spec-driven development, not a validator itself: a capability spec is a <code>## Purpose</code> plus a set of <code>### Requirement</code> blocks, each carrying SHALL/MUST language and one or more <code>#### Scenario</code> blocks stating a WHEN/THEN/AND condition. A team points OpenSpec at a source brief; an LLM proposes the requirement specs. Nothing about that generation step is checked by OpenSpec itself — which is precisely the gap this tool's own architecture already exists to close for any other LLM output, so the natural question was whether it closes this one too, without OpenSpec and claim-validator needing to know anything about each other.</p>
+
+    <p>The answer is a small, deliberately separate adapter — <code>tools/openspec-adapter/</code> — that parses an OpenSpec capability spec structurally (section-walking and pattern matching, no model call) into this project's own bare <code>{id, text, source_ref}</code> claim shape, at requirement, scenario, or individual-assertion granularity. Kept out of claim-validator's own package on purpose: zero imports of <code>claimvalidator</code>, <code>phases</code>, or the database, its own test suite and its own <code>pytest.ini</code>, usable or discarded independently of everything else in this repository. Deliberately not exposed as an API, either — the parsing step itself is deterministic and cheap enough to run as a local script wherever an OpenSpec repository already lives, and the only place an LLM enters this whole workflow is OpenSpec's own generation step, upstream of the adapter entirely and outside what claim-validator has any reason to wrap.</p>
+
+    <p>The resulting workflow answers a specific, previously informal question with the same rigor this tool already applies everywhere else: OpenSpec generates requirements from a brief; the adapter converts those requirements into claims; claim-validator checks each one against the same brief it was generated from — repeatably, and re-runnable on demand, rather than trusted once by eye.</p>
+
+    <blockquote class="finding">A real defect, found live testing the adapter against its own examples rather than by inspection: OpenSpec's WHEN-folding occasionally inverted a scenario's own sequencing bullets — a "capture the screenshot" step and an "only then close the tap" step joined into one claim in the wrong order, the claim asserting the steps happen in an order the spec never states. Fixed by detecting an ordering-prefix ("only then," "after that") and preserving the sequence it signals rather than flattening every WHEN/AND bullet into one undifferentiated list.</blockquote>
+
+    <p>Two seeded example projects — an API-testing capability spec and a UI-testing capability spec, each with deliberately planted defects against its own source brief — exercise the adapter and the validator together end to end, and reviewing their own answer-key tables surfaced a second real defect before it was ever used to grade a run: the UI-testing example's README originally marked two out-of-scope items as expected <code>no_evidence</code>, when an explicit exclusion actively contradicts a claim asserting the item is in scope — corrected to <code>contradicts</code> before being trusted as a reference table. The same discipline this paper applies to the tool's own output — check the answer key as carefully as the answer — applied here to a fixture nobody had reason to doubt until it was run against something real.</p>
+  </section>
+
+  <section id="compared">
+    <span class="section-no">16</span>
+    <h2>Where it sits next to the alternatives</h2>
+    <p class="lede">Not the only way to check whether text is grounded in a source — the differences are in what you bring to it and what the answer looks like.</p>
+
+    <h3>Against DeepEval</h3>
+    <div class="compare">
+      <div class="compare-col them">
+        <h4>DeepEval</h4>
+        <p>A Pytest-style library. You write test cases, choose metrics, run them in your own CI. Its Faithfulness/Hallucination metrics score against whatever context you hand them at eval time.</p>
+      </div>
+      <div class="compare-col us">
+        <h4>Claim Validator</h4>
+        <p>A hosted, multi-tenant API. Post a document and bare <code>id + text</code> claims; it builds and caches its own ontology-grounded retrieval, then separately reports a document-wide coverage gap DeepEval's per-claim metrics never ask about.</p>
+      </div>
+    </div>
+
+    <h3>Against Microsoft Foundry's evaluators</h3>
+    <div class="compare">
+      <div class="compare-col them">
+        <h4>Foundry</h4>
+        <p>~35 orthogonal evaluators — quality, safety, agent behavior, RAG groundedness — assembled per project from an SDK. Its closest analogue, Groundedness, collapses to a 1–5 score or a pass/fail at 3. That number can't distinguish "this contradicts the source" from "this just isn't addressed" — they read the same.</p>
+      </div>
+      <div class="compare-col us">
+        <h4>Claim Validator</h4>
+        <p>One narrow, opinionated pipeline. Four distinct verdicts on purpose, its own retrieval built in rather than supplied, and a document-wide coverage report no evaluator in Foundry's catalog attempts — at the cost of the breadth Foundry has and this tool deliberately doesn't.</p>
+      </div>
+    </div>
+    <p style="font-size:14.5px;color:var(--muted);">Reach for Foundry when you're already governing a broad evaluation surface across many projects inside the Azure AI ecosystem. Reach for this tool when the job is narrower and concrete: a finished batch of claims about one document, needing an independent, auditable, four-way verdict — outside that ecosystem entirely, deployed into infrastructure you actually control.</p>
+  </section>
+
+  <section id="stakes">
+    <span class="section-no">17</span>
+    <h2>Why this matters where being wrong is expensive</h2>
+    <p class="lede">The moment an LLM's output about a contract, a clinical protocol, a regulatory standard, or an incident report is trusted enough to act on, something other than the model that wrote it has to check it.</p>
+
+    <p>A model that summarizes a license, drafts findings against a clinical guideline, or writes claims about a compliance document is exactly as trustworthy as whoever checks it next — and a human re-reading the source line by line doesn't scale, while asking the same model to grade its own homework answers a different, weaker question. What's needed in a critical-area setting isn't a single confidence number; it's an independent judge that never wrote the claim in the first place, that anchors every verdict to a specific, re-readable passage rather than a bare opinion, and that separates <em>is this right</em> from <em>is this complete</em> — because a regulator, a clinician, or a counterparty asking "did you check everything, or just the parts that were easy to check" deserves an actual answer, not a single blended score standing in for both questions at once.</p>
+
+    <p>That's also why the deployment model isn't incidental to the argument. A tool that only exists as someone else's shared cloud endpoint asks an organization handling sensitive documents to send them somewhere new. This one ships as infrastructure a tenant runs and controls entirely — its own Container App, its own database, its own Key Vault, its own audit log — reached with a token that tenant generated and can rotate on its own schedule. The independence that matters here isn't just "a different model did the judging." It's that the judging happens inside a boundary the document's owner drew themselves.</p>
+
+    <p>None of this requires the caller to be a person. Every endpoint here is plain REST, callable by a human tester or an AI agent alike.</p>
+  </section>
+
+  <div class="colophon">
+    Sources: this project's own README, infra/README.md, docs/manual.html, and docs/foundry-evaluators.html — plus two live validation rounds (seven documents, three generation models), a hand-authored accuracy check on an eighth document (an OpenSpec capability spec), a live shape-profile deployment test (eleven documents total), and this update's own five closed GitHub issues (#2–#6) and tools/openspec-adapter, all against the deployed service.<br>
+    All figures above are from real API responses, not illustrative examples.<br>
+    Prepared by azam.asif@gmail.com · September 2026, updated September 2026
+  </div>
+
+</div>
