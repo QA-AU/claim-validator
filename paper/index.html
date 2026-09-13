@@ -402,20 +402,20 @@
   <nav class="toc">
     <a href="#origins">Origins</a><span class="sep">/</span>
     <a href="#mechanism">Mechanism</a><span class="sep">/</span>
-    <a href="#architecture">Architecture</a><span class="sep">/</span>
-    <a href="#scope">Scope</a><span class="sep">/</span>
     <a href="#verdicts">Verdicts</a><span class="sep">/</span>
+    <a href="#scope">Scope</a><span class="sep">/</span>
+    <a href="#coverage">Coverage</a><span class="sep">/</span>
+    <a href="#architecture">Architecture</a><span class="sep">/</span>
+    <a href="#deploydeadlock">Deploy deadlock</a><span class="sep">/</span>
+    <a href="#quality">Quality checks</a><span class="sep">/</span>
     <a href="#citedpassages">Cited passages</a><span class="sep">/</span>
     <a href="#multidoc">Multi-document</a><span class="sep">/</span>
-    <a href="#quality">Quality checks</a><span class="sep">/</span>
-    <a href="#evidence">Evidence</a><span class="sep">/</span>
-    <a href="#modelswap">Model swap</a><span class="sep">/</span>
-    <a href="#coverage">Coverage</a><span class="sep">/</span>
-    <a href="#boundaries">Boundaries</a><span class="sep">/</span>
     <a href="#futureshape">Learned shapes</a><span class="sep">/</span>
     <a href="#structural">Structural fixes</a><span class="sep">/</span>
     <a href="#openspec">OpenSpec</a><span class="sep">/</span>
-    <a href="#deploydeadlock">Deploy deadlock</a><span class="sep">/</span>
+    <a href="#evidence">Evidence</a><span class="sep">/</span>
+    <a href="#modelswap">Model swap</a><span class="sep">/</span>
+    <a href="#boundaries">Boundaries</a><span class="sep">/</span>
     <a href="#compared">Compared</a><span class="sep">/</span>
     <a href="#stakes">Why it matters</a>
   </nav>
@@ -434,7 +434,6 @@
     <p>The judging core that does this — the part that reads a document, builds a structured map of what it's about, and decides whether a piece of text is actually backed by it — did not start as a validator at all. It began as a private, general-purpose research pipeline for discovering an <em>ontology</em> inside an arbitrary document: whatever concept types the document itself contains, extracted per-document rather than assumed in advance, then indexed for retrieval and checked with an LLM-as-judge entailment step. Claim Validator reuses that pipeline as a library rather than rewriting it, and everything genuinely new sits in a thin layer around it: an async job/API service, a set of shims that let a bare <code>id + text</code> claim satisfy contracts the underlying judge was never written to expect, and an Excel/JSON reporting layer.</p>
 
   </section>
-
   <section id="mechanism">
     <span class="section-no">02</span>
     <h2>What actually happens to a claim</h2>
@@ -509,9 +508,83 @@
 
     <p>Two things are worth naming about that diagram. First, the ontology is built once and reused — the same document resubmitted under a different name, or no name, is caught by content hash and never re-indexed. Second, claims never touch the judge directly: they're retrieved against first, so a verdict is always anchored to a specific cited passage a human can go back and re-read, not a bare model opinion.</p>
   </section>
-
-  <section id="architecture">
+  <section id="verdicts">
     <span class="section-no">03</span>
+    <h2>Four verdicts, not a score</h2>
+    <p class="lede">A single 1–5 groundedness number can't distinguish a fabrication from an unaddressed claim. This tool refuses to collapse them.</p>
+
+    <div class="legend">
+      <div class="v-card">
+        <span class="v-badge entail">entails</span>
+        <p>The cited passage actually supports the claim.</p>
+        <p class="action">Working as intended — nothing to do.</p>
+      </div>
+      <div class="v-card">
+        <span class="v-badge contradict">contradicts</span>
+        <p>The cited passage says something that conflicts with the claim.</p>
+        <p class="action">The most actionable finding this tool produces.</p>
+      </div>
+      <div class="v-card">
+        <span class="v-badge mentions">mentions_only</span>
+        <p>An on-topic passage exists, but stays silent on the specific thing claimed.</p>
+        <p class="action">Not automatically wrong — often over-specific. Worth a look.</p>
+      </div>
+      <div class="v-card">
+        <span class="v-badge noevid">no_evidence</span>
+        <p>Nothing in the document supports or contradicts it at all.</p>
+        <p class="action">A plausible-sounding claim the document never makes.</p>
+      </div>
+    </div>
+    <p>Every claim is judged <strong>three separate times</strong>; the reported verdict is whichever the judge agreed with itself on most. Disagreement across those three runs is itself a signal, kept alongside the verdict rather than thrown away in an average.</p>
+  </section>
+  <section id="scope">
+    <span class="section-no">04</span>
+    <h2>What it needs to know, and what it deliberately doesn't ask</h2>
+    <p class="lede">"Requirements" were the first use case, not a boundary. What the engine takes as input — and refuses to take — says as much about its design as the verdicts do.</p>
+
+    <h3>Any claim, not just requirements</h3>
+    <p>The shape-check module this project reuses was originally built for software requirements, and its default rule demands something requirement-shaped: a named subject, an operation like <code>GET /projects</code>. Claim-validator's own layer overrides that outright — its rule set explicitly sets <code>require_subject: False</code>, with the reasoning stated directly in the code: a claim just needs non-trivial, checkable text, nothing else. A submitted claim is exactly two required fields, <code>id</code> and <code>text</code> — nothing else about its shape is assumed.</p>
+    <p>This isn't theoretical. Across the two rounds of testing in this paper, the same engine validated software requirements (Petstore, gRPC, WAI-ARIA), legal claims about a license (Apache), compliance claims about an internet standard (RFC 2119), and plain factual claims lifted from public-health guidance (CDC, WHO) — none of which are "requirements" in any software sense. Same pipeline, same four verdicts, no configuration needed to switch domains.</p>
+
+    <h3>No field for who or what produced a claim</h3>
+    <p>The one provenance field a claim can carry is <code>source_ref</code> — free text like <em>"chatbot response, sentence 2."</em> Its own docstring says exactly what it's for: <em>"purely a pass-through... never read by validation logic, only carried into the report."</em> There's no field for which model wrote a claim, what version, or what prompt produced it. Retrieval, the shape check, and the judge only ever see <code>.text</code>.</p>
+
+    <h3>No field for intent, either — and that's on purpose</h3>
+    <p>There's also no way to tell the engine, on a validation request, "these are requirements an LLM generated from an API spec" — no intent, genre, or origin field exists on <code>POST /api/validations</code> at all. Two adjacent, easy-to-conflate levers do exist, and are worth telling apart from that:</p>
+    <ul class="bounds">
+      <li><b>Background description</b>, but only at ontology build time (<code>POST /api/ontologies</code>) — a domain seed for what concept types get discovered when the document is first read, nothing more. It never reaches the judge and has no effect on any claim's verdict.</li>
+      <li><b>Shape-rule overrides</b>, per validation job, for a caller who genuinely wants stricter pre-checks — requiring a named subject again, say, because these really are structured software requirements and that structure is worth enforcing before a claim is even judged. Still only the free, deterministic pre-check; still never the entailment judge itself.</li>
+    </ul>
+    <p>Nothing about a claim's declared purpose changes how it gets judged. That's not a missing feature — it's the same principle behind the missing provenance field, applied one level further: the entailment judge is supposed to be blind to who wrote a claim and why, so it can't be talked into trusting one more because it arrived framed as coming from a careful process. It reads the claim, reads the document, and answers the same question every time.</p>
+  </section>
+  <section id="coverage">
+    <span class="section-no">05</span>
+    <h2>Correct is not the same as complete</h2>
+    <p class="lede">The gap report asks a document-shaped question no per-claim verdict can answer: what did nobody even try to check?</p>
+
+    <p>Independently of judging any claim, the tool runs its own exhaustive census of the document's concept instances — the things it discovered the document is actually about — and reports which of those no submitted claim's citation ever touched. It's deliberately kept apart from the per-claim verdicts: a claim set can be 100% <code>entails</code> and still leave a gap report showing most of the document was never engaged with at all.</p>
+
+    <div class="table-wrap">
+      <table class="data">
+        <thead>
+          <tr><th>Document</th><th class="num">Residual gaps</th><th>Reading</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Swagger Petstore (OpenAPI 3.0)</td><td class="num">6*</td><td class="model">see note below — a stricter check than it first looks</td></tr>
+          <tr><td>Apache License 2.0</td><td class="num">4</td><td class="model">denser cross-referencing between clauses</td></tr>
+          <tr><td>RFC 2119</td><td class="num">0</td><td class="model">complete resolution</td></tr>
+          <tr><td>CDC handwashing guidance</td><td class="num">0</td><td class="model">complete resolution</td></tr>
+          <tr><td>WHO food-safety fact sheet</td><td class="num">0</td><td class="model">complete resolution</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <blockquote class="finding">*The Petstore gap report named all 6 of the spec's HTTP-response instances — <code>200</code> for <code>listPets</code>, <code>201</code> for <code>createPets</code>, and so on — as never addressed, even though the submitted claims plainly do talk about response codes in plain English. Nothing wrong with the claims: the gap report checks whether a claim's specific <em>citation</em> lines up with that exact census instance, a stricter and different question than "does a claim mention this topic at all." Worth knowing before reading a gap-report number as a verdict on the claims themselves — it's measuring something more precise than topic coverage.</blockquote>
+
+    <p class="pull">Three of the four prose documents came back with <span class="accent">every concept fully addressed</span> and one <span class="accent">didn't</span> — a distinction the per-claim verdicts alone would never have surfaced.</p>
+  </section>
+  <section id="architecture">
+    <span class="section-no">06</span>
     <h2>One tenant, one silo — sharing as little as possible</h2>
     <p class="lede">The judging mechanism in the last section runs the same way regardless of who's calling it. Who can reach whose data is a separate question, answered at the infrastructure level, not the application level.</p>
 
@@ -643,102 +716,37 @@
 
     <p>None of this is aspirational. Both tenants shown here are real, running deployments — <code>usera-claimval</code> is the one every live result in this paper came from — scoped from a written Azure-readiness assessment before a single resource existed, then provisioned by three Bicep templates deployed in order (a one-time admin identity, the shared environment, then a template per tenant), with real deployment issues addressed at that stage rather than designed around in the abstract: a region that silently didn't support Container Apps, a first-deploy role-assignment race, an image built for the wrong CPU architecture that pulled "successfully" everywhere except Azure and failed there with a misleading authorization error. The full account is in the project's own <code>infra/README.md</code> — kept as a real deployment history, not a clean-room design document.</p>
   </section>
-
-  <section id="scope">
-    <span class="section-no">04</span>
-    <h2>What it needs to know, and what it deliberately doesn't ask</h2>
-    <p class="lede">"Requirements" were the first use case, not a boundary. What the engine takes as input — and refuses to take — says as much about its design as the verdicts do.</p>
-
-    <h3>Any claim, not just requirements</h3>
-    <p>The shape-check module this project reuses was originally built for software requirements, and its default rule demands something requirement-shaped: a named subject, an operation like <code>GET /projects</code>. Claim-validator's own layer overrides that outright — its rule set explicitly sets <code>require_subject: False</code>, with the reasoning stated directly in the code: a claim just needs non-trivial, checkable text, nothing else. A submitted claim is exactly two required fields, <code>id</code> and <code>text</code> — nothing else about its shape is assumed.</p>
-    <p>This isn't theoretical. Across the two rounds of testing in this paper, the same engine validated software requirements (Petstore, gRPC, WAI-ARIA), legal claims about a license (Apache), compliance claims about an internet standard (RFC 2119), and plain factual claims lifted from public-health guidance (CDC, WHO) — none of which are "requirements" in any software sense. Same pipeline, same four verdicts, no configuration needed to switch domains.</p>
-
-    <h3>No field for who or what produced a claim</h3>
-    <p>The one provenance field a claim can carry is <code>source_ref</code> — free text like <em>"chatbot response, sentence 2."</em> Its own docstring says exactly what it's for: <em>"purely a pass-through... never read by validation logic, only carried into the report."</em> There's no field for which model wrote a claim, what version, or what prompt produced it. Retrieval, the shape check, and the judge only ever see <code>.text</code>.</p>
-
-    <h3>No field for intent, either — and that's on purpose</h3>
-    <p>There's also no way to tell the engine, on a validation request, "these are requirements an LLM generated from an API spec" — no intent, genre, or origin field exists on <code>POST /api/validations</code> at all. Two adjacent, easy-to-conflate levers do exist, and are worth telling apart from that:</p>
-    <ul class="bounds">
-      <li><b>Background description</b>, but only at ontology build time (<code>POST /api/ontologies</code>) — a domain seed for what concept types get discovered when the document is first read, nothing more. It never reaches the judge and has no effect on any claim's verdict.</li>
-      <li><b>Shape-rule overrides</b>, per validation job, for a caller who genuinely wants stricter pre-checks — requiring a named subject again, say, because these really are structured software requirements and that structure is worth enforcing before a claim is even judged. Still only the free, deterministic pre-check; still never the entailment judge itself.</li>
-    </ul>
-    <p>Nothing about a claim's declared purpose changes how it gets judged. That's not a missing feature — it's the same principle behind the missing provenance field, applied one level further: the entailment judge is supposed to be blind to who wrote a claim and why, so it can't be talked into trusting one more because it arrived framed as coming from a careful process. It reads the claim, reads the document, and answers the same question every time.</p>
-  </section>
-
-  <section id="verdicts">
-    <span class="section-no">05</span>
-    <h2>Four verdicts, not a score</h2>
-    <p class="lede">A single 1–5 groundedness number can't distinguish a fabrication from an unaddressed claim. This tool refuses to collapse them.</p>
-
-    <div class="legend">
-      <div class="v-card">
-        <span class="v-badge entail">entails</span>
-        <p>The cited passage actually supports the claim.</p>
-        <p class="action">Working as intended — nothing to do.</p>
-      </div>
-      <div class="v-card">
-        <span class="v-badge contradict">contradicts</span>
-        <p>The cited passage says something that conflicts with the claim.</p>
-        <p class="action">The most actionable finding this tool produces.</p>
-      </div>
-      <div class="v-card">
-        <span class="v-badge mentions">mentions_only</span>
-        <p>An on-topic passage exists, but stays silent on the specific thing claimed.</p>
-        <p class="action">Not automatically wrong — often over-specific. Worth a look.</p>
-      </div>
-      <div class="v-card">
-        <span class="v-badge noevid">no_evidence</span>
-        <p>Nothing in the document supports or contradicts it at all.</p>
-        <p class="action">A plausible-sounding claim the document never makes.</p>
-      </div>
-    </div>
-    <p>Every claim is judged <strong>three separate times</strong>; the reported verdict is whichever the judge agreed with itself on most. Disagreement across those three runs is itself a signal, kept alongside the verdict rather than thrown away in an average.</p>
-  </section>
-
-  <section id="citedpassages">
-    <span class="section-no">06</span>
-    <span class="shipped-tag">Shipped — live-tested</span>
-    <h2>Reading the passage, not just the reason</h2>
-    <p class="lede">A verdict is only as checkable as what's next to it. Until this shipped, "next to it" was a paraphrase and a number that meant nothing on its own.</p>
-
-    <p>Every verdict already carries a <code>reason</code> — the judge's own account of what it saw — and <code>cited_chunks</code>, the index numbers of whichever passages retrieval pulled up. The reason is usually a fair summary. The index numbers were never independently useful: neither the JSON result nor the Excel report exposed the actual passage text behind them, so confirming a verdict for real meant either trusting the paraphrase or going to search the source document by hand, with nothing but a bare integer to start from.</p>
-
-    <div class="compare">
-      <div class="compare-col them">
-        <h4>Before</h4>
-        <p><code>"cited_chunks": [2, 0, 1, 3]</code></p>
-        <p><code>"reason": "The passages state 'expires_in'... directly contradicting the claim"</code></p>
-        <p>Four numbers with nothing to resolve them against, and a paraphrase you either trust or don't.</p>
-      </div>
-      <div class="compare-col us">
-        <h4>Now</h4>
-        <p><code>"cited_passages": ["...\"expires_in\": Integer... Token lifetime in seconds...", "...Token Expiration (3600 second TTL)..."]</code></p>
-        <p>The actual sentences the judge read, in the same order as the indices — the same passage a human would land on searching the source by hand, already in front of them.</p>
-      </div>
-    </div>
-
-    <p>The fix stayed inside a boundary the project had already drawn for itself earlier this paper: no free-text "ask the document a question" endpoint. Considered directly and rejected — the point is a human proofreading the real source, not trusting a second AI-generated answer instead of the first claim. Surfacing the passage the judge already retrieved isn't a query feature; it's exposing computation that had already happened, one step earlier than it used to stop.</p>
-
-    <blockquote class="finding">Confirmed live, not just designed: resubmitted a claim already documented earlier in this paper — <em>"Authentication tokens never expire once issued"</em> — against the same live tenant. It still landed on <code>contradicts</code>, exactly as before, but this time the result carried the actual sentences behind that call: <em>"expires_in": Integer ... Token lifetime in seconds</em> and <em>Token Expiration (3600 second TTL)</em> — the real passage a person would otherwise have had to go find themselves.</blockquote>
-
-    <p>Free, by construction: the passage text was already loaded in memory at the exact point a verdict gets built — retrieval had already pulled it to hand the judge something to read. Surfacing it added no LLM call, no latency, no new cost; it's the same data, just no longer thrown away after the judge finished with it. 225 tests passing (from 219), verified against a real downloaded report on the live tenant before shipping.</p>
-  </section>
-
-  <section id="multidoc">
+  <section id="deploydeadlock">
     <span class="section-no">07</span>
     <span class="shipped-tag">Shipped — live-tested</span>
-    <h2>More than one document, one ontology</h2>
-    <p class="lede">A reference document was never actually limited to one file — a caller just had nowhere to see which of several it was reading from. Both halves are covered here: the combining, which already existed, and the attribution, which didn't.</p>
+    <h2>A deployment deadlock, found by actually cloning the repo</h2>
+    <p class="lede">Design review never caught this. Rehearsing the documented self-deploy path as a stranger would run it did — on the first real attempt.</p>
 
-    <p>An ontology has never been tied to a single file. The engine already treats a document upload as a "document set" — its own content-hash function is named exactly that, hashing every file's bytes together, order-independent, so the same set of files resubmitted in any order still hits the cache. Every document in the set gets chunked and merged into one combined retrieval index, and one unified list of concept types gets discovered across all of them together, not one ontology per file. A caller reaches this by uploading each related document separately, then passing every resulting file path together in one <code>files</code> list to a single ontology or validation request — several regulatory documents, a spec plus its amendments, a policy and its appendices, checked as the one thing they actually are.</p>
+    <p>The self-deploy story this project tells — clone the repo, bring your own Anthropic key, deploy into your own Azure subscription with <code>infra/tenant.bicep</code> — had never actually been rehearsed end to end by someone starting from nothing. Doing exactly that surfaced a genuine, structural edge case in the deployment template: three resources the Container App needs (<code>AcrPull</code> to pull its own image, a Postgres role to reach its own database, <code>Key Vault Secrets User</code> to read its own secrets) all referenced the Container App's system-assigned identity — which doesn't exist until the Container App itself is created. But the Container App's first revision can't succeed without any of the three. Confirmed live, twice: two consecutive first-attempt deployments both failed identically, and in both cases <strong>zero</strong> of the three permission resources were ever even attempted — not failed, never started — because Bicep's dependency graph never got past the failed Container App to reach them.</p>
 
-    <p>What was missing was attribution. A claim's citation already carried the retrieved passage text (previous section), but with more than one document behind an ontology, nothing said <em>which</em> file that passage came from. Each retrieved chunk already tracked its own source file internally — a real, working, already-tested method nobody was calling from the API layer. Fixed the same way the passage text itself was: expose data that was already being computed, add nothing new to compute.</p>
+    <blockquote class="finding">The error a real deployer would actually see gives no hint of any of this: <code>"Failed to provision revision... Operation expired,"</code> then, digging into container logs, a generic <code>401 UNAUTHORIZED... authentication required</code> from the registry's own token exchange. Nothing about either message points at "go check three separate RBAC role assignments." A stranger following the documented steps, with no prior knowledge of this codebase, would have no obvious path from that error to the actual fix.</blockquote>
 
-    <blockquote class="finding">Confirmed live: two documents with nothing in common — an API specification and a page of standard poker hand rankings — uploaded separately, then combined into one ontology in a single call. The build found seven concept types spanning both. A claim about the rate limit correctly cited the API spec; claims about poker hands correctly cited the rankings page — each citation now naming its actual source file, not just an index number meaningless without one.</blockquote>
+    <p>The existing "known ordering caveat" comment on the <code>AcrPull</code> grant described a narrower, genuinely transient version of this — RBAC propagation lagging behind a pull attempt within an otherwise-successful deployment — and documented "just retry" as the fix, which is real and does work for that case. This was different: once the Container App's own provisioning genuinely fails, no number of retries of the same template can ever reach the role and script resources, because they never get attempted until the Container App succeeds on its own — which it structurally cannot do first.</p>
 
-    <p>The same discipline as everywhere else in this section: the common case stays exactly as it was. A citation from a single-document ontology — every real result shown earlier in this paper — renders identically to before, no filename clutter on the normal case. The source only appears once a claim's own citations genuinely span more than one document, which is precisely the situation where knowing which one stops being optional. 229 tests passing (from 225), verified against a real downloaded report from the two-document run before shipping.</p>
+    <p>Fixed by pre-creating the Container App's identity as its own standalone <strong>user-assigned</strong> identity — the same pattern this project's own infrastructure already used for its Postgres AAD admin identity, applied to the second place that needed it. A user-assigned identity's principal exists the moment it's declared, independent of anything that will later use it, so every permission the Container App needs can be — and now is — granted before the Container App is created at all, with an explicit dependency ordering enforcing that sequence rather than leaving it to chance.</p>
+
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Attempt</th><th>Template</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr><td>1st, fresh tenant</td><td class="model">original</td><td><span class="v-badge contradict">Failed</span> — 0/3 permission resources attempted</td></tr>
+          <tr><td>2nd, same tenant, "just retry"</td><td class="model">original</td><td><span class="v-badge contradict">Failed</span> — identically, 0/3 attempted again</td></tr>
+          <tr><td>3rd, fresh disposable tenant</td><td class="model">fixed</td><td><span class="v-badge entail">Succeeded</span> — first attempt</td></tr>
+          <tr><td>4th, real production tenant</td><td class="model">fixed</td><td><span class="v-badge entail">Succeeded</span> — first attempt, zero data loss</td></tr>
+          <tr><td>5th, second real production tenant</td><td class="model">fixed</td><td><span class="v-badge entail">Succeeded</span> — first attempt, zero data loss</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>The disposable-tenant test ran a real claim through the resulting deployment before tearing it down — a false claim ("the office is open on weekends" against a Monday-through-Friday notice) correctly came back <code>contradicts</code>, 3/3 agreement, citing the actual sentence. Both real production tenants were then redeployed with the same fixed template, preserving each one's existing Anthropic key, existing bearer token, and — checked directly afterward — every ontology either had already built, with no rebuild and no interruption a caller would notice beyond one ordinary revision swap.</p>
+
+    <p class="pull">The gap was never in the application. It was in the <span class="accent">one path nobody had actually walked</span> — a stranger, starting from nothing, running the instructions exactly as written.</p>
   </section>
-
   <section id="quality">
     <span class="section-no">08</span>
     <h2>What gets checked besides "is it true"</h2>
@@ -787,9 +795,140 @@
     </div>
     <p style="font-size:14.5px;color:var(--muted);">Same discipline as the four verdicts themselves: every number on the report says what it means and what a good value looks like, rather than shipping as a bare count someone has to reverse-engineer.</p>
   </section>
-
-  <section id="evidence">
+  <section id="citedpassages">
     <span class="section-no">09</span>
+    <span class="shipped-tag">Shipped — live-tested</span>
+    <h2>Reading the passage, not just the reason</h2>
+    <p class="lede">A verdict is only as checkable as what's next to it. Until this shipped, "next to it" was a paraphrase and a number that meant nothing on its own.</p>
+
+    <p>Every verdict already carries a <code>reason</code> — the judge's own account of what it saw — and <code>cited_chunks</code>, the index numbers of whichever passages retrieval pulled up. The reason is usually a fair summary. The index numbers were never independently useful: neither the JSON result nor the Excel report exposed the actual passage text behind them, so confirming a verdict for real meant either trusting the paraphrase or going to search the source document by hand, with nothing but a bare integer to start from.</p>
+
+    <div class="compare">
+      <div class="compare-col them">
+        <h4>Before</h4>
+        <p><code>"cited_chunks": [2, 0, 1, 3]</code></p>
+        <p><code>"reason": "The passages state 'expires_in'... directly contradicting the claim"</code></p>
+        <p>Four numbers with nothing to resolve them against, and a paraphrase you either trust or don't.</p>
+      </div>
+      <div class="compare-col us">
+        <h4>Now</h4>
+        <p><code>"cited_passages": ["...\"expires_in\": Integer... Token lifetime in seconds...", "...Token Expiration (3600 second TTL)..."]</code></p>
+        <p>The actual sentences the judge read, in the same order as the indices — the same passage a human would land on searching the source by hand, already in front of them.</p>
+      </div>
+    </div>
+
+    <p>The fix stayed inside a boundary the project had already drawn for itself earlier this paper: no free-text "ask the document a question" endpoint. Considered directly and rejected — the point is a human proofreading the real source, not trusting a second AI-generated answer instead of the first claim. Surfacing the passage the judge already retrieved isn't a query feature; it's exposing computation that had already happened, one step earlier than it used to stop.</p>
+
+    <blockquote class="finding">Confirmed live, not just designed: resubmitted a claim already documented earlier in this paper — <em>"Authentication tokens never expire once issued"</em> — against the same live tenant. It still landed on <code>contradicts</code>, exactly as before, but this time the result carried the actual sentences behind that call: <em>"expires_in": Integer ... Token lifetime in seconds</em> and <em>Token Expiration (3600 second TTL)</em> — the real passage a person would otherwise have had to go find themselves.</blockquote>
+
+    <p>Free, by construction: the passage text was already loaded in memory at the exact point a verdict gets built — retrieval had already pulled it to hand the judge something to read. Surfacing it added no LLM call, no latency, no new cost; it's the same data, just no longer thrown away after the judge finished with it. 225 tests passing (from 219), verified against a real downloaded report on the live tenant before shipping.</p>
+  </section>
+  <section id="multidoc">
+    <span class="section-no">10</span>
+    <span class="shipped-tag">Shipped — live-tested</span>
+    <h2>More than one document, one ontology</h2>
+    <p class="lede">A reference document was never actually limited to one file — a caller just had nowhere to see which of several it was reading from. Both halves are covered here: the combining, which already existed, and the attribution, which didn't.</p>
+
+    <p>An ontology has never been tied to a single file. The engine already treats a document upload as a "document set" — its own content-hash function is named exactly that, hashing every file's bytes together, order-independent, so the same set of files resubmitted in any order still hits the cache. Every document in the set gets chunked and merged into one combined retrieval index, and one unified list of concept types gets discovered across all of them together, not one ontology per file. A caller reaches this by uploading each related document separately, then passing every resulting file path together in one <code>files</code> list to a single ontology or validation request — several regulatory documents, a spec plus its amendments, a policy and its appendices, checked as the one thing they actually are.</p>
+
+    <p>What was missing was attribution. A claim's citation already carried the retrieved passage text (previous section), but with more than one document behind an ontology, nothing said <em>which</em> file that passage came from. Each retrieved chunk already tracked its own source file internally — a real, working, already-tested method nobody was calling from the API layer. Fixed the same way the passage text itself was: expose data that was already being computed, add nothing new to compute.</p>
+
+    <blockquote class="finding">Confirmed live: two documents with nothing in common — an API specification and a page of standard poker hand rankings — uploaded separately, then combined into one ontology in a single call. The build found seven concept types spanning both. A claim about the rate limit correctly cited the API spec; claims about poker hands correctly cited the rankings page — each citation now naming its actual source file, not just an index number meaningless without one.</blockquote>
+
+    <p>The same discipline as everywhere else in this section: the common case stays exactly as it was. A citation from a single-document ontology — every real result shown earlier in this paper — renders identically to before, no filename clutter on the normal case. The source only appears once a claim's own citations genuinely span more than one document, which is precisely the situation where knowing which one stops being optional. 229 tests passing (from 225), verified against a real downloaded report from the two-document run before shipping.</p>
+  </section>
+  <section id="futureshape">
+    <span class="section-no">11</span>
+    <span class="shipped-tag">Shipped — live-tested</span>
+    <h2>The shape check learns the document</h2>
+
+    <p>The shape check (section 05) asks one deliberately narrow question by default: does a claim have enough text to be worth checking at all. The underlying engine it's built on can ask a sharper, domain-shaped question — does this claim name a real, specific thing, not just a topic — but that capability was inert for claim-validator's own bare claims, because nothing supplied the "subject" a domain-aware rule would check against.</p>
+
+    <h3>How it actually works: the document teaches the rule, once</h3>
+    <p>Rather than hand-writing a rule file per domain, an LLM proposes one — a single time per document, at the point the ontology is first built (or backfilled onto one that already exists). It reads the concept types Phase 1 already discovered and proposes a rule in the exact shape the shape-check engine expects: which fields a claim needs, and — where the domain has one — a pattern for what a real "subject" looks like there.</p>
+
+    <blockquote class="finding">The model's proposal is never trusted verbatim. The object the shape check actually inspects for a bare claim exposes almost nothing domain-specific — no populated "subject," an always-empty <code>criteria</code> list — so a proposal to require a subject would flag every claim unconditionally, not selectively. The inference step forces that setting off, unconditionally, regardless of what the model asks for, and drops a proposed ID-pattern rule the same way, since a claim's ID is caller-chosen, not something the document determines. Every one of these corrections is logged, not silent.</blockquote>
+
+    <p>The model is spent <strong>once, to discover structure</strong> — not once per claim, to render an opinion. The generated rule then applies exactly as deterministically as the static default it replaces, cached alongside the ontology and reused on every later validation against that document, at the same zero marginal cost the ontology itself already enjoys.</p>
+
+    <h3>Eleven documents, real deployment, zero deviations</h3>
+    <p>Redeployed to the same live tenant this paper's evidence section ran against, then tested twice: once backfilling profiles onto the seven ontologies already built for this paper and re-validating each against its new profile, and once more against four new documents chosen to stress a different edge each — a larger, multi-operation API spec; a near-empty document, to see what happens with almost nothing to work from; a French-language document, to check the pipeline handles non-English text and accented characters cleanly end to end; and a structurally unrelated domain — standard poker hand rankings — with no API-like or legal-like shape at all.</p>
+
+    <div class="table-wrap">
+      <table class="data">
+        <thead>
+          <tr><th>Document</th><th>What it stress-tests</th><th>Profile source</th><th class="num">Shape violations</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Petstore, gRPC, WAI-ARIA, Apache, RFC 2119, CDC, WHO</td><td class="model">backfill onto pre-existing ontologies</td><td class="model">llm</td><td class="num">0 / 200 claims</td></tr>
+          <tr><td>Expanded Petstore (multi-op)</td><td class="model">richer API structure, fresh build via live HTTP</td><td class="model">llm</td><td class="num">0 / 36 claims</td></tr>
+          <tr><td>Near-empty notice</td><td class="model">almost nothing to infer from</td><td class="model">llm</td><td class="num">0 / 3 claims</td></tr>
+          <tr><td>French privacy note</td><td class="model">non-English, accented characters</td><td class="model">llm</td><td class="num">0 / 26 claims</td></tr>
+          <tr><td>Poker hand rankings</td><td class="model">no API/legal structure at all</td><td class="model">llm</td><td class="num">0 / 25 claims</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:14.5px;color:var(--muted);">All eleven documents now carry the full loop, not just the profile step: fresh-built (or backfilled) live over the real deployed API, claims generated, submitted, and judged — <strong>zero shape violations across 290 real claims</strong>, with none of the documents pre-selected to be easy.</p>
+
+    <p>Findings from actually running it, not just designing it — including a follow-up pass specifically aimed at what the first round left unproven:</p>
+    <ul class="bounds">
+      <li><b><code>require_subject</code> stayed <code>False</code> by default, every time — but that's a different, weaker claim than "the clamp fired."</b> Across all eleven real documents' production runs, the model was never once asked the loaded question — the shipped prompt only ever asks a softer, informational one ("would a subject check make sense here?"), on purpose, precisely so it never invites the dangerous key. So <code>require_subject</code> being <code>False</code> in all eleven real profiles is honestly a mix of "never proposed" and "correctly forced off" — and it's worth being precise about which, since the two read very differently.</li>
+      <li><b>Checked separately, with a real model, whether the clamp itself actually works — and it does.</b> Using a research-only prompt variant that directly asked a real model "should <code>require_subject</code> be true here," against a purpose-written strict RPC contract and the real, already-built Petstore ontology: <strong>the model said <code>true</code> both times</strong> — a real, live model genuinely wants stricter enforcement on a document built for exactly that. The raw response was then fed, unmodified, into the actual shipped clamping code (not a reimplementation) — which forced <code>require_subject</code> back to <code>False</code> and logged the expected explanation both times. The clamp isn't just correct in a mock; it's confirmed to survive contact with a real model that actually disagrees with it.</li>
+      <li><b>A minor rough edge, found only by that same test — since fixed:</b> the shipped prompt gates whether a proposed <code>subject_pattern</code> gets kept at all behind a separate field (an informational "would a subject check make sense" flag) that this research prompt never asked about — so in that one test, a perfectly valid pattern the model offered was silently dropped rather than logged as dropped. Harmless either way (the pattern is inert while enforcement stays off), but it broke this module's own rule that every correction gets explained. Fixed directly: that drop path now logs a note too, the same as the invalid-regex path already did.</li>
+      <li><b>Confirmed live, not just via the in-process test client: a bad regex gets a clean 422 from the real deployed server</b>, and a fresh document built for the first time through the real HTTP API (not a local script) gets an automatic profile exactly like the design intends. And a per-request override deliberately re-enabling <code>require_subject</code> was confirmed to correctly beat an ontology's own inferred profile on a live call — the one claim it was tested against came back exactly one shape violation, precisely because the override worked.</li>
+      <li><b>The "nothing usable" fallback has still never fired live.</b> Even the near-empty document — three sentences, deliberately chosen to starve it — still yielded enough for the ontology step to discover a few concept types and for a valid profile to follow. The failure path exists and is unit-tested with a mocked model, but across every real document tried so far, it's never once been the live outcome. Still an open question, not a settled one.</li>
+    </ul>
+
+    <h3>Where this still stops working — unchanged by any of this</h3>
+    <p>Not every domain has a syntax worth checking, and nothing in this run changes that boundary. An API spec, an RFC's "MUST/SHOULD" vocabulary, a legal citation format — these have real, learnable shapes a regex can catch for free. A domain whose interesting structure is genuinely about meaning — "does this claim distinguish an indication from a contraindication" — isn't a shape question, it's a judgment question, and answering it would mean reintroducing a second judge earlier in the pipeline. None of the eleven documents tested here were chosen to test that boundary specifically; it remains an open, named limitation rather than one anything above has closed.</p>
+
+    <h3>Where the profile actually shows up</h3>
+    <p>Not a silent setting, on any of the eleven runs above: the applied rule and its source (<code>"default"</code> / <code>"llm"</code> / <code>"llm_failed"</code>) are logged next to <code>main_model</code>/<code>judge_model</code> on every report's Quality tab, exposed on <code>GET /api/ontologies/{key}</code>, and summarized on the shared ontology listing — confirmed present, with real explanatory text, not the generic "undocumented metric" fallback, on every Excel report downloaded during this test.</p>
+  </section>
+  <section id="structural">
+    <span class="section-no">12</span>
+    <span class="shipped-tag">Shipped — live-tested</span>
+    <h2>Three structural corrections, layered on top of the judge</h2>
+    <p class="lede">Three edge cases the judge's own reasoning didn't handle, each surfaced by running the tool against real documents rather than by design review — each now handled structurally, outside the judge entirely.</p>
+
+    <h3>A deterministic check for one specific numeric failure</h3>
+    <p>The judge sometimes compares a claim's number to a document's threshold literally — "3% is not 0.1%, so contradicts" — instead of asking which side of the threshold 3% actually falls on. Three rounds of prompt engineering narrowed this without closing it: the model can walk the right procedure and still override itself at the last step. Code that does the arithmetic can't. A new deterministic module recognizes exactly one shape — a claim stating one number and one binary outcome word, checked against a cited passage stating a comparison operator, a number, and the same kind of outcome word — and overrides the judge's verdict only when its own arithmetic says the judge got it wrong. Everything outside that one shape (two or more numbers, a spelled-out count, an ambiguous outcome word) is left to the judge untouched, by design, not as a shortcut.</p>
+
+    <blockquote class="finding">Three live bugs closed while hardening it, each found by running it against a real brief rather than by inspection: a bolded number in a source document (<code>"more than **0.1%**"</code>) broke the operator-to-number adjacency match; a markdown heading with no terminal punctuation merged into the next sentence and tripled the apparent outcome-word count; and the word "passed" turned out to mean both "a check passed" and "a flag was passed" with no way to tell those senses apart from the word alone, so it was removed from the vocabulary entirely.</blockquote>
+
+    <p>A fourth edge case surfaced later, not while hardening this module but while testing an unrelated fix below: the checker <strong>false-<code>contradicts</code>ed a claim that simply restated the document's own threshold rule</strong> — <em>"it fails a page when more than 0.1% of its pixels differ from the baseline,"</em> a verbatim-correct echo of the brief's own sentence — because the extractor treated the claim's own number as a reported instance value rather than recognizing it sat inside the claim's own comparison phrase. Handled the same way every other edge case in this module is handled: abstain rather than guess, this time specifically when the claim's own number is itself preceded by a recognized comparator phrase. Verified live: the exact reproduction flipped from <code>contradicts</code> (wrong) to <code>entails</code> (correct), with zero change to the ordinary instance-value case the module was built for.</p>
+
+    <h3>An open question this deterministic checker doesn't answer: untested, named rather than assumed</h3>
+    <p>The checker also abstains outright on any claim naming two or more numbers — including an ordinary range claim like "a response between 200ms and 500ms is acceptable," a single checkable fact that happens to state its bounds as two numbers rather than one (tracked as its own open issue, #8). Whether a genuinely <em>reasoning</em>-capable judge model — one that works through a numeric comparison step by step before committing to an answer — would close that gap, and the original literal-comparison failure this section opened with, better than a deterministic checker does is an open, untested question. No run behind that idea exists yet, real or otherwise; it is a hypothesis raised in conversation about this section, not a result.</p>
+
+    <blockquote class="finding">The lesson already sitting in this section, worth stating plainly before that question gets answered: this project already tried the adjacent, cheaper version of the same idea, and it did not fully hold. <code>entailment.py</code>'s own judge prompt already walks the model through an explicit, numbered comparison procedure — asking it to reason more carefully, in exactly the way a reasoning-capable model would on its own — and the model can still walk that procedure correctly and override itself at the last step. That is the reason this checker exists at all. Asking a model to reason harder about a systematic numeric-comparison failure is not the same as fixing it; moving the comparison out of the model into code that cannot second-guess its own arithmetic is what actually closed the gap. Whether a stronger, genuinely reasoning-capable model does better than a prompted procedure did is a real, separately answerable question — answering it needs a scoped A/B measured against known cases, the same discipline this paper applies everywhere else, not an assumption in either direction.</blockquote>
+
+    <h3>Reconciling two names for the same thing, without inventing new machinery</h3>
+    <p>The gap report's own fuzzy name matching — stemming plus token overlap, threshold 0.5 — has a documented, measured blind spot: two independently-named passes over the same rule scored 0.286 on a real case, below threshold, while a genuinely unrelated pair scored 0.111, too close to safely lower the bar and catch one without catching the other. The fix reused, rather than rebuilt, a batched LLM-judged name-reconciliation function already proven in production elsewhere in this codebase — wired into the gap report as an additive fallback tier that only runs on names the free matcher already gave up on, wrapped in the same try/except-degrades-gracefully pattern its original call site already used. A new <code>ambiguous</code> reason distinguishes "found real candidates, couldn't confirm the pairing" from "no evidence anywhere" — a materially different, softer finding the previous two-reason scheme had no way to say.</p>
+
+    <h3>Widening retrieval for a claim that states two facts at once</h3>
+    <p>Retrieval sends one query per claim. A claim asserting two independent facts risks the more prominent fact's own vocabulary crowding out the other's in that one shared query — the real, previously-unaddressed CDC handwashing finding this paper's own evidence section documents (a compound claim verified on only half its content) is exactly this failure. The fix detects a claim that looks syntactically compound — a comma or semicolon before a coordinating "and," never one found inside a quoted string or a code span — and, only then, retrieves separately for each clause and unions the results into the claim's own citation set. The claim and its verdict are never split; only what evidence the one verdict gets to see is widened. A non-compound claim, the ordinary case, is retrieved exactly as before — zero behavior change, zero added cost, no new LLM call anywhere in any of these three fixes.</p>
+
+    <blockquote class="finding">Live verification of the last two fixes proved something narrower and more honest than "it works": deployed against real tenants and re-run against every example document available, both mechanisms cost nothing and changed nothing on documents small enough that a single query already covers the whole thing — proof of safety, not yet proof either mechanism has rescued a genuine miss on a document large enough to have one. Said plainly rather than smoothed over, matching the same discipline the rest of this paper already applies to every other uncertain result.</blockquote>
+  </section>
+  <section id="openspec">
+    <span class="section-no">13</span>
+    <span class="shipped-tag">Shipped — live-tested</span>
+    <h2>Validating a spec generator's own output</h2>
+    <p class="lede"><a href="https://github.com/Fission-AI/OpenSpec">OpenSpec</a> generates requirement specs from a brief — which makes its output exactly the kind of unowned claim this tool exists to check, not an exception to needing it.</p>
+
+    <p>OpenSpec is a convention layer over spec-driven development, not a validator itself: a capability spec is a <code>## Purpose</code> plus a set of <code>### Requirement</code> blocks, each carrying SHALL/MUST language and one or more <code>#### Scenario</code> blocks stating a WHEN/THEN/AND condition. A team points OpenSpec at a source brief; an LLM proposes the requirement specs. Nothing about that generation step is checked by OpenSpec itself — which is precisely the gap this tool's own architecture already exists to close for any other LLM output, so the natural question was whether it closes this one too, without OpenSpec and claim-validator needing to know anything about each other.</p>
+
+    <p>The answer is a small, deliberately separate adapter — <code>tools/openspec-adapter/</code> — that parses an OpenSpec capability spec structurally (section-walking and pattern matching, no model call) into this project's own bare <code>{id, text, source_ref}</code> claim shape, at requirement, scenario, or individual-assertion granularity. Kept out of claim-validator's own package on purpose: zero imports of <code>claimvalidator</code>, <code>phases</code>, or the database, its own test suite and its own <code>pytest.ini</code>, usable or discarded independently of everything else in this repository. Deliberately not exposed as an API, either — the parsing step itself is deterministic and cheap enough to run as a local script wherever an OpenSpec repository already lives, and the only place an LLM enters this whole workflow is OpenSpec's own generation step, upstream of the adapter entirely and outside what claim-validator has any reason to wrap.</p>
+
+    <p>The resulting workflow answers a specific, previously informal question with the same rigor this tool already applies everywhere else: OpenSpec generates requirements from a brief; the adapter converts those requirements into claims; claim-validator checks each one against the same brief it was generated from — repeatably, and re-runnable on demand, rather than trusted once by eye.</p>
+
+    <blockquote class="finding">An edge case surfaced live testing the adapter against its own examples rather than by inspection: OpenSpec's WHEN-folding occasionally inverted a scenario's own sequencing bullets — a "capture the screenshot" step and an "only then close the tap" step joined into one claim in the wrong order, the claim asserting the steps happen in an order the spec never states. The adapter now detects an ordering-prefix ("only then," "after that") and preserves the sequence it signals, rather than flattening every WHEN/AND bullet into one undifferentiated list.</blockquote>
+
+    <p>Two seeded example projects — an API-testing capability spec and a UI-testing capability spec, each with deliberately planted errors against its own source brief — exercise the adapter and the validator together end to end, and reviewing their own answer-key tables surfaced a second necessary correction before either was ever used to grade a run: the UI-testing example's README originally marked two out-of-scope items as expected <code>no_evidence</code>, when an explicit exclusion actively contradicts a claim asserting the item is in scope — corrected to <code>contradicts</code> before being trusted as a reference table. The same discipline this paper applies to the tool's own output — check the answer key as carefully as the answer — applied here to a fixture nobody had reason to doubt until it was run against something real.</p>
+  </section>
+  <section id="evidence">
+    <span class="section-no">14</span>
     <h2>A slice of what it evaluates</h2>
     <p class="lede">Real documents, not a benchmark set built to flatter the tool — spanning API contracts, an RPC schema, a UI spec, a software license, an internet standard, public-health guidance, and a spec-driven-development capability spec, run against a live deployment. Most are model-generated claim sets, in the table below; one is a hand-authored accuracy check, at the end of this section.</p>
 
@@ -907,9 +1046,8 @@
       </div>
     </div>
   </section>
-
   <section id="modelswap">
-    <span class="section-no">10</span>
+    <span class="section-no">15</span>
     <h2>Changing the model — and why one anchored judge beats two compared ones</h2>
     <p class="lede">The model doing the work is a setting, not an identity. What matters more than which model you pick is what role it's playing, and what it's being checked against.</p>
 
@@ -937,36 +1075,8 @@
 
     <p>The one place a second model does get involved is escalation: when three runs can't agree, or a contradiction only holds by a bare 2-of-3 majority, a stronger model re-judges — against the very same cited passage, not a fresh independent guess — and even that second opinion is checked for its own internal consensus rather than trusted on a single pass. It's a targeted appeal to a better judge on the rare cases actually worth the extra cost, not a standing panel of two models graded against each other on everything. And because every verdict, first-pass or escalated, ships with the exact passage it was based on, a disagreement is something a person can actually go read and resolve — not two bare scores with nothing behind them to compare.</p>
   </section>
-
-  <section id="coverage">
-    <span class="section-no">11</span>
-    <h2>Correct is not the same as complete</h2>
-    <p class="lede">The gap report asks a document-shaped question no per-claim verdict can answer: what did nobody even try to check?</p>
-
-    <p>Independently of judging any claim, the tool runs its own exhaustive census of the document's concept instances — the things it discovered the document is actually about — and reports which of those no submitted claim's citation ever touched. It's deliberately kept apart from the per-claim verdicts: a claim set can be 100% <code>entails</code> and still leave a gap report showing most of the document was never engaged with at all.</p>
-
-    <div class="table-wrap">
-      <table class="data">
-        <thead>
-          <tr><th>Document</th><th class="num">Residual gaps</th><th>Reading</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>Swagger Petstore (OpenAPI 3.0)</td><td class="num">6*</td><td class="model">see note below — a stricter check than it first looks</td></tr>
-          <tr><td>Apache License 2.0</td><td class="num">4</td><td class="model">denser cross-referencing between clauses</td></tr>
-          <tr><td>RFC 2119</td><td class="num">0</td><td class="model">complete resolution</td></tr>
-          <tr><td>CDC handwashing guidance</td><td class="num">0</td><td class="model">complete resolution</td></tr>
-          <tr><td>WHO food-safety fact sheet</td><td class="num">0</td><td class="model">complete resolution</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <blockquote class="finding">*The Petstore gap report named all 6 of the spec's HTTP-response instances — <code>200</code> for <code>listPets</code>, <code>201</code> for <code>createPets</code>, and so on — as never addressed, even though the submitted claims plainly do talk about response codes in plain English. Nothing wrong with the claims: the gap report checks whether a claim's specific <em>citation</em> lines up with that exact census instance, a stricter and different question than "does a claim mention this topic at all." Worth knowing before reading a gap-report number as a verdict on the claims themselves — it's measuring something more precise than topic coverage.</blockquote>
-
-    <p class="pull">Three of the four prose documents came back with <span class="accent">every concept fully addressed</span> and one <span class="accent">didn't</span> — a distinction the per-claim verdicts alone would never have surfaced.</p>
-  </section>
-
   <section id="boundaries">
-    <span class="section-no">12</span>
+    <span class="section-no">16</span>
     <h2>What it doesn't do</h2>
     <p class="lede">Named plainly, because a tool that's vague about its own edges is harder to trust inside its actual ones.</p>
 
@@ -983,132 +1093,6 @@
       <li><b>Two of this cycle's fixes have not yet been shown rescuing a real gap.</b> The compound-claim widening and the gap report's LLM-reconciliation fallback (see Structural fixes, below) were both verified live to cost nothing and change nothing on the documents available for testing — every one of them small enough that a single query, or the free matcher alone, already covers the whole thing. Proof of safety, not yet proof of a rescue.</li>
     </ul>
   </section>
-
-  <section id="futureshape">
-    <span class="section-no">13</span>
-    <span class="shipped-tag">Shipped — live-tested</span>
-    <h2>The shape check learns the document</h2>
-
-    <p>The shape check (section 05) asks one deliberately narrow question by default: does a claim have enough text to be worth checking at all. The underlying engine it's built on can ask a sharper, domain-shaped question — does this claim name a real, specific thing, not just a topic — but that capability was inert for claim-validator's own bare claims, because nothing supplied the "subject" a domain-aware rule would check against.</p>
-
-    <h3>How it actually works: the document teaches the rule, once</h3>
-    <p>Rather than hand-writing a rule file per domain, an LLM proposes one — a single time per document, at the point the ontology is first built (or backfilled onto one that already exists). It reads the concept types Phase 1 already discovered and proposes a rule in the exact shape the shape-check engine expects: which fields a claim needs, and — where the domain has one — a pattern for what a real "subject" looks like there.</p>
-
-    <blockquote class="finding">The model's proposal is never trusted verbatim. The object the shape check actually inspects for a bare claim exposes almost nothing domain-specific — no populated "subject," an always-empty <code>criteria</code> list — so a proposal to require a subject would flag every claim unconditionally, not selectively. The inference step forces that setting off, unconditionally, regardless of what the model asks for, and drops a proposed ID-pattern rule the same way, since a claim's ID is caller-chosen, not something the document determines. Every one of these corrections is logged, not silent.</blockquote>
-
-    <p>The model is spent <strong>once, to discover structure</strong> — not once per claim, to render an opinion. The generated rule then applies exactly as deterministically as the static default it replaces, cached alongside the ontology and reused on every later validation against that document, at the same zero marginal cost the ontology itself already enjoys.</p>
-
-    <h3>Eleven documents, real deployment, zero deviations</h3>
-    <p>Redeployed to the same live tenant this paper's evidence section ran against, then tested twice: once backfilling profiles onto the seven ontologies already built for this paper and re-validating each against its new profile, and once more against four new documents chosen to stress a different edge each — a larger, multi-operation API spec; a near-empty document, to see what happens with almost nothing to work from; a French-language document, to check the pipeline handles non-English text and accented characters cleanly end to end; and a structurally unrelated domain — standard poker hand rankings — with no API-like or legal-like shape at all.</p>
-
-    <div class="table-wrap">
-      <table class="data">
-        <thead>
-          <tr><th>Document</th><th>What it stress-tests</th><th>Profile source</th><th class="num">Shape violations</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>Petstore, gRPC, WAI-ARIA, Apache, RFC 2119, CDC, WHO</td><td class="model">backfill onto pre-existing ontologies</td><td class="model">llm</td><td class="num">0 / 200 claims</td></tr>
-          <tr><td>Expanded Petstore (multi-op)</td><td class="model">richer API structure, fresh build via live HTTP</td><td class="model">llm</td><td class="num">0 / 36 claims</td></tr>
-          <tr><td>Near-empty notice</td><td class="model">almost nothing to infer from</td><td class="model">llm</td><td class="num">0 / 3 claims</td></tr>
-          <tr><td>French privacy note</td><td class="model">non-English, accented characters</td><td class="model">llm</td><td class="num">0 / 26 claims</td></tr>
-          <tr><td>Poker hand rankings</td><td class="model">no API/legal structure at all</td><td class="model">llm</td><td class="num">0 / 25 claims</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p style="font-size:14.5px;color:var(--muted);">All eleven documents now carry the full loop, not just the profile step: fresh-built (or backfilled) live over the real deployed API, claims generated, submitted, and judged — <strong>zero shape violations across 290 real claims</strong>, with none of the documents pre-selected to be easy.</p>
-
-    <p>Findings from actually running it, not just designing it — including a follow-up pass specifically aimed at what the first round left unproven:</p>
-    <ul class="bounds">
-      <li><b><code>require_subject</code> stayed <code>False</code> by default, every time — but that's a different, weaker claim than "the clamp fired."</b> Across all eleven real documents' production runs, the model was never once asked the loaded question — the shipped prompt only ever asks a softer, informational one ("would a subject check make sense here?"), on purpose, precisely so it never invites the dangerous key. So <code>require_subject</code> being <code>False</code> in all eleven real profiles is honestly a mix of "never proposed" and "correctly forced off" — and it's worth being precise about which, since the two read very differently.</li>
-      <li><b>Checked separately, with a real model, whether the clamp itself actually works — and it does.</b> Using a research-only prompt variant that directly asked a real model "should <code>require_subject</code> be true here," against a purpose-written strict RPC contract and the real, already-built Petstore ontology: <strong>the model said <code>true</code> both times</strong> — a real, live model genuinely wants stricter enforcement on a document built for exactly that. The raw response was then fed, unmodified, into the actual shipped clamping code (not a reimplementation) — which forced <code>require_subject</code> back to <code>False</code> and logged the expected explanation both times. The clamp isn't just correct in a mock; it's confirmed to survive contact with a real model that actually disagrees with it.</li>
-      <li><b>A minor rough edge, found only by that same test — since fixed:</b> the shipped prompt gates whether a proposed <code>subject_pattern</code> gets kept at all behind a separate field (an informational "would a subject check make sense" flag) that this research prompt never asked about — so in that one test, a perfectly valid pattern the model offered was silently dropped rather than logged as dropped. Harmless either way (the pattern is inert while enforcement stays off), but it broke this module's own rule that every correction gets explained. Fixed directly: that drop path now logs a note too, the same as the invalid-regex path already did.</li>
-      <li><b>Confirmed live, not just via the in-process test client: a bad regex gets a clean 422 from the real deployed server</b>, and a fresh document built for the first time through the real HTTP API (not a local script) gets an automatic profile exactly like the design intends. And a per-request override deliberately re-enabling <code>require_subject</code> was confirmed to correctly beat an ontology's own inferred profile on a live call — the one claim it was tested against came back exactly one shape violation, precisely because the override worked.</li>
-      <li><b>The "nothing usable" fallback has still never fired live.</b> Even the near-empty document — three sentences, deliberately chosen to starve it — still yielded enough for the ontology step to discover a few concept types and for a valid profile to follow. The failure path exists and is unit-tested with a mocked model, but across every real document tried so far, it's never once been the live outcome. Still an open question, not a settled one.</li>
-    </ul>
-
-    <h3>Where this still stops working — unchanged by any of this</h3>
-    <p>Not every domain has a syntax worth checking, and nothing in this run changes that boundary. An API spec, an RFC's "MUST/SHOULD" vocabulary, a legal citation format — these have real, learnable shapes a regex can catch for free. A domain whose interesting structure is genuinely about meaning — "does this claim distinguish an indication from a contraindication" — isn't a shape question, it's a judgment question, and answering it would mean reintroducing a second judge earlier in the pipeline. None of the eleven documents tested here were chosen to test that boundary specifically; it remains an open, named limitation rather than one anything above has closed.</p>
-
-    <h3>Where the profile actually shows up</h3>
-    <p>Not a silent setting, on any of the eleven runs above: the applied rule and its source (<code>"default"</code> / <code>"llm"</code> / <code>"llm_failed"</code>) are logged next to <code>main_model</code>/<code>judge_model</code> on every report's Quality tab, exposed on <code>GET /api/ontologies/{key}</code>, and summarized on the shared ontology listing — confirmed present, with real explanatory text, not the generic "undocumented metric" fallback, on every Excel report downloaded during this test.</p>
-  </section>
-
-  <section id="structural">
-    <span class="section-no">14</span>
-    <span class="shipped-tag">Shipped — live-tested</span>
-    <h2>Three structural corrections, layered on top of the judge</h2>
-    <p class="lede">Three edge cases the judge's own reasoning didn't handle, each surfaced by running the tool against real documents rather than by design review — each now handled structurally, outside the judge entirely.</p>
-
-    <h3>A deterministic check for one specific numeric failure</h3>
-    <p>The judge sometimes compares a claim's number to a document's threshold literally — "3% is not 0.1%, so contradicts" — instead of asking which side of the threshold 3% actually falls on. Three rounds of prompt engineering narrowed this without closing it: the model can walk the right procedure and still override itself at the last step. Code that does the arithmetic can't. A new deterministic module recognizes exactly one shape — a claim stating one number and one binary outcome word, checked against a cited passage stating a comparison operator, a number, and the same kind of outcome word — and overrides the judge's verdict only when its own arithmetic says the judge got it wrong. Everything outside that one shape (two or more numbers, a spelled-out count, an ambiguous outcome word) is left to the judge untouched, by design, not as a shortcut.</p>
-
-    <blockquote class="finding">Three live bugs closed while hardening it, each found by running it against a real brief rather than by inspection: a bolded number in a source document (<code>"more than **0.1%**"</code>) broke the operator-to-number adjacency match; a markdown heading with no terminal punctuation merged into the next sentence and tripled the apparent outcome-word count; and the word "passed" turned out to mean both "a check passed" and "a flag was passed" with no way to tell those senses apart from the word alone, so it was removed from the vocabulary entirely.</blockquote>
-
-    <p>A fourth edge case surfaced later, not while hardening this module but while testing an unrelated fix below: the checker <strong>false-<code>contradicts</code>ed a claim that simply restated the document's own threshold rule</strong> — <em>"it fails a page when more than 0.1% of its pixels differ from the baseline,"</em> a verbatim-correct echo of the brief's own sentence — because the extractor treated the claim's own number as a reported instance value rather than recognizing it sat inside the claim's own comparison phrase. Handled the same way every other edge case in this module is handled: abstain rather than guess, this time specifically when the claim's own number is itself preceded by a recognized comparator phrase. Verified live: the exact reproduction flipped from <code>contradicts</code> (wrong) to <code>entails</code> (correct), with zero change to the ordinary instance-value case the module was built for.</p>
-
-    <h3>An open question this deterministic checker doesn't answer: untested, named rather than assumed</h3>
-    <p>The checker also abstains outright on any claim naming two or more numbers — including an ordinary range claim like "a response between 200ms and 500ms is acceptable," a single checkable fact that happens to state its bounds as two numbers rather than one (tracked as its own open issue, #8). Whether a genuinely <em>reasoning</em>-capable judge model — one that works through a numeric comparison step by step before committing to an answer — would close that gap, and the original literal-comparison failure this section opened with, better than a deterministic checker does is an open, untested question. No run behind that idea exists yet, real or otherwise; it is a hypothesis raised in conversation about this section, not a result.</p>
-
-    <blockquote class="finding">The lesson already sitting in this section, worth stating plainly before that question gets answered: this project already tried the adjacent, cheaper version of the same idea, and it did not fully hold. <code>entailment.py</code>'s own judge prompt already walks the model through an explicit, numbered comparison procedure — asking it to reason more carefully, in exactly the way a reasoning-capable model would on its own — and the model can still walk that procedure correctly and override itself at the last step. That is the reason this checker exists at all. Asking a model to reason harder about a systematic numeric-comparison failure is not the same as fixing it; moving the comparison out of the model into code that cannot second-guess its own arithmetic is what actually closed the gap. Whether a stronger, genuinely reasoning-capable model does better than a prompted procedure did is a real, separately answerable question — answering it needs a scoped A/B measured against known cases, the same discipline this paper applies everywhere else, not an assumption in either direction.</blockquote>
-
-    <h3>Reconciling two names for the same thing, without inventing new machinery</h3>
-    <p>The gap report's own fuzzy name matching — stemming plus token overlap, threshold 0.5 — has a documented, measured blind spot: two independently-named passes over the same rule scored 0.286 on a real case, below threshold, while a genuinely unrelated pair scored 0.111, too close to safely lower the bar and catch one without catching the other. The fix reused, rather than rebuilt, a batched LLM-judged name-reconciliation function already proven in production elsewhere in this codebase — wired into the gap report as an additive fallback tier that only runs on names the free matcher already gave up on, wrapped in the same try/except-degrades-gracefully pattern its original call site already used. A new <code>ambiguous</code> reason distinguishes "found real candidates, couldn't confirm the pairing" from "no evidence anywhere" — a materially different, softer finding the previous two-reason scheme had no way to say.</p>
-
-    <h3>Widening retrieval for a claim that states two facts at once</h3>
-    <p>Retrieval sends one query per claim. A claim asserting two independent facts risks the more prominent fact's own vocabulary crowding out the other's in that one shared query — the real, previously-unaddressed CDC handwashing finding earlier in this paper (a compound claim verified on only half its content) is exactly this failure. The fix detects a claim that looks syntactically compound — a comma or semicolon before a coordinating "and," never one found inside a quoted string or a code span — and, only then, retrieves separately for each clause and unions the results into the claim's own citation set. The claim and its verdict are never split; only what evidence the one verdict gets to see is widened. A non-compound claim, the ordinary case, is retrieved exactly as before — zero behavior change, zero added cost, no new LLM call anywhere in any of these three fixes.</p>
-
-    <blockquote class="finding">Live verification of the last two fixes proved something narrower and more honest than "it works": deployed against real tenants and re-run against every example document available, both mechanisms cost nothing and changed nothing on documents small enough that a single query already covers the whole thing — proof of safety, not yet proof either mechanism has rescued a genuine miss on a document large enough to have one. Said plainly rather than smoothed over, matching the same discipline the rest of this paper already applies to every other uncertain result.</blockquote>
-  </section>
-
-  <section id="openspec">
-    <span class="section-no">15</span>
-    <span class="shipped-tag">Shipped — live-tested</span>
-    <h2>Validating a spec generator's own output</h2>
-    <p class="lede"><a href="https://github.com/Fission-AI/OpenSpec">OpenSpec</a> generates requirement specs from a brief — which makes its output exactly the kind of unowned claim this tool exists to check, not an exception to needing it.</p>
-
-    <p>OpenSpec is a convention layer over spec-driven development, not a validator itself: a capability spec is a <code>## Purpose</code> plus a set of <code>### Requirement</code> blocks, each carrying SHALL/MUST language and one or more <code>#### Scenario</code> blocks stating a WHEN/THEN/AND condition. A team points OpenSpec at a source brief; an LLM proposes the requirement specs. Nothing about that generation step is checked by OpenSpec itself — which is precisely the gap this tool's own architecture already exists to close for any other LLM output, so the natural question was whether it closes this one too, without OpenSpec and claim-validator needing to know anything about each other.</p>
-
-    <p>The answer is a small, deliberately separate adapter — <code>tools/openspec-adapter/</code> — that parses an OpenSpec capability spec structurally (section-walking and pattern matching, no model call) into this project's own bare <code>{id, text, source_ref}</code> claim shape, at requirement, scenario, or individual-assertion granularity. Kept out of claim-validator's own package on purpose: zero imports of <code>claimvalidator</code>, <code>phases</code>, or the database, its own test suite and its own <code>pytest.ini</code>, usable or discarded independently of everything else in this repository. Deliberately not exposed as an API, either — the parsing step itself is deterministic and cheap enough to run as a local script wherever an OpenSpec repository already lives, and the only place an LLM enters this whole workflow is OpenSpec's own generation step, upstream of the adapter entirely and outside what claim-validator has any reason to wrap.</p>
-
-    <p>The resulting workflow answers a specific, previously informal question with the same rigor this tool already applies everywhere else: OpenSpec generates requirements from a brief; the adapter converts those requirements into claims; claim-validator checks each one against the same brief it was generated from — repeatably, and re-runnable on demand, rather than trusted once by eye.</p>
-
-    <blockquote class="finding">An edge case surfaced live testing the adapter against its own examples rather than by inspection: OpenSpec's WHEN-folding occasionally inverted a scenario's own sequencing bullets — a "capture the screenshot" step and an "only then close the tap" step joined into one claim in the wrong order, the claim asserting the steps happen in an order the spec never states. The adapter now detects an ordering-prefix ("only then," "after that") and preserves the sequence it signals, rather than flattening every WHEN/AND bullet into one undifferentiated list.</blockquote>
-
-    <p>Two seeded example projects — an API-testing capability spec and a UI-testing capability spec, each with deliberately planted errors against its own source brief — exercise the adapter and the validator together end to end, and reviewing their own answer-key tables surfaced a second necessary correction before either was ever used to grade a run: the UI-testing example's README originally marked two out-of-scope items as expected <code>no_evidence</code>, when an explicit exclusion actively contradicts a claim asserting the item is in scope — corrected to <code>contradicts</code> before being trusted as a reference table. The same discipline this paper applies to the tool's own output — check the answer key as carefully as the answer — applied here to a fixture nobody had reason to doubt until it was run against something real.</p>
-  </section>
-
-  <section id="deploydeadlock">
-    <span class="section-no">16</span>
-    <span class="shipped-tag">Shipped — live-tested</span>
-    <h2>A deployment deadlock, found by actually cloning the repo</h2>
-    <p class="lede">Design review never caught this. Rehearsing the documented self-deploy path as a stranger would run it did — on the first real attempt.</p>
-
-    <p>The self-deploy story this project tells — clone the repo, bring your own Anthropic key, deploy into your own Azure subscription with <code>infra/tenant.bicep</code> — had never actually been rehearsed end to end by someone starting from nothing. Doing exactly that surfaced a genuine, structural edge case in the deployment template: three resources the Container App needs (<code>AcrPull</code> to pull its own image, a Postgres role to reach its own database, <code>Key Vault Secrets User</code> to read its own secrets) all referenced the Container App's system-assigned identity — which doesn't exist until the Container App itself is created. But the Container App's first revision can't succeed without any of the three. Confirmed live, twice: two consecutive first-attempt deployments both failed identically, and in both cases <strong>zero</strong> of the three permission resources were ever even attempted — not failed, never started — because Bicep's dependency graph never got past the failed Container App to reach them.</p>
-
-    <blockquote class="finding">The error a real deployer would actually see gives no hint of any of this: <code>"Failed to provision revision... Operation expired,"</code> then, digging into container logs, a generic <code>401 UNAUTHORIZED... authentication required</code> from the registry's own token exchange. Nothing about either message points at "go check three separate RBAC role assignments." A stranger following the documented steps, with no prior knowledge of this codebase, would have no obvious path from that error to the actual fix.</blockquote>
-
-    <p>The existing "known ordering caveat" comment on the <code>AcrPull</code> grant described a narrower, genuinely transient version of this — RBAC propagation lagging behind a pull attempt within an otherwise-successful deployment — and documented "just retry" as the fix, which is real and does work for that case. This was different: once the Container App's own provisioning genuinely fails, no number of retries of the same template can ever reach the role and script resources, because they never get attempted until the Container App succeeds on its own — which it structurally cannot do first.</p>
-
-    <p>Fixed by pre-creating the Container App's identity as its own standalone <strong>user-assigned</strong> identity — the same pattern this project's own infrastructure already used for its Postgres AAD admin identity, applied to the second place that needed it. A user-assigned identity's principal exists the moment it's declared, independent of anything that will later use it, so every permission the Container App needs can be — and now is — granted before the Container App is created at all, with an explicit dependency ordering enforcing that sequence rather than leaving it to chance.</p>
-
-    <div class="table-wrap">
-      <table class="data">
-        <thead><tr><th>Attempt</th><th>Template</th><th>Result</th></tr></thead>
-        <tbody>
-          <tr><td>1st, fresh tenant</td><td class="model">original</td><td><span class="v-badge contradict">Failed</span> — 0/3 permission resources attempted</td></tr>
-          <tr><td>2nd, same tenant, "just retry"</td><td class="model">original</td><td><span class="v-badge contradict">Failed</span> — identically, 0/3 attempted again</td></tr>
-          <tr><td>3rd, fresh disposable tenant</td><td class="model">fixed</td><td><span class="v-badge entail">Succeeded</span> — first attempt</td></tr>
-          <tr><td>4th, real production tenant</td><td class="model">fixed</td><td><span class="v-badge entail">Succeeded</span> — first attempt, zero data loss</td></tr>
-          <tr><td>5th, second real production tenant</td><td class="model">fixed</td><td><span class="v-badge entail">Succeeded</span> — first attempt, zero data loss</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <p>The disposable-tenant test ran a real claim through the resulting deployment before tearing it down — a false claim ("the office is open on weekends" against a Monday-through-Friday notice) correctly came back <code>contradicts</code>, 3/3 agreement, citing the actual sentence. Both real production tenants were then redeployed with the same fixed template, preserving each one's existing Anthropic key, existing bearer token, and — checked directly afterward — every ontology either had already built, with no rebuild and no interruption a caller would notice beyond one ordinary revision swap.</p>
-
-    <p class="pull">The gap was never in the application. It was in the <span class="accent">one path nobody had actually walked</span> — a stranger, starting from nothing, running the instructions exactly as written.</p>
-  </section>
-
   <section id="compared">
     <span class="section-no">17</span>
     <h2>Where it sits next to the alternatives</h2>
@@ -1139,7 +1123,6 @@
     </div>
     <p style="font-size:14.5px;color:var(--muted);">Reach for Foundry when you're already governing a broad evaluation surface across many projects inside the Azure AI ecosystem. Reach for this tool when the job is narrower and concrete: a finished batch of claims about one document, needing an independent, auditable, four-way verdict — outside that ecosystem entirely, deployed into infrastructure you actually control.</p>
   </section>
-
   <section id="stakes">
     <span class="section-no">18</span>
     <h2>Why this matters where being wrong is expensive</h2>
