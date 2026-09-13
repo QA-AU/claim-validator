@@ -6,10 +6,30 @@
 // Database access is Azure AD only, matching shared.bicep's server
 // (passwordAuth disabled there) — there is no DB password anywhere in
 // this file, in Key Vault, or in the Container App's own configuration.
-// A deployment script (below) grants the Container App's own
-// system-assigned identity a Postgres role, using shared.bicep's admin
-// identity to do it; at runtime, db/database.py's Azure AD auth path
-// fetches a fresh access token per connection through that same identity.
+//
+// The Container App uses a pre-created USER-ASSIGNED identity (appIdentity,
+// below), not a system-assigned one — deliberately, and for the same reason
+// pg-admin-identity.bicep is its own separate deployment: a system-assigned
+// identity's principalId doesn't exist until the Container App resource
+// itself is created, so anything granting that identity a permission
+// (AcrPull, the Postgres role, Key Vault access) would only run AFTER the
+// Container App succeeds — but the Container App's first revision can't
+// succeed without exactly those permissions already in place. Found live:
+// this was a real, reproducible deadlock, not just a slow-propagation race
+// — two full deployment attempts both failed with zero of those three
+// permission resources ever even attempted, because Bicep never got past
+// the failed Container App to reach them. A user-assigned identity's
+// principalId is known the moment it's declared, independent of the
+// Container App, so every permission below is granted BEFORE the Container
+// App is created (see containerApp's own dependsOn), and its first revision
+// starts already fully permissioned.
+//
+// At runtime, db/database.py's Azure AD auth path (DefaultAzureCredential)
+// fetches a fresh access token per connection through this identity —
+// AZURE_CLIENT_ID (set on the container below) is what tells
+// DefaultAzureCredential which identity to use, since that resolution is
+// ambiguous by default when the only identity attached is user-assigned
+// rather than system-assigned.
 //
 //   az deployment group create -g <rg> -f infra/tenant.bicep \
 //     --parameters tenantName=usera \
@@ -66,7 +86,7 @@ param apiToken string
 @description('Container image, e.g. myregistry.azurecr.io/claim-validator:latest.')
 param containerImage string
 
-@description('Name (not login server) of the Azure Container Registry containerImage is hosted in — the Container App pulls from it using its own system-assigned identity, granted AcrPull below, since the registry has admin auth disabled.')
+@description('Name (not login server) of the Azure Container Registry containerImage is hosted in — the Container App pulls from it using its own pre-created identity (appIdentity, below), granted AcrPull, since the registry has admin auth disabled.')
 param containerRegistryName string
 
 @description('Azure AD tenant ID, if this tenant should use Entra ID auth instead of the shared-secret fallback. Leave empty to use the apiToken parameter as CLAIMVAL_API_TOKEN instead.')
@@ -179,6 +199,16 @@ resource envStorage 'Microsoft.App/managedEnvironments/storages@2024-03-01' = {
   }
 }
 
+// Pre-created, exactly like pg-admin-identity.bicep, and for the same
+// reason: its principalId is known immediately, unlike a system-assigned
+// identity's — see the file-level comment above for the deadlock this
+// breaks. Never granted any Azure RBAC role itself beyond what's assigned
+// to it below; it exists only to be the Container App's own identity.
+resource appIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
+  name: '${tenantName}-app-identity'
+  location: location
+}
+
 resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' = {
   name: keyVaultName
   location: location
@@ -212,8 +242,23 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
   name: containerAppName
   location: location
   identity: {
-    type: 'SystemAssigned'
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${appIdentity.id}': {}
+    }
   }
+  // Explicit, on top of whatever Bicep infers from property references
+  // below: this Container App must not be created until every permission
+  // its identity needs (AcrPull, the Key Vault role, the Postgres grant)
+  // already exists — the whole point of the pre-created identity above.
+  // Without this, Bicep is still free to schedule containerApp in
+  // parallel with these three, which would just reintroduce a timing race
+  // in place of the hard deadlock this replaces.
+  dependsOn: [
+    acrPullRole
+    keyVaultSecretsUserRole
+    grantContainerAppDbAccess
+  ]
   properties: {
     managedEnvironmentId: containerAppsEnv.id
     configuration: {
@@ -225,19 +270,19 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
       registries: [
         {
           server: containerRegistry.properties.loginServer
-          identity: 'System'
+          identity: appIdentity.id
         }
       ]
       secrets: [
         {
           name: apiTokenSecretName
           keyVaultUrl: apiTokenSecret.properties.secretUri
-          identity: 'System'
+          identity: appIdentity.id
         }
         {
           name: anthropicKeySecretName
           keyVaultUrl: anthropicKeySecret.properties.secretUri
-          identity: 'System'
+          identity: appIdentity.id
         }
       ]
     }
@@ -280,6 +325,16 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
             {
               name: 'CLAIMVAL_DB_AAD_AUTH'
               value: 'true'
+            }
+            {
+              // Read by azure-identity's DefaultAzureCredential (not this
+              // project's own code) to pick which managed identity to use —
+              // required because appIdentity is user-assigned, not
+              // system-assigned; without this, that resolution is
+              // ambiguous and can silently try the wrong (nonexistent)
+              // identity. See the file-level comment on appIdentity above.
+              name: 'AZURE_CLIENT_ID'
+              value: appIdentity.properties.clientId
             }
             {
               name: 'CLAIMVAL_PROVIDER'
@@ -345,48 +400,54 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
 // Key Vault; the Postgres grant below is a separate mechanism — see its
 // own comment.)
 resource keyVaultSecretsUserRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(keyVault.id, containerApp.id, 'Key Vault Secrets User')
+  name: guid(keyVault.id, appIdentity.id, 'Key Vault Secrets User')
   scope: keyVault
   properties: {
     roleDefinitionId: subscriptionResourceId(
       'Microsoft.Authorization/roleDefinitions',
       '4633458b-17de-408a-b874-0445c86b69e6'
     )
-    principalId: containerApp.identity.principalId
+    principalId: appIdentity.properties.principalId
     principalType: 'ServicePrincipal'
   }
 }
 
-// "AcrPull" — lets the Container App's own system-assigned identity pull
-// containerImage from the registry, since the registry has admin auth
-// disabled entirely (no username/password to leak). Scoped to just this
-// one registry. Known ordering caveat: on a first-ever deploy, the
-// Container App's initial revision can attempt its first image pull
-// before this role assignment has finished propagating (both resources
-// deploy in the same operation, and Azure RBAC propagation isn't
-// instant) — if that happens, the fix is re-issuing this same deployment
-// once the role assignment exists, not a code change.
+// "AcrPull" — lets the Container App's identity pull containerImage from
+// the registry, since the registry has admin auth disabled entirely (no
+// username/password to leak). Scoped to just this one registry. Granted to
+// appIdentity, which exists independently of the Container App (see its
+// own comment above) — specifically so this role is guaranteed to exist
+// before the Container App's first revision ever attempts a pull, rather
+// than racing it. (An earlier version of this file granted the Container
+// App's own system-assigned identity instead, which meant this role could
+// only be created after the Container App succeeded — but the Container
+// App's first revision couldn't succeed without it. Found live: a real,
+// reproducible deadlock, not just a slow-propagation race — retrying the
+// same deployment did not resolve it.)
 resource acrPullRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(containerRegistry.id, containerApp.id, 'AcrPull')
+  name: guid(containerRegistry.id, appIdentity.id, 'AcrPull')
   scope: containerRegistry
   properties: {
     roleDefinitionId: subscriptionResourceId(
       'Microsoft.Authorization/roleDefinitions',
       '7f951dda-4ed3-4680-a7ca-43fe172d538d'
     )
-    principalId: containerApp.identity.principalId
+    principalId: appIdentity.properties.principalId
     principalType: 'ServicePrincipal'
   }
 }
 
-// Grants the Container App's own identity a Postgres role and access to
-// only this tenant's database — run once, at deploy time, using the
-// shared AAD admin identity (never the Container App's own identity,
-// which has no admin rights on the server and shouldn't). Not
+// Grants the Container App's identity (appIdentity, above) a Postgres role
+// and access to only this tenant's database — run once, at deploy time,
+// using the shared AAD admin identity (never the Container App's own
+// identity, which has no admin rights on the server and shouldn't). Not
 // Azure RBAC: Postgres Flexible Server's AAD integration uses its own
 // role system, bridged to an AAD object via a special server-side
 // function, not an Azure roleAssignment the way Key Vault access above
-// is.
+// is. Depends only on tenantDatabase and appIdentity (via the
+// APP_PRINCIPAL_ID reference below) — not on containerApp — so this can
+// run, and finish, before the Container App is ever created. See the
+// file-level comment on appIdentity for why that ordering matters.
 //
 // pgaadauth_create_principal_with_oid(roleName, objectId, objectType,
 // isAdmin, isMfa) — role name first, object ID second, plus a required
@@ -415,7 +476,7 @@ resource grantContainerAppDbAccess 'Microsoft.Resources/deploymentScripts@2023-0
       { name: 'PG_HOST', value: postgresServer.properties.fullyQualifiedDomainName }
       { name: 'PG_ADMIN_NAME', value: pgAdminIdentityName }
       { name: 'PG_ADMIN_CLIENT_ID', value: pgAdminIdentityClientId }
-      { name: 'APP_PRINCIPAL_ID', value: containerApp.identity.principalId }
+      { name: 'APP_PRINCIPAL_ID', value: appIdentity.properties.principalId }
       { name: 'APP_ROLE_NAME', value: containerAppName }
       { name: 'TENANT_DB', value: tenantName }
     ]
@@ -460,16 +521,20 @@ resource grantContainerAppDbAccess 'Microsoft.Resources/deploymentScripts@2023-0
 
       CONN="host=$PG_HOST port=5432 dbname=postgres user=$PG_ADMIN_NAME sslmode=require"
 
-      # Idempotent against identity churn: a Container App's system-assigned
-      # identity's principalId is not permanently stable — it was observed
-      # live to change after an identity remove/re-add cycle, orphaning the
-      # previous AAD-to-role mapping. pgaadauth_create_principal_with_oid
-      # does an unconditional CREATE ROLE and fails on a role name that
-      # already exists (as it will on every redeploy after the first, or
-      # after any identity change), so branch: create fresh only if the
-      # role doesn't exist yet, otherwise just re-point its AAD object-ID
-      # mapping at the current identity via the SECURITY LABEL form
-      # documented for exactly this case (see infra/README.md).
+      # Idempotent against identity churn regardless: this now runs against
+      # appIdentity, a user-assigned identity whose principalId is stable
+      # across Container App redeploys (unlike the system-assigned identity
+      # this originally guarded against, whose principalId was observed live
+      # to change after a remove/re-add cycle). Kept idempotent anyway —
+      # appIdentity itself could still be deleted and recreated, and this
+      # script always runs on every redeploy regardless of whether identity
+      # actually changed. pgaadauth_create_principal_with_oid does an
+      # unconditional CREATE ROLE and fails on a role name that already
+      # exists (as it will on every redeploy after the first), so branch:
+      # create fresh only if the role doesn't exist yet, otherwise just
+      # re-point its AAD object-ID mapping at the current identity via the
+      # SECURITY LABEL form documented for exactly this case (see
+      # infra/README.md).
       ROLE_EXISTS=$(psql "$CONN" -tA -v ON_ERROR_STOP=1 -c \
         "SELECT 1 FROM pg_roles WHERE rolname = '$APP_ROLE_NAME';")
 

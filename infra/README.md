@@ -72,16 +72,25 @@ end. Real problems surfaced only at the real-deployment stage — neither
   `InvalidResourceLocation` (found live: it did, the first time this
   mismatch actually bit a deploy). Override explicitly only if this is
   ever deployed into a genuinely different resource group.
-- First-deploy chicken-and-egg on the registry pull: the Container App's
-  own `AcrPull` role assignment can't exist until the Container App
-  itself exists (its `principalId` isn't known before then), but the
-  Container App's first revision needs that role assignment to pull the
-  image — a first-ever tenant deploy can fail its initial revision with
-  "Operation expired" while waiting on a pull it doesn't have permission
-  for yet. Fix: re-run the same `az deployment group create` — the
-  Container App resource itself will already exist from the failed
-  attempt (just in a `Failed` provisioning state), and the retry's own
-  `AcrPull` grant will exist in time for the second pull attempt.
+- **Superseded — see below.** First-deploy chicken-and-egg on the registry
+  pull *used to* require a retry: the Container App's own `AcrPull` role
+  assignment couldn't exist until the Container App itself existed (its
+  system-assigned `principalId` wasn't known before then), but the
+  Container App's first revision needed that role assignment to pull the
+  image. What this section originally missed: the *same* implicit
+  dependency also blocked the Postgres DB-access grant and the Key Vault
+  role — and once the Container App's own provisioning genuinely fails
+  (not just a slow-propagation race), Bicep never even attempts any of
+  the three dependent resources, so retrying the same deployment does
+  **not** reliably fix it (confirmed live: it failed the same way twice in
+  a row). Actually fixed, not just worked around: `tenant.bicep` now
+  pre-creates the Container App's identity as its own standalone
+  user-assigned identity (`appIdentity`, the same pattern as
+  `pg-admin-identity.bicep`) instead of a system-assigned one, so all
+  three permissions can be — and now are — granted *before* the Container
+  App is ever created, with an explicit `dependsOn` enforcing that order.
+  Live-verified: a fresh tenant deploy now reaches `Succeeded` on the
+  first attempt, no retry needed, no manual role grants needed.
 - The `grantContainerAppDbAccess` deployment script's container image
   isn't a fixed OS across `azCliVersion`s — `2.60.0` runs on Azure
   Linux (`tdnf`), not Debian (`apt-get`); the script now detects
