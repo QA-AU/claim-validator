@@ -414,6 +414,7 @@
     <a href="#futureshape">Learned shapes</a><span class="sep">/</span>
     <a href="#structural">Structural fixes</a><span class="sep">/</span>
     <a href="#openspec">OpenSpec</a><span class="sep">/</span>
+    <a href="#deploydeadlock">Deploy deadlock</a><span class="sep">/</span>
     <a href="#compared">Compared</a><span class="sep">/</span>
     <a href="#stakes">Why it matters</a>
   </nav>
@@ -1091,8 +1092,40 @@
     <p>Two seeded example projects — an API-testing capability spec and a UI-testing capability spec, each with deliberately planted defects against its own source brief — exercise the adapter and the validator together end to end, and reviewing their own answer-key tables surfaced a second real defect before it was ever used to grade a run: the UI-testing example's README originally marked two out-of-scope items as expected <code>no_evidence</code>, when an explicit exclusion actively contradicts a claim asserting the item is in scope — corrected to <code>contradicts</code> before being trusted as a reference table. The same discipline this paper applies to the tool's own output — check the answer key as carefully as the answer — applied here to a fixture nobody had reason to doubt until it was run against something real.</p>
   </section>
 
-  <section id="compared">
+  <section id="deploydeadlock">
     <span class="section-no">16</span>
+    <span class="shipped-tag">Shipped — live-tested</span>
+    <h2>A deployment deadlock, found by actually cloning the repo</h2>
+    <p class="lede">Design review never caught this. Rehearsing the documented self-deploy path as a stranger would run it did — on the first real attempt.</p>
+
+    <p>The self-deploy story this project tells — clone the repo, bring your own Anthropic key, deploy into your own Azure subscription with <code>infra/tenant.bicep</code> — had never actually been rehearsed end to end by someone starting from nothing. Doing exactly that surfaced a genuine, structural defect: three resources the Container App needs (<code>AcrPull</code> to pull its own image, a Postgres role to reach its own database, <code>Key Vault Secrets User</code> to read its own secrets) all referenced the Container App's system-assigned identity — which doesn't exist until the Container App itself is created. But the Container App's first revision can't succeed without any of the three. Confirmed live, twice: two consecutive first-attempt deployments both failed identically, and in both cases <strong>zero</strong> of the three permission resources were ever even attempted — not failed, never started — because Bicep's dependency graph never got past the failed Container App to reach them.</p>
+
+    <blockquote class="finding">The error a real deployer would actually see gives no hint of any of this: <code>"Failed to provision revision... Operation expired,"</code> then, digging into container logs, a generic <code>401 UNAUTHORIZED... authentication required</code> from the registry's own token exchange. Nothing about either message points at "go check three separate RBAC role assignments." A stranger following the documented steps, with no prior knowledge of this codebase, would have no obvious path from that error to the actual fix.</blockquote>
+
+    <p>The existing "known ordering caveat" comment on the <code>AcrPull</code> grant described a narrower, genuinely transient version of this — RBAC propagation lagging behind a pull attempt within an otherwise-successful deployment — and documented "just retry" as the fix, which is real and does work for that case. This was different: once the Container App's own provisioning genuinely fails, no number of retries of the same template can ever reach the role and script resources, because they never get attempted until the Container App succeeds on its own — which it structurally cannot do first.</p>
+
+    <p>Fixed by pre-creating the Container App's identity as its own standalone <strong>user-assigned</strong> identity — the same pattern this project's own infrastructure already used for its Postgres AAD admin identity, applied to the second place that needed it. A user-assigned identity's principal exists the moment it's declared, independent of anything that will later use it, so every permission the Container App needs can be — and now is — granted before the Container App is created at all, with an explicit dependency ordering enforcing that sequence rather than leaving it to chance.</p>
+
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Attempt</th><th>Template</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr><td>1st, fresh tenant</td><td class="model">original</td><td><span class="v-badge contradict">Failed</span> — 0/3 permission resources attempted</td></tr>
+          <tr><td>2nd, same tenant, "just retry"</td><td class="model">original</td><td><span class="v-badge contradict">Failed</span> — identically, 0/3 attempted again</td></tr>
+          <tr><td>3rd, fresh disposable tenant</td><td class="model">fixed</td><td><span class="v-badge entail">Succeeded</span> — first attempt</td></tr>
+          <tr><td>4th, real production tenant</td><td class="model">fixed</td><td><span class="v-badge entail">Succeeded</span> — first attempt, zero data loss</td></tr>
+          <tr><td>5th, second real production tenant</td><td class="model">fixed</td><td><span class="v-badge entail">Succeeded</span> — first attempt, zero data loss</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>The disposable-tenant test ran a real claim through the resulting deployment before tearing it down — a false claim ("the office is open on weekends" against a Monday-through-Friday notice) correctly came back <code>contradicts</code>, 3/3 agreement, citing the actual sentence. Both real production tenants were then redeployed with the same fixed template, preserving each one's existing Anthropic key, existing bearer token, and — checked directly afterward — every ontology either had already built, with no rebuild and no interruption a caller would notice beyond one ordinary revision swap.</p>
+
+    <p class="pull">The bug was never in the application. It was in the <span class="accent">one path nobody had actually walked</span> — a stranger, starting from nothing, running the instructions exactly as written.</p>
+  </section>
+
+  <section id="compared">
+    <span class="section-no">17</span>
     <h2>Where it sits next to the alternatives</h2>
     <p class="lede">Not the only way to check whether text is grounded in a source — the differences are in what you bring to it and what the answer looks like.</p>
 
@@ -1123,7 +1156,7 @@
   </section>
 
   <section id="stakes">
-    <span class="section-no">17</span>
+    <span class="section-no">18</span>
     <h2>Why this matters where being wrong is expensive</h2>
     <p class="lede">The moment an LLM's output about a contract, a clinical protocol, a regulatory standard, or an incident report is trusted enough to act on, something other than the model that wrote it has to check it.</p>
 
