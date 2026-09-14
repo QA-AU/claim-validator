@@ -6,6 +6,16 @@ here comes from a live run against `usera-claimval`, not a mock, with
 any ground truth fixed and written down *before* the claims were
 submitted.
 
+**Reading the numbers below:** unless a table says otherwise, `X/Y
+(Z%)` means X claims out of Y total scored a verdict matching the
+fixed, pre-written expected answer — Z% is that accuracy rate. This
+applies to the judge-model matrix, the taxonomy category table, and
+the DeepEval comparison table. The one exception is the volatility
+table's `Count` column, which counts how many claims *changed verdict*
+across 5 resubmissions of the same claim set — that measures
+consistency, not correctness, and has no expected answer to match
+against.
+
 ---
 
 ## 2026-09-14 — Volatility test, judge-model matrix, and adversarial taxonomy set
@@ -53,13 +63,6 @@ others.
 | Haiku (deployed default) | 24/33 (72.7%) | 29/33 (87.9%) |
 | Sonnet | 22/33 (66.7%) | 31/33 (93.9%) |
 | Opus | 26/33 (78.8%) | 31/33 (93.9%) |
-
-*(Corrected mid-run: the test harness's own ground truth had a bug —
-`contract-verifier.R7.S1.A2` restates a retry-failure rule in an
-attempt-count-agnostic way that's true regardless of the exact number, a
-"consistent half" like two already-known `ui-testing` cases. All three
-tiers correctly said `entails`; the first-pass scoring wrongly flagged
-it as a miss for all three. Table above is corrected.)*
 
 **Finding:** Haiku is not obviously worse — it beat Sonnet on both
 documents. Opus was best on both, but by a modest margin (6 points on
