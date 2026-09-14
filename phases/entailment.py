@@ -552,10 +552,22 @@ it — so the order decides the verdict, not which description sounds closest.
                      quantity (not a fixed value), do not compare the two
                      numbers directly — follow this procedure first:
                      {_THRESHOLD_PROCEDURE}
-2. "no_evidence"   — are the passages about entirely different things?
-3. "mentions_only" — the passages concern the same endpoints, fields or codes,
-                     and are simply SILENT on what the claim asserts. Nothing in
-                     them conflicts with it; they just do not say it.
+2. "no_evidence"   — is the SUBJECT the claim is about (the field, endpoint,
+                     process, or mechanism it names — not the specific detail
+                     it asserts, the underlying thing itself) absent from the
+                     passages? If the passages never bring that subject up at
+                     all, under any wording, that's this verdict. If the
+                     passages are on an unrelated topic entirely, that also
+                     lands here.
+3. "mentions_only" — the passages DO discuss that same subject — the same
+                     field, endpoint, process, or mechanism the claim names —
+                     but are simply SILENT on the SPECIFIC detail, value, or
+                     added behavior the claim asserts about it. The subject
+                     is there; the particular thing the claim says about it
+                     is not confirmed or denied. This applies even when that
+                     specific added detail's exact wording never appears —
+                     what matters is whether the subject itself is covered,
+                     not whether every word of the claim is.
 4. "entails"       — the passages state the claim, or it follows directly.
 
 For each item return an object:
@@ -565,9 +577,16 @@ For each item return an object:
 
 Judge ONLY against the passages shown. Common industry practice is not evidence:
 if a claim states what an API usually does but this document specifies something
-else, that is "contradicts"; if the document is simply silent, that is
-"mentions_only". Do not fill gaps from your own knowledge of how APIs normally
-behave.
+else, that is "contradicts". Between "no_evidence" and "mentions_only", ask two
+separate questions in order. First: do the passages discuss the SAME subject —
+the same field, process, mechanism, or entity — the claim is about, regardless
+of wording? If no, that's "no_evidence", no matter how much the passages say
+about other things. If yes, ask a second question: do the passages confirm the
+SPECIFIC detail, value, or added behavior the claim asserts about that subject?
+If they're silent on it, that's "mentions_only" — the subject is covered, the
+added detail is not. Only land on "no_evidence" when the subject itself never
+comes up — not merely because the claim's specific added detail isn't named
+verbatim. Do not fill gaps from your own knowledge of how APIs normally behave.
 
 Return ONLY a JSON array."""
 

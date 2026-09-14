@@ -213,3 +213,85 @@ Script and Anthropic-model wrapper live in this session's scratchpad
 (`anthropic_deepeval_model.py`, `tier2_deepeval_comparison.py`) —
 worth promoting into the repo if this comparison gets rerun as the
 taxonomy set grows, same as the taxonomy fixtures themselves.
+
+---
+
+## 2026-09-14 — `mentions_only`/`no_evidence` judge-prompt fix, live-tested
+
+**Why:** every benchmark round so far (volatility test, Tier 2 DeepEval
+comparison, the taxonomy confusion matrix) converged on the same
+finding: `entails`/`contradicts` are never confused with each other, but
+`mentions_only`/`no_evidence` show real, repeated, bidirectional
+confusion. Reading the judge's own reasoning text across every confused
+case (`phases/entailment.py`'s prompt) found the root cause: the
+verdict definitions were asymmetric — `no_evidence` was defined vaguely
+("are the passages about entirely different things?") while
+`mentions_only` was defined concretely with rich examples, biasing the
+model toward `mentions_only` whenever there was any topical overlap at
+all.
+
+**First attempt (not kept) — over-corrected the other way.** Rewriting
+both definitions to hinge on "does the passage name the SPECIFIC thing
+the claim is about" fixed the plausible-fabrication misses
+(`API.13`, `WAR.14`, previously wrongly `mentions_only`) but broke the
+opposite case: claims that add an unstated specific detail to a topic
+the passages *do* cover (`API.12`, `EXP.13`) flipped from correctly
+`mentions_only` to `no_evidence`, because the model started reading
+"the specific thing" as the claim's entire predicate rather than its
+subject — and by definition, an unstated detail is never named
+verbatim. Live-tested 3x on the 6 previously-flagged claims: fully
+reproducible, not run-to-run noise (identical pattern all 3 passes).
+Net accuracy on that set was unchanged (3/6 before, 3/6 after — the
+wrong 3 just changed).
+
+**Second attempt (kept) — split "subject" from "specific detail."**
+Rewrote the definitions to ask two separate questions in order: (1) do
+the passages discuss the same *subject* — field, process, mechanism,
+entity — the claim is about, regardless of wording, and (2) only if
+yes, do they confirm the *specific detail* the claim adds about that
+subject. `no_evidence` now means the subject itself never comes up;
+`mentions_only` means the subject is covered but the added detail
+isn't confirmed either way.
+
+**Live results, 3 passes on the 6 previously-flagged claims:**
+
+| Claim | Expected | Before | After (3 passes) |
+|---|---|---|---|
+| `API.13` (plausible_fabrication) | `no_evidence` | `mentions_only` | `no_evidence` ×3 — **fixed** |
+| `API.12` (unstated_specific) | `mentions_only` | `mentions_only` | `mentions_only` ×2, `no_evidence` ×1 — mostly held, one flake |
+| `EXP.13` (unstated_specific) | `mentions_only` | `mentions_only` | `mentions_only` ×3 — held |
+| `EXP.14` (plausible_fabrication) | `no_evidence` | `no_evidence` | `no_evidence` ×3 — held |
+| `WAR.13` (unstated_specific) | `mentions_only` | `no_evidence` | `no_evidence` ×3 — **still wrong** |
+| `WAR.14` (plausible_fabrication) | `no_evidence` | `mentions_only` | `no_evidence` ×3 — **fixed** |
+
+**Full-taxonomy regression check, all 45 claims across all 3 documents
+(api-testing, expense-policy, warranty-terms), single pass:**
+**37/45 → 39/45** (82.2% → 86.7%). 4 fixes, 2 regressions:
+
+- Fixes: `API.13`, `WAR.14` (the target boundary, as above), plus
+  `API.6` and `WAR.16` — both `entails`→`contradicts` corrections
+  unrelated to the edited text, most likely ordinary judge variance
+  landing favorably this pass.
+- Regressions: `API.3` (quantifier-shift, `contradicts`→`entails`) and
+  `API.8` (multi-hop, `entails`→`mentions_only`) — neither touches the
+  `mentions_only`/`no_evidence` boundary this fix targeted; both are
+  consistent with the ~20–25% single-pass judge variance already
+  documented above, not a side effect traced to this specific edit.
+
+**Honest limitation: `WAR.13` is not fixed.** "Warranty claims can be
+tracked in real time via a mobile app notification system" — the
+document's Claims Process section covers portal submission and review
+timelines but never mentions real-time tracking. All 3 passes landed
+on `no_evidence`, expected `mentions_only`. This looks like a genuine
+edge of the `on_topic_unstated` vs. `plausible_fabrication` distinction
+itself: "same subject, different specific detail" and "no shared
+subject at all" is a real spectrum, not a bright line, and this claim
+sits closer to the fuzzy middle than the taxonomy's own binary label
+assumes — the same kind of open design question already flagged for
+the `conditional_truth` category.
+
+**Net assessment:** a real, reproducible improvement (not just one
+lucky run — verified 3x on the flagged set and once on the full 45),
+with one known-remaining miss and ordinary noise elsewhere. Change is
+live on `usera-claimval` only; not yet merged to `main`, not yet
+deployed to `userb-claimval`.
