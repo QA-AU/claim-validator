@@ -134,3 +134,82 @@ genuine miscalibration on a claim with fixed, independently-authored
 ground truth, not just as run-to-run noise. Not filed as a new issue —
 it corroborates an already-documented limitation rather than
 identifying a new one.
+
+---
+
+## 2026-09-14 — DeepEval comparison (Tier 2), the same 28 taxonomy claims
+
+**Why:** the honest gap in every comparison so far was architectural,
+not empirical — nothing had actually run the same claims through an
+existing tool and looked at where the two disagree, case by case. This
+closes that gap for the 28-claim adversarial taxonomy set (the one with
+independent, fixed ground truth).
+
+**Method:** DeepEval's `FaithfulnessMetric`, run externally against
+this repo, never integrated into the shipped product. Backed by a
+small custom `DeepEvalBaseLLM` wrapper around Anthropic (Haiku) rather
+than DeepEval's OpenAI default — kept consistent with this project's
+own Anthropic-only rule rather than quietly introducing the dependency
+it deliberately avoids. Fed the exact same cited passages Claim
+Validator itself retrieved for each claim, so the comparison isolates
+judgment, not retrieval. Ground truth and Claim Validator's own
+verdicts collapsed to binary (`entails` = faithful; anything else =
+not faithful), matching DeepEval's own binary pass/fail at its default
+0.5 threshold.
+
+| | vs. ground truth | |
+|---|---|---|
+| Claim Validator | 25/28 (89.3%) | |
+| DeepEval | 23/28 (82.1%) | |
+| Claim Validator ↔ DeepEval agreement | 20/28 (71.4%) | genuinely different judgment layers, not redundant |
+
+**DeepEval right, Claim Validator wrong — 3 cases, reported in full per
+the review's own credibility bar (a comparison that only shows wins
+isn't credible):**
+
+- Two of the three are the *exact same* quantifier-shift gap already
+  filed as [#14](https://github.com/QA-AU/claim-validator/issues/14) —
+  DeepEval correctly flagged both "all → some/most" weakenings that
+  Claim Validator's judge missed. Real, independent confirmation that
+  #14 is a genuine gap, from a completely different tool.
+- The third is the exact numeric off-by-one from
+  [#15](https://github.com/QA-AU/claim-validator/issues/15) — but this
+  result was captured *before* that fix. Re-checked directly against
+  the fixed module (no API call needed): `check_numeric_consistency`
+  now correctly returns `contradicts` for this exact claim/passage
+  pair. Already resolved, not a live gap.
+
+**Claim Validator right, DeepEval wrong — 5 cases, two distinct
+architectural reasons, not one:**
+
+- **Compound claims, mixed truth (2 cases).** DeepEval actually *did*
+  detect the false half — it scored both 0.5, not 1.0 — but its binary
+  pass/fail at a 0.5 threshold rounds a half-true compound claim up to
+  "faithful." The detection is there; the threshold collapse is what
+  loses it. A real, specific illustration of exactly what the earlier
+  review warned a blended score would hide.
+- **Unstated specifics and plausible fabrications (2 cases).** DeepEval
+  scored both 1.0 — "no contradictions found" — which is correct by
+  its own definition: Faithfulness checks whether the output
+  contradicts the context, not whether the context actually supports
+  every specific the output adds. A claim inventing an unstated detail
+  doesn't contradict anything, so DeepEval has nothing to flag. This
+  is the concrete, measured version of the paper's own architectural
+  argument (DeepEval scores against what it's given; it doesn't
+  independently ask "did the document actually address this at all")
+  — no longer just an assertion, now a real pair of cases where it's
+  exactly what happened.
+- The fifth case (`API.3`, a *different* quantifier-shift claim)
+  went the other way from the two DeepEval caught above — DeepEval
+  called it faithful when it wasn't. Quantifier-shift handling isn't
+  reliably better on either system; it varies case by case on both
+  sides, not just Claim Validator's.
+
+**Zero cases where both systems were wrong** — every miss in this set
+was caught by at least one of the two tools, meaning their blind spots
+are genuinely different, not overlapping copies of the same gap.
+
+Script and Anthropic-model wrapper live in this session's scratchpad
+(`anthropic_deepeval_model.py`, `tier2_deepeval_comparison.py`) —
+worth promoting into the repo if this comparison gets rerun as the
+taxonomy set grows, same as the taxonomy fixtures themselves.
