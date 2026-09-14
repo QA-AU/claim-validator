@@ -297,3 +297,77 @@ the `conditional_truth` category.
 lucky run — verified 3x on the flagged set and once on the full 45),
 with one known-remaining miss and ordinary noise elsewhere. Merged to
 `main` and deployed to both `usera-claimval` and `userb-claimval`.
+
+---
+
+## 2026-09-14 — Cost comparison against DeepEval, real token usage
+
+**Why:** the accuracy comparison above (Tier 2) established that Claim
+Validator beats DeepEval's `FaithfulnessMetric` on the 28-claim
+adversarial set, but said nothing about what either actually costs to
+run. An earlier exploratory question this session ("would integrating
+DeepEval blow out validation cost?") was answered from architectural
+inference, not a measurement — this closes that gap with real
+Anthropic token usage from both systems, including the one-time cost
+of building Claim Validator's own ontology/RAG index, which the user
+explicitly asked to have counted rather than left out.
+
+**Method:** a small, previously-unused document (a synthetic office
+supplies reimbursement policy) and 6 hand-authored claims with ground
+truth fixed before submission — small by design, per instruction, not
+a large-scale benchmark. Both systems' Anthropic clients were
+instrumented for real per-call token usage (Claim Validator's
+`AnthropicClient` already tracks this internally via
+`phases/llm_usage.py`; the external `AnthropicDeepEvalModel` wrapper
+was extended to do the same). Both ran the identical Haiku 4.5 model.
+Pricing: $1/MTok input, $5/MTok output (Anthropic's published rate,
+2026-09-14). DeepEval was fed Claim Validator's own retrieved
+passages, isolating judgment cost — it did not have to build or pay
+for its own retrieval in this measurement.
+
+| | Calls | Input tok | Output tok | Cost |
+|---|---|---|---|---|
+| CV — ontology/RAG build (one-time) | 23 | 24,433 | 6,190 | $0.0554 |
+| CV — judge, 6 claims (3-run majority) | 6 | 14,688 | 1,432 | $0.0219 |
+| CV — first-ever-run total | 29 | 39,121 | 7,622 | $0.0772 |
+| DeepEval — same 6 claims | 24 | 10,397 | 2,385 | $0.0223 |
+
+**Finding — the ontology build is nearly the entire cost gap.** On a
+brand-new document, Claim Validator's first run costs ~3.5x DeepEval's
+($0.0772 vs $0.0223), but $0.0554 of that $0.0772 is the one-time
+index build, not per-claim judging.
+
+**Finding — marginal per-claim cost is close to identical, and
+slightly favors Claim Validator.** Once the ontology exists (reused
+across every future claim checked against that document, per this
+project's own content-hash caching), the per-claim cost is ~$0.00364
+for Claim Validator vs. ~$0.00372 for DeepEval — a ~2% difference,
+inside plausible run-to-run token-count noise on a 6-claim sample, not
+a claimed precise edge either way. The honest conclusion is parity,
+not "cheaper," given the sample size.
+
+**Bonus corroboration, not the primary ask:** Claim Validator scored
+6/6 correct on this set; DeepEval's binary faithfulness score missed
+the `no_evidence` claim (a fabricated detail — nothing in it
+contradicts the source, so Faithfulness has nothing to flag) and the
+`mentions_only` claim (an on-topic-unstated detail) — the same
+architectural gap already documented in the Tier 2 comparison above,
+now reproduced on an independent third document.
+
+**A real bug, found and fixed along the way, not the point of this
+test but worth recording here since it was found here:** building the
+ontology for this document raised a `ZeroDivisionError` in
+`phases/phase1b_validation.py`'s census reconciliation — a concept
+whose census spread was genuinely `[0, N]` (seen in some runs, not
+others) divided by a zero lower bound instead of being guarded the
+way the adjacent `CensusSpread.capture_range` already guards the
+identical case. Fixed with the same guard, regression test added
+(confirmed it fails on the old code, passes on the fix). On branch
+`fix/census-zero-low-division`, not yet merged.
+
+Test document, claims, answer key, and the instrumented comparison
+script live in this session's scratchpad
+(`cost_test/office-supplies-policy.md`, `cost_test/claims.json`,
+`cost_test/answer-key.json`, `cost_test/run_cost_comparison.py`) — not
+committed to the repo, same promotion note as the taxonomy fixtures
+above.

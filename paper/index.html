@@ -1071,6 +1071,40 @@
       </div>
     </div>
 
+    <p>The comparison above is a design argument. This is the live measurement behind it: DeepEval's <code>FaithfulnessMetric</code>, run externally against this project, fed the exact same cited passages Claim Validator itself retrieved for each claim — holding evidence constant so the result isolates judgment, not retrieval — against a 28-claim adversarial set with ground truth fixed before either system saw it.</p>
+
+    <div class="table-wrap">
+      <table class="data">
+        <thead>
+          <tr><th></th><th class="num">vs. ground truth</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Claim Validator</td><td class="num">25/28 (89.3%)</td></tr>
+          <tr><td>DeepEval</td><td class="num">23/28 (82.1%)</td></tr>
+          <tr><td>Agreement between the two</td><td class="num">20/28 (71.4%)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Claim Validator scores higher, but the more useful fact is that the two tools' misses never overlapped — every claim one got wrong, the other got right. DeepEval independently caught the same quantifier-shift weakening ("all" &rarr; "some") this project's own judge misses, corroborating that gap from an outside tool. Claim Validator, in turn, catches two things DeepEval's Faithfulness metric is not designed to: a half-true compound claim (DeepEval scores it 0.5, but its own pass/fail threshold rounds that up to "faithful"), and a claim that adds an unstated or fabricated specific (nothing in it contradicts the source, so a metric that only checks for contradiction has nothing to flag — the concrete, measured version of the gap named earlier in this section).</p>
+
+    <p>Cost was measured the same way — real Anthropic usage from both systems, not an estimate, on a small held-out document and six claims:</p>
+
+    <div class="table-wrap">
+      <table class="data">
+        <thead>
+          <tr><th></th><th class="num">Calls</th><th class="num">Cost</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Claim Validator — ontology/RAG build (one-time, per document)</td><td class="num">23</td><td class="num">$0.0554</td></tr>
+          <tr><td>Claim Validator — judging 6 claims (3-run majority)</td><td class="num">6</td><td class="num">$0.0219</td></tr>
+          <tr><td>DeepEval — same 6 claims</td><td class="num">24</td><td class="num">$0.0223</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>On a brand-new document, Claim Validator's first run costs about 3.5&times; DeepEval's — almost entirely the one-time ontology build. That index is then reused for every later claim checked against the same document, so once it exists, the marginal cost per claim is close to identical between the two (roughly $0.0036 for Claim Validator, $0.0037 for DeepEval) — Claim Validator's per-claim judging is not more expensive than DeepEval's, only its upfront indexing is. One caveat worth stating plainly: this measurement fed DeepEval retrieval it didn't have to build itself; a deployment where DeepEval also owns its own RAG setup would carry a retrieval cost this comparison doesn't count.</p>
+
     <h3>Against Microsoft Foundry's evaluators</h3>
     <div class="compare">
       <div class="compare-col them">
@@ -1097,7 +1131,7 @@
   </section>
 
   <div class="colophon">
-    Sources: this project's own README, infra/README.md, docs/manual.html, and docs/foundry-evaluators.html — plus two live validation rounds (seven documents, three generation models), a hand-authored accuracy check on an eighth document (an OpenSpec capability spec), a live shape-profile deployment test (eleven documents total), and this update's own five closed GitHub issues (#2–#6) and tools/openspec-adapter, all against the deployed service.<br>
+    Sources: this project's own README, infra/README.md, docs/manual.html, and docs/foundry-evaluators.html — plus two live validation rounds (seven documents, three generation models), a hand-authored accuracy check on an eighth document (an OpenSpec capability spec), a live shape-profile deployment test (eleven documents total), a 28-claim adversarial DeepEval comparison and a separate live token-cost measurement against DeepEval, and this update's own five closed GitHub issues (#2–#6) and tools/openspec-adapter, all against the deployed service. Full figures and methodology: docs/test-results-and-observations.md.<br>
     All figures above are from real API responses, not illustrative examples.<br>
     Prepared by azam.asif@gmail.com · September 2026, updated September 2026
   </div>
