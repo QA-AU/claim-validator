@@ -250,7 +250,7 @@ def run_census(ontology, rag_index, llm_client, tracker, settings):
             # most favourable denominator and the high the least.
             entry["capture_range"] = (
                 (round(min(found / spread.high, 1.0), 4),
-                 round(min(found / spread.low, 1.0), 4))
+                 round(min(found / spread.low, 1.0), 4) if spread.low else 1.0)
                 if spread.high else None
             )
             entry["capture_basis"] = "names matched across all concepts"
