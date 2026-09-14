@@ -292,6 +292,5 @@ the `conditional_truth` category.
 
 **Net assessment:** a real, reproducible improvement (not just one
 lucky run — verified 3x on the flagged set and once on the full 45),
-with one known-remaining miss and ordinary noise elsewhere. Change is
-live on `usera-claimval` only; not yet merged to `main`, not yet
-deployed to `userb-claimval`.
+with one known-remaining miss and ordinary noise elsewhere. Merged to
+`main` and deployed to both `usera-claimval` and `userb-claimval`.
