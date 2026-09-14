@@ -1136,7 +1136,7 @@
   <section id="appendix">
     <span class="section-no">Appendix</span>
     <h2>Full benchmark record</h2>
-    <p class="lede">Everything the body above says about accuracy and cost is drawn from here. A condensed, self-contained version of this project's own running benchmark log — not a different account, the same one.</p>
+    <p class="lede">Everything the body above says about accuracy and cost is drawn from here. A condensed, self-contained version of this project's own running benchmark log — not a different account, the same one. Full methodology and raw figures: <a href="https://github.com/QA-AU/claim-validator/blob/main/docs/test-results-and-observations.md"><code>docs/test-results-and-observations.md</code></a>.</p>
 
     <h3>Volatility — how much a verdict moves on an identical rerun</h3>
     <p>5 independent full resubmissions of the same 66-claim set (two OpenSpec-adapter example documents): 7.6% of claims (5/66) landed on a non-unanimous final verdict. Every fragile claim touched <code>mentions_only</code> — not one sharp seam between two verdicts, but a soft category bordering all three others.</p>
@@ -1237,7 +1237,7 @@
   </section>
 
   <div class="colophon">
-    Sources: this project's own README, infra/README.md, docs/manual.html, and docs/foundry-evaluators.html — plus two live validation rounds (seven documents, three generation models), a hand-authored accuracy check on an eighth document (an OpenSpec capability spec), a live shape-profile deployment test (eleven documents total), a volatility test and judge-model matrix, a 28-claim adversarial taxonomy with full confusion matrix, a second held-out document (43 claims combined), a 28-claim adversarial DeepEval comparison and a separate live token-cost measurement against DeepEval, and seven closed GitHub issues (#2–#6, #13, #15) and tools/openspec-adapter, all against the deployed service. Full figures and methodology, including everything in the Appendix: docs/test-results-and-observations.md.<br>
+    Sources: this project's own README, infra/README.md, docs/manual.html, and docs/foundry-evaluators.html — plus two live validation rounds (seven documents, three generation models), a hand-authored accuracy check on an eighth document (an OpenSpec capability spec), a live shape-profile deployment test (eleven documents total), a volatility test and judge-model matrix, a 28-claim adversarial taxonomy with full confusion matrix, a second held-out document (43 claims combined), a 28-claim adversarial DeepEval comparison and a separate live token-cost measurement against DeepEval, and seven closed GitHub issues (#2–#6, #13, #15) and tools/openspec-adapter, all against the deployed service. Full figures and methodology, including everything in the Appendix: <a href="https://github.com/QA-AU/claim-validator/blob/main/docs/test-results-and-observations.md"><code>docs/test-results-and-observations.md</code></a>.<br>
     All figures above are from real API responses, not illustrative examples. Test-count deltas cited inline (e.g. "225 tests passing, from 219") mark the point a specific feature shipped, not the project's current total — 295 tests pass as of this update.<br>
     Prepared by the Claim Validator project · September 2026, updated September 2026
   </div>
