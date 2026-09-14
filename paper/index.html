@@ -416,7 +416,8 @@
     <a href="#modelswap">Model swap</a><span class="sep">/</span>
     <a href="#boundaries">Boundaries</a><span class="sep">/</span>
     <a href="#compared">Compared</a><span class="sep">/</span>
-    <a href="#stakes">Why it matters</a>
+    <a href="#stakes">Why it matters</a><span class="sep">/</span>
+    <a href="#appendix">Appendix</a>
   </nav>
 
   <section id="origins">
@@ -1132,9 +1133,111 @@
 
     <p>None of this requires the caller to be a person. Every endpoint here is plain REST, callable by a human tester or an AI agent alike.</p>
   </section>
+  <section id="appendix">
+    <span class="section-no">Appendix</span>
+    <h2>Full benchmark record</h2>
+    <p class="lede">Everything the body above says about accuracy and cost is drawn from here. A condensed, self-contained version of this project's own running benchmark log — not a different account, the same one. Full methodology and raw figures: <a href="https://github.com/QA-AU/claim-validator/blob/main/docs/test-results-and-observations.md"><code>docs/test-results-and-observations.md</code></a>.</p>
+
+    <h3>Volatility — how much a verdict moves on an identical rerun</h3>
+    <p>5 independent full resubmissions of the same 66-claim set (two OpenSpec-adapter example documents): 7.6% of claims (5/66) landed on a non-unanimous final verdict. Every fragile claim touched <code>mentions_only</code> — not one sharp seam between two verdicts, but a soft category bordering all three others.</p>
+
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Transition</th><th class="num">Count</th></tr></thead>
+        <tbody>
+          <tr><td><code>mentions_only</code> ↔ <code>no_evidence</code></td><td class="num">3</td></tr>
+          <tr><td><code>contradicts</code> ↔ <code>mentions_only</code></td><td class="num">1</td></tr>
+          <tr><td><code>entails</code> ↔ <code>mentions_only</code></td><td class="num">1</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Judge-model matrix — is the deployed default (Haiku) leaving accuracy on the table?</h3>
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th></th><th class="num">api-testing</th><th class="num">ui-testing</th></tr></thead>
+        <tbody>
+          <tr><td>Haiku (deployed default)</td><td class="num">24/33 (72.7%)</td><td class="num">29/33 (87.9%)</td></tr>
+          <tr><td>Sonnet</td><td class="num">22/33 (66.7%)</td><td class="num">31/33 (93.9%)</td></tr>
+          <tr><td>Opus</td><td class="num">26/33 (78.8%)</td><td class="num">31/33 (93.9%)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Haiku beat Sonnet on both documents; Opus led both by a modest 6-point margin. No cost/accuracy case to upgrade the deployed default — consistent with the cost-parity finding above.</p>
+
+    <h3>Adversarial taxonomy — 13 failure-mode categories, 28 hand-authored claims</h3>
+    <p>One already-known document (<code>api-testing</code>) and one genuinely new domain (a synthetic expense policy), 13 categories from quantifier shift to plausible fabrication, target verdict fixed before submission. Overall: <strong>24/28 (85.7%)</strong>.</p>
+
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Category</th><th class="num">Result</th></tr></thead>
+        <tbody>
+          <tr><td>Plain factual match / inversion</td><td class="num">4/4</td></tr>
+          <tr><td>Modal flattening</td><td class="num">1/1</td></tr>
+          <tr><td>Negation in a compound clause</td><td class="num">2/2</td></tr>
+          <tr><td>Entity substitution</td><td class="num">2/2</td></tr>
+          <tr><td>Compound claim, mixed truth</td><td class="num">2/2</td></tr>
+          <tr><td>Paraphrase only, no lexical overlap</td><td class="num">2/2</td></tr>
+          <tr><td>On-topic but unstated specific</td><td class="num">2/2</td></tr>
+          <tr><td>Plausible fabrication</td><td class="num">1/2</td></tr>
+          <tr><td>Superseded / versioned clause</td><td class="num">1/1</td></tr>
+          <tr><td><strong>Multi-hop</strong></td><td class="num"><strong>4/4</strong></td></tr>
+          <tr><td><strong>Quantifier shift</strong></td><td class="num"><strong>0/2</strong></td></tr>
+          <tr><td>Numeric boundary</td><td class="num">1/2</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <blockquote class="finding">Multi-hop claims — true only by combining two separate, non-adjacent passages — resolved correctly 4/4, on both documents. Quantifier shift resolved 0/2, both at full 3/3 agreement: this is issue #14, still open.</blockquote>
+
+    <h3>Confusion matrix and per-class precision/recall — the same 28 claims</h3>
+    <p>The blended accuracy number above hides where the errors actually cluster. The full matrix doesn't:</p>
+
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>true ＼ predicted</th><th class="num">entails</th><th class="num">contradicts</th><th class="num">mentions_only</th><th class="num">no_evidence</th></tr></thead>
+        <tbody>
+          <tr><td><strong>entails</strong></td><td class="num">8</td><td class="num">0</td><td class="num">0</td><td class="num">0</td></tr>
+          <tr><td><strong>contradicts</strong></td><td class="num">3</td><td class="num">13</td><td class="num">0</td><td class="num">0</td></tr>
+          <tr><td><strong>mentions_only</strong></td><td class="num">0</td><td class="num">0</td><td class="num">2</td><td class="num">0</td></tr>
+          <tr><td><strong>no_evidence</strong></td><td class="num">0</td><td class="num">0</td><td class="num">1</td><td class="num">1</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:14.5px;color:var(--muted);">n=28; two classes carry a support of only 2 — read those cells as directional, not statistically settled.</p>
+
+    <p class="pull"><span class="accent">entails</span> and <span class="accent">contradicts</span> are never confused with each other, in either direction. Every error falls into exactly two seams: <code>contradicts</code> misread as <code>entails</code> (issues #14 and #15), and <code>no_evidence</code> misread as <code>mentions_only</code> — the same boundary the volatility test above already flagged as its hub.</p>
+
+    <h3>A second document, and a category that found its own ambiguity</h3>
+    <p>A third distinct domain — consumer-electronics warranty terms — with 17 more hand-authored claims. 15 matched the established taxonomy categories: <strong>13/15 correct (86.7%)</strong>, both misses the same <code>mentions_only</code>/<code>no_evidence</code> seam, this time in both directions on the same document.</p>
+
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>true ＼ predicted</th><th class="num">entails</th><th class="num">contradicts</th><th class="num">mentions_only</th><th class="num">no_evidence</th></tr></thead>
+        <tbody>
+          <tr><td><strong>entails</strong></td><td class="num">12</td><td class="num">0</td><td class="num">0</td><td class="num">0</td></tr>
+          <tr><td><strong>contradicts</strong></td><td class="num">3</td><td class="num">22</td><td class="num">0</td><td class="num">0</td></tr>
+          <tr><td><strong>mentions_only</strong></td><td class="num">0</td><td class="num">0</td><td class="num">2</td><td class="num">1</td></tr>
+          <tr><td><strong>no_evidence</strong></td><td class="num">0</td><td class="num">0</td><td class="num">2</td><td class="num">1</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Combined across all 43 established-category claims and 3 unrelated documents: <strong>37/43 (86.0%)</strong>. The pattern sharpens with more data, not just repeats — <code>entails</code>/<code>contradicts</code> stay unconfused across every document tested; every error still lands inside the same one pair.</p>
+
+    <blockquote class="finding">A new category — a claim true only under a condition the document states, asserted as unconditional — surfaced a problem with the test rather than the tool: two independently-defensible judge verdicts revealed that the taxonomy's own scoring convention for this category isn't actually settled yet. Reported as an open design question, not a pass/fail score.</blockquote>
+
+    <h3>Closing part of the gap — the mentions_only/no_evidence prompt fix</h3>
+    <p>Every round above points at the same seam: the judge prompt's definitions of <code>no_evidence</code> and <code>mentions_only</code> were asymmetric — one defined vaguely, the other concretely with rich examples — biasing the model toward <code>mentions_only</code> on any topical overlap at all. A first rewrite over-corrected the other way; a second, live-tested 3× on the flagged claims and once on a full 45-claim, 3-document regression pass, held:</p>
+
+    <p style="font-family:'IBM Plex Mono',monospace;font-size:19px;">37/45 → <strong>39/45</strong> <span style="font-size:14px;color:var(--muted);font-family:'Source Serif 4',serif;">(82.2% → 86.7%)</span></p>
+
+    <p>One claim (an on-topic detail the document never confirms) still resists the fix — reported honestly in "What it doesn't do," not smoothed over. Live on both deployed tenants.</p>
+
+    <p style="font-size:14.5px;color:var(--muted);">DeepEval's accuracy and cost comparison are covered in full in "Where it sits next to the alternatives," above — not repeated here.</p>
+  </section>
 
   <div class="colophon">
-    Sources: this project's own README, infra/README.md, docs/manual.html, and docs/foundry-evaluators.html — plus two live validation rounds (seven documents, three generation models), a hand-authored accuracy check on an eighth document (an OpenSpec capability spec), a live shape-profile deployment test (eleven documents total), a 28-claim adversarial DeepEval comparison and a separate live token-cost measurement against DeepEval, and seven closed GitHub issues (#2–#6, #13, #15) and tools/openspec-adapter, all against the deployed service. Full figures and methodology: docs/test-results-and-observations.md.<br>
+    Sources: this project's own README, infra/README.md, docs/manual.html, and docs/foundry-evaluators.html — plus two live validation rounds (seven documents, three generation models), a hand-authored accuracy check on an eighth document (an OpenSpec capability spec), a live shape-profile deployment test (eleven documents total), a volatility test and judge-model matrix, a 28-claim adversarial taxonomy with full confusion matrix, a second held-out document (43 claims combined), a 28-claim adversarial DeepEval comparison and a separate live token-cost measurement against DeepEval, and seven closed GitHub issues (#2–#6, #13, #15) and tools/openspec-adapter, all against the deployed service. Full figures and methodology, including everything in the Appendix: <a href="https://github.com/QA-AU/claim-validator/blob/main/docs/test-results-and-observations.md"><code>docs/test-results-and-observations.md</code></a>.<br>
     All figures above are from real API responses, not illustrative examples. Test-count deltas cited inline (e.g. "225 tests passing, from 219") mark the point a specific feature shipped, not the project's current total — 295 tests pass as of this update.<br>
     Prepared by the Claim Validator project · September 2026, updated September 2026
   </div>
