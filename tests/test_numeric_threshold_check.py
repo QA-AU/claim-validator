@@ -186,13 +186,18 @@ def test_adapter_generated_phrasing_works_too():
 
 # ---- abstention on everything this module is not meant to touch ------------
 
-def test_a_real_fixed_value_conflict_is_left_to_the_judge():
-    # The api-testing rate-limit claim: no outcome word on either side, so
-    # this module has nothing to say - the LLM's own (already correct)
-    # "contradicts" for a literal 25-vs-10 mismatch stands untouched.
+def test_a_real_fixed_value_conflict_is_now_caught_by_shape_2():
+    # The api-testing rate-limit claim: no outcome word on either side.
+    # Originally left entirely to the judge on the theory that a plain
+    # fixed-value mismatch like this is easy for it to get right without
+    # help - issue #15 found a live case (a different number, same shape)
+    # where the judge's own stated reasoning reached the right answer and
+    # then emitted the opposite verdict anyway. Shape 2 exists because of
+    # that: this exact case is now caught deterministically too.
     claim = "The verifier SHALL send no more than 25 requests per second to the target service."
     passage = "The verifier sends no more than 10 requests per second to the target service."
-    assert check_numeric_consistency(claim, [passage]) is None
+    result = check_numeric_consistency(claim, [passage])
+    assert result is not None and result.verdict == "contradicts"
 
 
 def test_a_spelled_out_retry_count_claim_is_left_to_the_judge():
@@ -209,6 +214,55 @@ def test_a_device_pixel_ratio_claim_is_left_to_the_judge():
 
 def test_no_threshold_rule_anywhere_abstains():
     assert check_numeric_consistency("A 3% difference fails the page.", ["Nothing relevant here."]) is None
+
+
+# ---- shape 2 (issue #15): a claim restating one of the document's own
+# comparator+number bounds, no outcome word on either side -----------------
+
+def test_the_exact_issue_15_reproduction_now_contradicts():
+    claim = "The verifier sends no more than 11 requests per second to the target service."
+    passage = (
+        "The verifier sends no more than 10 requests per second to the "
+        "target service, so a large document does not look like an attack."
+    )
+    result = check_numeric_consistency(claim, [passage])
+    assert result is not None and result.verdict == "contradicts"
+
+
+def test_a_matching_bound_restated_with_the_same_number_entails():
+    claim = "The verifier sends no more than 10 requests per second to the target service."
+    passage = "The verifier sends no more than 10 requests per second to the target service."
+    result = check_numeric_consistency(claim, [passage])
+    assert result is not None and result.verdict == "entails"
+
+
+def test_a_comparator_mismatch_abstains():
+    # "at least" vs "at most" needs real reasoning about direction, not a
+    # number comparison - shape 2 doesn't attempt that, by design.
+    claim = "The service allows at least 5 concurrent connections."
+    passage = "The service allows at most 5 concurrent connections."
+    assert check_numeric_consistency(claim, [passage]) is None
+
+
+def test_two_unrelated_bounds_do_not_falsely_match():
+    claim = "The gate captures at most 10 screenshots per run."
+    passage = "The verifier sends no more than 10 requests per second to the target service."
+    assert check_numeric_consistency(claim, [passage]) is None
+
+
+def test_a_claim_with_an_outcome_word_never_reaches_shape_2():
+    # Shape 1's own territory - confirms the two shapes don't collide.
+    result = check_numeric_consistency("A 3% difference fails the page.", [_THRESHOLD_PASSAGE])
+    assert result is not None and result.verdict == "entails"
+
+
+def test_shape_2_abstains_on_two_genuinely_conflicting_passage_bounds():
+    claim = "The service allows no more than 10 concurrent connections."
+    passages = [
+        "The service allows no more than 10 concurrent connections.",
+        "The service allows no more than 20 concurrent connections.",
+    ]
+    assert check_numeric_consistency(claim, passages) is None
 
 
 # ---- issue #6: a claim restating the document's own threshold rule ---------
