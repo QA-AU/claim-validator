@@ -1,32 +1,43 @@
-"""A deterministic, non-LLM safety net for one specific judge failure mode —
-see issue #4: the entailment judge sometimes compares a claim's number to a
-document's threshold number literally ("3% is not 0.1%, so contradicts")
-instead of asking whether the claim's value lands on the correct side of the
-threshold. Three rounds of prompt engineering (`phases/entailment.py`'s
-`_THRESHOLD_PROCEDURE`) reduced but did not eliminate this — the model can
-walk the procedure to the right answer and then override itself. Code that
-does the arithmetic can't do that.
+"""A deterministic, non-LLM safety net for two specific judge failure modes.
 
-This module does NOT try to be a general numeric-reasoning engine. It
-recognizes exactly one shape and abstains (returns `None`, leaving the LLM's
-own verdict untouched) on everything else:
+Shape 1 — see issue #4: the entailment judge sometimes compares a claim's
+number to a document's threshold number literally ("3% is not 0.1%, so
+contradicts") instead of asking whether the claim's value lands on the
+correct side of the threshold. Three rounds of prompt engineering
+(`phases/entailment.py`'s `_THRESHOLD_PROCEDURE`) reduced but did not
+eliminate this — the model can walk the procedure to the right answer and
+then override itself. Code that does the arithmetic can't do that. Fires
+when the CLAIM states one number and one binary outcome word for it
+("a 3% difference FAILS the page"), and a CITED PASSAGE states, in one
+sentence, a comparison operator + number + the same kind of outcome word
+("FAILS when more than 0.1%...").
 
-    the CLAIM states one number and one binary outcome word for it
-    ("a 3% difference FAILS the page"), and
-    a CITED PASSAGE states, in one sentence, a comparison operator + number
-    + the same kind of outcome word ("FAILS when more than 0.1%...").
+Shape 2 — see issue #15: a claim that restates one of the document's own
+comparator+number bounds, but changes the number, with no outcome word on
+either side ("no more than 10 requests per second" restated as "no more
+than 11"). This was originally left to the judge on the theory that a
+plain fixed-value mismatch like this is easy for it to get right without
+help — issue #15 found a live case where the judge's own stated reasoning
+reached the correct conclusion and then emitted the opposite verdict
+anyway. Fires when the claim states exactly one such bound and a passage
+sentence states a bound with the same comparator, about what reads as the
+same fact (most of the claim's own wording found inside the passage
+sentence, once both numbers are stripped out).
 
-That narrowness is deliberate, not a shortcut to fix later:
+This module does NOT try to be a general numeric-reasoning engine — each
+shape recognizes one narrow pattern and abstains (returns `None`, leaving
+the LLM's own verdict untouched) on everything else:
 
-- A sentence with a number but no outcome word ("the limit is 10 per
-  second") never becomes a rule — this is what keeps a plain fixed-value
-  fact (a real, different-value conflict the LLM already gets right) from
-  ever being touched by this module.
-- A claim naming two or more numbers is abstained on rather than guessed at
-  — a compound claim is issue #3's territory, not this one's.
+- A sentence with a number but no outcome word and no comparator phrase
+  never becomes a shape-1 rule.
+- A claim naming two or more numbers is abstained on rather than guessed
+  at — a compound claim is issue #3's territory, not this one's.
 - Spelled-out numbers ("three", "once") are not recognized — only digits.
   A retry-count claim like "retry up to three times" is therefore left
   entirely to the LLM, same as today.
+- Shape 2 abstains outright on a comparator mismatch (a bound restated
+  with "at least" where the passage said "at most") — telling those apart
+  needs real reasoning about direction, which this module doesn't attempt.
 
 Wired into `claimvalidator/pipeline.py`'s per-claim loop, not into
 `phases/entailment.py` — this is additive correction on top of the judge's
@@ -232,13 +243,25 @@ def _extract_claim_value_outcome(claim_text: str) -> Optional[Tuple[float, str]]
 
 
 def check_numeric_consistency(claim_text: str, passages: List[str]) -> Optional[NumericOverride]:
-    """The deterministic answer for a numeric-threshold claim, or None to
-    abstain and leave whatever verdict the judge already reached alone.
+    """The deterministic answer for a numeric claim, or None to abstain and
+    leave whatever verdict the judge already reached alone. Tries shape 1
+    (module docstring) first, then shape 2 if shape 1 has nothing to say -
+    the two are mutually exclusive by construction (shape 1 needs an
+    outcome word on the claim's side, shape 2 requires there be none), so
+    trying both in sequence never double-fires.
+    """
+    result = _check_value_outcome_shape(claim_text, passages)
+    if result is not None:
+        return result
+    return _check_bound_restatement_shape(claim_text, passages)
 
-    Fires only when the claim names exactly one value+outcome and the
-    passages contain exactly one threshold rule whose region contains that
-    value - anything else (no rule, multiple candidate rules, an
-    unrecognized comparison phrase) is left to the judge, deliberately.
+
+def _check_value_outcome_shape(claim_text: str, passages: List[str]) -> Optional[NumericOverride]:
+    """Shape 1: fires only when the claim names exactly one value+outcome
+    and the passages contain exactly one threshold rule whose region
+    contains that value - anything else (no rule, multiple candidate
+    rules, an unrecognized comparison phrase) is left to the judge,
+    deliberately.
     """
     claim_value_outcome = _extract_claim_value_outcome(claim_text)
     if claim_value_outcome is None:
@@ -270,5 +293,94 @@ def check_numeric_consistency(claim_text: str, passages: List[str]) -> Optional[
         f"({rule.comparator} {rule.value:g} -> {rule.outcome}); the claim's value "
         f"{value:g} falls in that region, which is {relation} the outcome the "
         f"claim states."
+    )
+    return NumericOverride(verdict=verdict, explanation=explanation)
+
+
+# Shape 2 (see issue #15, module docstring): a claim restating one of the
+# document's own comparator+number bounds, with no outcome word on either
+# side. Matching "the same fact" here can't rely on an outcome word the way
+# shape 1 does - the signal instead is that most of the claim's own wording
+# turns up inside the passage sentence once both numbers are stripped out.
+# A containment coefficient (shared tokens / the SMALLER side's token
+# count), not symmetric Jaccard, is what makes this hold up in practice: a
+# retrieved passage sentence routinely carries a trailing clause the short
+# claim never restates ("...to the target service, so a large document
+# does not look like an attack") - Jaccard penalizes that extra tail as
+# lost overlap, which pushed a real live match below a 0.6 threshold during
+# testing; a containment coefficient scores it 1.0 as long as the claim's
+# own words are all there, which is the actual question this needs
+# answered.
+_BOUND_MATCH_THRESHOLD = 0.75
+_BOUND_TOKEN_RE = re.compile(r"[a-z0-9<>]+")
+
+
+def _bound_statements(text: str) -> List[Tuple[str, float, str, str]]:
+    """(comparator, value, sentence, stripped_template) for every sentence
+    in `text` that states a comparator+number bound and has NO recognized
+    outcome word - the complement of what `_extract_threshold_rules` looks
+    for, so a sentence already claimed by shape 1 is never also a shape-2
+    candidate."""
+    text = _strip_markdown_emphasis(text)
+    out: List[Tuple[str, float, str, str]] = []
+    for sentence in _sentences(text):
+        if _outcome_words_in(sentence):
+            continue
+        for op_pattern, comparator in _COMPARISONS:
+            m = re.search(op_pattern + r"\s*" + _NUMBER_RE.pattern, sentence, re.IGNORECASE)
+            if m:
+                template = _NUMBER_RE.sub("<NUM>", sentence, count=1).lower()
+                out.append((comparator, _parse_number(m.group(1)), sentence.strip(), template))
+                break
+    return out
+
+
+def _bound_containment(claim_template: str, passage_template: str) -> float:
+    """Fraction of the SHORTER template's tokens found in the other one -
+    see the module-level comment above for why this, not Jaccard."""
+    claim_tokens = set(_BOUND_TOKEN_RE.findall(claim_template))
+    passage_tokens = set(_BOUND_TOKEN_RE.findall(passage_template))
+    smaller = min(len(claim_tokens), len(passage_tokens))
+    if smaller == 0:
+        return 0.0
+    return len(claim_tokens & passage_tokens) / smaller
+
+
+def _check_bound_restatement_shape(claim_text: str, passages: List[str]) -> Optional[NumericOverride]:
+    """Shape 2: fires only when the claim states exactly one comparator+
+    number bound (no outcome word) and the passages contain exactly one
+    bound, with the same comparator, that reads as the same fact -
+    anything else (no bound in the claim, no match, a comparator mismatch,
+    or genuinely conflicting matches) is left to the judge, deliberately.
+    """
+    claim_bounds = _bound_statements(claim_text)
+    if len(claim_bounds) != 1:
+        return None
+    claim_comparator, claim_value, _, claim_template = claim_bounds[0]
+
+    matches: List[ThresholdRule] = []
+    for passage in passages:
+        for comparator, value, sentence, template in _bound_statements(passage):
+            if comparator != claim_comparator:
+                continue
+            if _bound_containment(claim_template, template) >= _BOUND_MATCH_THRESHOLD:
+                matches.append(ThresholdRule(
+                    comparator=comparator, value=value, outcome="", source_text=sentence,
+                ))
+
+    # Same chunk-boundary-overlap collapsing as shape 1: two passages
+    # restating the identical bound isn't two conflicting matches.
+    unique = list({(r.comparator, r.value): r for r in matches}.values())
+    if len(unique) != 1:
+        return None  # no match, or genuinely conflicting matches - abstain
+
+    rule = unique[0]
+    consistent = claim_value == rule.value
+    verdict = VERDICT_ENTAILS if consistent else VERDICT_CONTRADICTS
+    relation = "matches" if consistent else "does not match"
+    explanation = (
+        f"Deterministic bound check: the passages state '{rule.source_text}' "
+        f"({rule.comparator} {rule.value:g}); the claim's own bound "
+        f"({claim_comparator} {claim_value:g}) {relation} it."
     )
     return NumericOverride(verdict=verdict, explanation=explanation)
