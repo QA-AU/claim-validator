@@ -219,6 +219,165 @@ taxonomy set grows, same as the taxonomy fixtures themselves.
 
 ---
 
+## 2026-09-14 — 4×4 confusion matrix and per-class precision/recall/F1
+
+**Why:** the benchmark design's actual core ask — a full confusion
+matrix and per-verdict-class precision/recall, not one blended
+accuracy number — had never been computed, only the binary
+faithful/unfaithful comparison against DeepEval. Pure analysis over
+the same 28-claim taxonomy set already run; no new API calls.
+
+*Sample-size caveat, stated plainly rather than left implicit: n=28,
+with two classes (`mentions_only`, `no_evidence`) carrying a support of
+just 2 each. Read the smaller cells as directional, not statistically
+settled — this is the benchmark design's own explicitly-cheap pilot
+tier, not its full-scale sample size.*
+
+**Claim Validator — confusion matrix (rows = true verdict, columns = predicted):**
+
+| true ＼ predicted | entails | contradicts | mentions_only | no_evidence |
+|---|---|---|---|---|
+| **entails** | 8 | 0 | 0 | 0 |
+| **contradicts** | 3 | 13 | 0 | 0 |
+| **mentions_only** | 0 | 0 | 2 | 0 |
+| **no_evidence** | 0 | 0 | 1 | 1 |
+
+**Per-class precision / recall / F1:**
+
+| Verdict | Support | Precision | Recall | F1 |
+|---|---|---|---|---|
+| entails | 8 | 0.73 | 1.00 | 0.84 |
+| contradicts | 16 | 1.00 | 0.81 | 0.90 |
+| mentions_only | 2 | 0.67 | 1.00 | 0.80 |
+| no_evidence | 2 | 1.00 | 0.50 | 0.67 |
+| **macro-avg** | | 0.85 | 0.83 | 0.80 |
+| **weighted-avg** | | 0.90 | 0.86 | 0.86 |
+
+Overall accuracy: 24/28 (85.7%).
+
+**What the matrix says that a blended number couldn't:** every error
+Claim Validator made in this set falls into exactly two confusable
+pairs, both already named elsewhere in this record, now with real
+numbers attached instead of anecdotes.
+
+- **`contradicts` → wrongly predicted `entails`, 3 cases (`contradicts`
+  recall 0.81).** This is precisely the quantifier-shift gap ([#14](https://github.com/QA-AU/claim-validator/issues/14),
+  still open) and the pre-fix numeric-boundary case ([#15](https://github.com/QA-AU/claim-validator/issues/15),
+  now fixed) — the matrix confirms these two named issues account for
+  100% of the `contradicts`-class recall loss in this set, nothing else
+  hiding in that column.
+- **`no_evidence` → wrongly predicted `mentions_only`, 1 case (`no_evidence`
+  recall 0.50, on a support of only 2 — one miss is half the class).**
+  The same fragile boundary the volatility test already flagged as its
+  hub. `entails` never gets confused with `contradicts` or vice versa
+  in either direction here — the errors cluster tightly on two specific
+  seams, not spread across the whole matrix.
+
+**DeepEval — 2×2 confusion matrix (its own finest granularity, since it
+only ever outputs binary faithful/not-faithful):**
+
+| true ＼ predicted | faithful | not faithful |
+|---|---|---|
+| **faithful** | 8 | 0 |
+| **not faithful** | 5 | 15 |
+
+DeepEval never wrongly calls a genuinely faithful claim unfaithful in
+this set (perfect precision on "not faithful" as a prediction, 15/15)
+but misses 5 of 20 genuinely unfaithful claims (recall 0.75) — a
+real, measured version of the earlier finding that its binary
+threshold and its no-contradiction-only definition both cost it recall
+on exactly the cases a four-verdict scheme is built to catch.
+
+Script: `confusion_matrix.py` in this session's scratchpad — pure
+analysis, reruns instantly against any future taxonomy result set.
+
+---
+
+## 2026-09-14 — A second held-out document, and a new category that found its own ambiguity
+
+**Why:** the taxonomy pilot so far used one already-known document
+(`api-testing`) and one new domain (a synthetic expense policy) — the
+benchmark design's full-scale ask wants *at least two* new domains, not
+one. Added a second, genuinely new one: a synthetic consumer-electronics
+warranty terms document, in a third distinct domain (insurance-adjacent
+coverage/conditions) from anything tested before. Also used the
+opportunity to close a gap the *first* review named directly and the
+13-category taxonomy never actually tested — a claim true only under an
+unstated condition — since a warranty document is a natural fit for it.
+
+**Established categories (15 of the 17 claims, matching the prior
+taxonomy exactly): 13/15 correct (86.7%).** The 2 misses are a third,
+independent recurrence of the same `mentions_only`↔`no_evidence`
+boundary already flagged by the volatility test and the confusion
+matrix above — this time in both directions on the same document
+(one `mentions_only` claim called `no_evidence`, one `no_evidence`
+claim called `mentions_only`). Three documents, three confirmations,
+same seam.
+
+**Combined confusion matrix, all 43 established-category claims across
+all 3 documents** (excludes the 2 new `conditional_truth` claims,
+reported separately below since their own scoring convention is what
+this round put in question):
+
+| true ＼ predicted | entails | contradicts | mentions_only | no_evidence |
+|---|---|---|---|---|
+| **entails** | 12 | 0 | 0 | 0 |
+| **contradicts** | 3 | 22 | 0 | 0 |
+| **mentions_only** | 0 | 0 | 2 | 1 |
+| **no_evidence** | 0 | 0 | 2 | 1 |
+
+| Verdict | Support | Precision | Recall | F1 |
+|---|---|---|---|---|
+| entails | 12 | 0.80 | 1.00 | 0.89 |
+| contradicts | 25 | 1.00 | 0.88 | 0.94 |
+| mentions_only | 3 | 0.50 | 0.67 | 0.57 |
+| no_evidence | 3 | 0.50 | 0.33 | 0.40 |
+
+Overall: 37/43 (86.0%). The pattern holds and sharpens with more data,
+not just repeats: `entails` and `contradicts` are *never* confused with
+each other in either direction across all 43 claims and 3 unrelated
+documents — every error is contained entirely within the
+`mentions_only`/`no_evidence` pair. That's now the single, specific,
+structurally-confirmed weak point this taxonomy has found, not a vague
+"the judge is sometimes noisy."
+
+**The new `conditional_truth` category — reported as an open question,
+not a pass/fail score, because testing it surfaced a problem with the
+test, not (necessarily) the tool:**
+
+Two claims dropped a real, necessary condition from the document's own
+conditional rule while asserting the outcome as though unconditional
+(e.g. "a cracked screen from a spontaneous crack is covered," omitting
+the document's own additional 90-day window requirement). My own answer
+key called both `contradicts`, on the theory that presenting a
+conditional truth as unconditional is materially misleading. The judge
+disagreed with that convention, not obviously incorrectly:
+
+- `WAR.16`: judged `entails` — read as "the stated condition (spontaneous
+  crack) does hold when true," without penalizing the dropped time
+  window.
+- `WAR.17`: judged `mentions_only`, with a genuinely well-reasoned
+  explanation: *"the claim is unconditional; the passages are silent on
+  coverage without the capacity threshold condition"* — arguably the
+  most epistemically honest of the three possible verdicts, neither
+  fully entailed nor a clean contradiction.
+
+Worth being direct about what this is: not a defect, and not filed as
+one. This is a brand-new taxonomy category, invented for this round,
+whose own correct scoring convention isn't actually settled — does
+"drops a necessary condition" deserve `contradicts` (misleading),
+`mentions_only` (real but incomplete), or does it depend on which
+condition and how material it is? That's a real design question for
+the taxonomy itself before this category can be scored pass/fail, not
+yet a finding about Claim Validator.
+
+Warranty fixtures: `taxonomy/warranty-terms.md`,
+`taxonomy/warranty-claims.json`, `taxonomy/warranty-answer-key.json` in
+this session's scratchpad — same status as the other taxonomy fixtures,
+worth promoting into the repo if this set gets reused.
+
+---
+
 ## 2026-09-14 — `mentions_only`/`no_evidence` judge-prompt fix, live-tested
 
 **Why:** every benchmark round so far (volatility test, Tier 2 DeepEval
