@@ -1,0 +1,8 @@
+[
+  {"id": "OFF.1", "text": "Employees can spend up to $40 per month on standard office supplies without needing approval first."},
+  {"id": "OFF.2", "text": "A $60 supply purchase in one month is fine as long as the employee gets written approval before making it."},
+  {"id": "OFF.3", "text": "Equipment requests like monitors and keyboards are reimbursed the same way as the monthly supplies allowance."},
+  {"id": "OFF.4", "text": "Receipts submitted 20 days after purchase are still reimbursed as long as the item was pre-approved."},
+  {"id": "OFF.5", "text": "The company offers a stipend for employees to expense a home internet upgrade."},
+  {"id": "OFF.6", "text": "The IT procurement form for equipment requests can be submitted online."}
+]

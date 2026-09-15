@@ -1,0 +1,8 @@
+{
+  "OFF.1": "entails",
+  "OFF.2": "entails",
+  "OFF.3": "contradicts",
+  "OFF.4": "contradicts",
+  "OFF.5": "no_evidence",
+  "OFF.6": "mentions_only"
+}
