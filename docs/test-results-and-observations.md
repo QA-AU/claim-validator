@@ -530,3 +530,60 @@ script live in this session's scratchpad
 `cost_test/answer-key.json`, `cost_test/run_cost_comparison.py`) — not
 committed to the repo, same promotion note as the taxonomy fixtures
 above.
+
+---
+
+## 2026-09-15 — Issue #8: range-claim shape added to the numeric checker, live-tested
+
+**Why:** `claimvalidator/numeric_threshold_check.py` abstained outright
+on any claim naming two or more numbers, correct for a genuinely
+compound claim (issue #3's territory) but not for a single assertion
+that states its bound as a range — "a response between 200ms and
+500ms is acceptable." Added a third shape recognizing exactly two
+explicit range phrasings ("between X and Y", "from X to Y"), matched
+against a passage stating a range for what reads as the same fact.
+Deliberately does **not** recognize a bare "X-Y" hyphen form — that's
+genuinely ambiguous with a section, date, or version reference, and
+stays left to the judge, same as a spelled-out number always has.
+
+**A real design gap caught while writing the tests, before any live
+call:** an early version scored a claim range that was a strict subset
+of a wider passage range (e.g. claim "300-400ms", passage "200-500ms
+acceptable") as `contradicts`. That's wrong — a narrower true
+statement isn't a contradiction. Fixed before shipping: a subset range
+now abstains, matching a promise already written into the module's own
+docstring; only a claim range that extends outside what the passage
+states is flagged.
+
+**A real bug caught live, not by design review:** `_bound_containment`
+(reused from shape 2, threshold 0.75) rejected the claim "a response
+between 200ms and 500ms is acceptable" against the *actual* deployed
+document's wording — "Response times between 200ms and 500ms are
+considered acceptable under normal load" — because the realistic
+paraphrase gap only scores 0.6, below shape 2's inherited threshold.
+Confirmed by running the checker directly against the real
+API-retrieved passage text, not just hand-written unit fixtures.
+Lowered `_RANGE_MATCH_THRESHOLD` to 0.5 (with headroom above the real
+0.6 case), re-verified a genuinely unrelated range still scores 0.0 on
+the same document (a differing unit suffix folded into the placeholder
+breaks the match before word overlap is even considered) — so this
+wasn't loosened generically, just recalibrated against a real
+paraphrase gap the 0.75 number was never actually validated against.
+
+**Live verification, and its honest limit:** deployed to
+`usera-claimval`, submitted 5 claims (exact match → `entails`,
+extended bound → `contradicts`, subset → abstain, `from...to` phrasing
+→ `entails`, bare-hyphen form → abstain) against a small purpose-built
+document. The judge (Haiku) got all 5 right on its own both times
+tested, so the deterministic override's reason text was never visibly
+substituted in the API response — `pipeline.py` only overwrites a
+verdict when it *disagrees* with the judge, the same masking effect
+already documented for issue #15's live verification. Confirmed the
+mechanism itself is correct the same way #15 was: running the checker
+directly against the real, live-retrieved passage text (not a
+synthetic fixture) and getting the right answer for every case,
+backed by 44 unit tests in `tests/test_numeric_threshold_check.py`
+(306 total, up from 295).
+
+Test document, claims, and script: `range_test/` in this session's
+scratchpad.
