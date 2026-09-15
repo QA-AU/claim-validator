@@ -24,6 +24,24 @@ sentence states a bound with the same comparator, about what reads as the
 same fact (most of the claim's own wording found inside the passage
 sentence, once both numbers are stripped out).
 
+Shape 3 — see issue #8: a claim stating a two-number RANGE ("a response
+between 200ms and 500ms is acceptable") was previously abstained on
+outright, same as any other claim naming two or more numbers — correct
+for a genuinely compound claim (issue #3's territory), but not for a
+single assertion that just happens to spell its bound as two numbers.
+Fires only on an explicit "between X and Y" / "from X to Y" range phrase,
+matched against a passage stating the identical range for what reads as
+the same fact. Deliberately does NOT recognize a bare "X-Y" / "X to Y"
+hyphen-joined form — that shape is genuinely ambiguous with a section
+reference, a date range, or a version range, and telling those apart
+needs more than this module currently attempts; left to the judge, same
+as a spelled-out number. Also deliberately answers only "does the claim
+restate the document's range," not "is the claim's range compatible with
+it" — a claim range that is merely a subset of a wider passage range
+(e.g. "300-400ms" inside a passage's stated "200-500ms") does not fire
+either; that is a real, known gap this module abstains on rather than
+guesses at.
+
 This module does NOT try to be a general numeric-reasoning engine — each
 shape recognizes one narrow pattern and abstains (returns `None`, leaving
 the LLM's own verdict untouched) on everything else:
@@ -31,7 +49,9 @@ the LLM's own verdict untouched) on everything else:
 - A sentence with a number but no outcome word and no comparator phrase
   never becomes a shape-1 rule.
 - A claim naming two or more numbers is abstained on rather than guessed
-  at — a compound claim is issue #3's territory, not this one's.
+  at, unless it matches shape 3's own narrow range pattern exactly — a
+  claim with a range PLUS a third unrelated number still abstains, same
+  as any other multi-number claim (issue #3's territory).
 - Spelled-out numbers ("three", "once") are not recognized — only digits.
   A retry-count claim like "retry up to three times" is therefore left
   entirely to the LLM, same as today.
@@ -245,15 +265,21 @@ def _extract_claim_value_outcome(claim_text: str) -> Optional[Tuple[float, str]]
 def check_numeric_consistency(claim_text: str, passages: List[str]) -> Optional[NumericOverride]:
     """The deterministic answer for a numeric claim, or None to abstain and
     leave whatever verdict the judge already reached alone. Tries shape 1
-    (module docstring) first, then shape 2 if shape 1 has nothing to say -
-    the two are mutually exclusive by construction (shape 1 needs an
-    outcome word on the claim's side, shape 2 requires there be none), so
-    trying both in sequence never double-fires.
+    (module docstring) first, then shape 2, then shape 3 if neither has
+    anything to say. The three are mutually exclusive by construction:
+    shape 1 requires exactly one number in the claim; shapes 2 and 3 both
+    require exactly two (one bound, one range) but look for entirely
+    different phrase shapes ("at least X" vs "between X and Y"), so a
+    claim matching one never also matches the other. Trying all three in
+    sequence never double-fires.
     """
     result = _check_value_outcome_shape(claim_text, passages)
     if result is not None:
         return result
-    return _check_bound_restatement_shape(claim_text, passages)
+    result = _check_bound_restatement_shape(claim_text, passages)
+    if result is not None:
+        return result
+    return _check_range_restatement_shape(claim_text, passages)
 
 
 def _check_value_outcome_shape(claim_text: str, passages: List[str]) -> Optional[NumericOverride]:
@@ -382,5 +408,109 @@ def _check_bound_restatement_shape(claim_text: str, passages: List[str]) -> Opti
         f"Deterministic bound check: the passages state '{rule.source_text}' "
         f"({rule.comparator} {rule.value:g}); the claim's own bound "
         f"({claim_comparator} {claim_value:g}) {relation} it."
+    )
+    return NumericOverride(verdict=verdict, explanation=explanation)
+
+
+# Shape 3 (see issue #8): a claim restating a two-number range, matched
+# against a passage stating a range for what reads as the same fact. Only
+# two explicit phrasings are recognized — see the module docstring for why
+# a bare "X-Y" form deliberately isn't a third.
+_RANGE_BETWEEN_RE = re.compile(
+    r"between\s+" + _NUMBER_RE.pattern + r"[a-zA-Z]*\s+and\s+" + _NUMBER_RE.pattern,
+    re.IGNORECASE,
+)
+_RANGE_FROMTO_RE = re.compile(
+    r"from\s+" + _NUMBER_RE.pattern + r"[a-zA-Z]*\s+to\s+" + _NUMBER_RE.pattern,
+    re.IGNORECASE,
+)
+_RANGE_PATTERNS = [_RANGE_BETWEEN_RE, _RANGE_FROMTO_RE]
+# Found live, not assumed from shape 2's own number: "A response between
+# 200ms and 500ms is acceptable" against the document's actual wording
+# ("Response times between 200ms and 500ms are considered acceptable
+# under normal load") scores 0.6 -- a realistic paraphrase gap, not a
+# contrived one -- which shape 2's inherited 0.75 threshold rejected
+# outright. Lowered with headroom above that real case, while a genuinely
+# unrelated range (a different subject entirely) still scores 0.0 on the
+# same test document, since the unit suffix folded into the <RANGE>
+# placeholder ("500ms" vs "500 attempts") breaks the match before word
+# overlap is even considered.
+_RANGE_MATCH_THRESHOLD = 0.5
+
+
+def _range_statements(text: str) -> List[Tuple[float, float, str, str]]:
+    """(low, high, sentence, stripped_template) for every sentence in
+    `text` matching one of the two recognized range phrases — the numbers
+    are sorted into (low, high) regardless of the order they're written
+    in, since "between 500 and 200" and "between 200 and 500" state the
+    same range."""
+    text = _strip_markdown_emphasis(text)
+    out: List[Tuple[float, float, str, str]] = []
+    for sentence in _sentences(text):
+        for pattern in _RANGE_PATTERNS:
+            m = pattern.search(sentence)
+            if m:
+                a, b = _parse_number(m.group(1)), _parse_number(m.group(2))
+                low, high = (a, b) if a <= b else (b, a)
+                template = pattern.sub("<RANGE>", sentence, count=1).lower()
+                out.append((low, high, sentence.strip(), template))
+                break  # one range phrase claimed this sentence
+    return out
+
+
+def _claim_range(claim_text: str) -> Optional[Tuple[float, float, str]]:
+    """Exactly one recognized range phrase and exactly two numbers total in
+    the claim, or None — a third number anywhere else in the claim
+    abstains, the same rule every other shape in this module follows."""
+    claim_text = _strip_markdown_emphasis(claim_text)
+    if len(_NUMBER_RE.findall(claim_text)) != 2:
+        return None
+    ranges = _range_statements(claim_text)
+    if len(ranges) != 1:
+        return None
+    low, high, _, template = ranges[0]
+    return low, high, template
+
+
+def _check_range_restatement_shape(claim_text: str, passages: List[str]) -> Optional[NumericOverride]:
+    """Shape 3: fires only when the claim states exactly one recognized
+    range and the passages contain exactly one range, about what reads as
+    the same fact (same containment-coefficient matching shape 2 uses),
+    with an EXACT bound match on both ends. Anything else — no range in
+    the claim, no matching range in the passages, or a claim range that is
+    merely a subset of a wider stated range — is left to the judge,
+    deliberately (see the module docstring).
+    """
+    claim_range = _claim_range(claim_text)
+    if claim_range is None:
+        return None
+    claim_low, claim_high, claim_template = claim_range
+
+    matches: List[Tuple[float, float, str]] = []
+    for passage in passages:
+        for low, high, sentence, template in _range_statements(passage):
+            if _bound_containment(claim_template, template) >= _RANGE_MATCH_THRESHOLD:
+                matches.append((low, high, sentence))
+
+    # Same chunk-boundary-overlap collapsing shapes 1 and 2 already do.
+    unique = list({(low, high): (low, high, sentence) for low, high, sentence in matches}.values())
+    if len(unique) != 1:
+        return None  # no match, or genuinely conflicting matches — abstain
+
+    p_low, p_high, source_text = unique[0]
+    consistent = claim_low == p_low and claim_high == p_high
+    # A claim range strictly inside the passage's stated range is a true,
+    # compatible narrower statement, not a restatement — and not a
+    # contradiction either (see module docstring). Only a claim range that
+    # extends outside what the passage states is flagged; a pure subset
+    # abstains rather than being scored either way.
+    if not consistent and claim_low >= p_low and claim_high <= p_high:
+        return None
+    verdict = VERDICT_ENTAILS if consistent else VERDICT_CONTRADICTS
+    relation = "matches" if consistent else "does not match"
+    explanation = (
+        f"Deterministic range check: the passages state '{source_text}' "
+        f"({p_low:g}-{p_high:g}); the claim's own range "
+        f"({claim_low:g}-{claim_high:g}) {relation} it."
     )
     return NumericOverride(verdict=verdict, explanation=explanation)

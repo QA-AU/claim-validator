@@ -293,3 +293,100 @@ def test_an_instance_value_claim_with_no_comparator_phrase_still_extracts():
 def test_an_instance_value_claim_still_resolves_end_to_end():
     result = check_numeric_consistency("A 3% difference fails the page.", [_THRESHOLD_PASSAGE])
     assert result is not None and result.verdict == "entails"
+
+
+# ---- issue #8: a claim stating its bound as a two-number range -------------
+
+def test_a_matching_between_range_entails():
+    claim = "A response between 200ms and 500ms is acceptable."
+    passage = "A response between 200ms and 500ms is considered acceptable."
+    result = check_numeric_consistency(claim, [passage])
+    assert result is not None and result.verdict == "entails"
+
+
+def test_a_realistic_paraphrase_gap_still_matches():
+    # Found live: the deployed API's own retrieved passage text (a real
+    # document, real chunking) is naturally less similar to the claim's
+    # wording than a hand-written unit-test fixture — this exact claim
+    # against this exact document returned None with the 0.75 threshold
+    # shape 2 uses, because the realistic wording gap only scores 0.6.
+    # Regression guard against re-copying that threshold uncritically.
+    claim = "A response between 200ms and 500ms is acceptable."
+    passage = (
+        "# API Latency Policy\n\n## Response Time\n\nResponse times between "
+        "200ms and 500ms are considered acceptable under\nnormal load. Retry "
+        "delays range from 100ms to 300ms between attempts.\n\n## Escalation\n\n"
+        "Any response outside the acceptable window must be logged and flagged\n"
+        "for review by the on-call engineer."
+    )
+    result = check_numeric_consistency(claim, [passage])
+    assert result is not None and result.verdict == "entails"
+
+
+def test_a_mismatched_range_contradicts():
+    claim = "A response between 200ms and 500ms is acceptable."
+    passage = "A response between 200ms and 400ms is considered acceptable."
+    result = check_numeric_consistency(claim, [passage])
+    assert result is not None and result.verdict == "contradicts"
+
+
+def test_the_from_to_phrasing_is_recognized_too():
+    claim = "Retry delays range from 100ms to 300ms."
+    passage = "Retry delays range from 100ms to 300ms between attempts."
+    result = check_numeric_consistency(claim, [passage])
+    assert result is not None and result.verdict == "entails"
+
+
+def test_range_bounds_written_in_either_order_mean_the_same_range():
+    claim = "A response between 500ms and 200ms is acceptable."
+    passage = "A response between 200ms and 500ms is considered acceptable."
+    result = check_numeric_consistency(claim, [passage])
+    assert result is not None and result.verdict == "entails"
+
+
+def test_a_bare_hyphen_range_is_not_recognized():
+    # Deliberately unhandled -- see the module docstring. "200-500ms" is
+    # genuinely ambiguous with a section/date/version reference, so this
+    # shape only fires on the two explicit phrasings, and this claim
+    # abstains rather than guessing.
+    claim = "A response of 200-500ms is acceptable."
+    assert check_numeric_consistency(claim, ["A response between 200ms and 500ms is acceptable."]) is None
+
+
+def test_a_claim_range_that_is_a_subset_of_a_wider_passage_range_abstains():
+    # A real, documented gap: "restates" and "is compatible with" are
+    # different questions, and this shape only ever answers the first one.
+    claim = "A response between 300ms and 400ms is acceptable."
+    passage = "A response between 200ms and 500ms is considered acceptable."
+    assert check_numeric_consistency(claim, [passage]) is None
+
+
+def test_a_range_claim_with_a_third_unrelated_number_abstains():
+    claim = "A response between 200ms and 500ms is acceptable, with a 3% margin."
+    passage = "A response between 200ms and 500ms is considered acceptable."
+    assert check_numeric_consistency(claim, [passage]) is None
+
+
+def test_two_unrelated_ranges_do_not_falsely_match():
+    claim = "A response between 200ms and 500ms is acceptable."
+    passage = "The retry window spans between 200 and 500 attempts."
+    assert check_numeric_consistency(claim, [passage]) is None
+
+
+def test_no_range_anywhere_in_the_passages_abstains():
+    claim = "A response between 200ms and 500ms is acceptable."
+    assert check_numeric_consistency(claim, [_THRESHOLD_PASSAGE]) is None
+
+
+def test_a_range_claim_never_reaches_shape_1_or_shape_2():
+    # Confirms the three shapes stay mutually exclusive: a range claim's
+    # two numbers make shape 1 abstain (needs exactly one), and its
+    # "between X and Y" phrasing never matches shape 2's single-bound
+    # comparator patterns.
+    from claimvalidator.numeric_threshold_check import (
+        _extract_claim_value_outcome,
+        _bound_statements,
+    )
+    claim = "A response between 200ms and 500ms is acceptable."
+    assert _extract_claim_value_outcome(claim) is None
+    assert _bound_statements(claim) == []
