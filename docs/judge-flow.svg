@@ -1,0 +1,198 @@
+<svg viewBox="0 0 940 1700" xmlns="http://www.w3.org/2000/svg" role="img"
+     aria-label="A claim and a reference document enter the pipeline separately. The document builds a cached ontology and RAG index; the claim is retrieved against it, widening into a per-clause query only when it looks syntactically compound. A deterministic shape check runs but never blocks the judge. The judge dispatches to either a single logprob pass (Ollama only) or a 3-run majority vote with escalation for doubtful verdicts, producing one of four verdicts. A numeric threshold check then runs only on entails or contradicts verdicts, overriding the verdict only when it recognizes the claim's shape and disagrees. In parallel, the ontology alone feeds an independent concept census and gap report, never touching any claim's verdict. The final per-claim verdict and the gap report converge into one validation report.">
+  <style>
+    <![CDATA[
+      .ink   { fill: #1c1a17; }
+      .dim   { fill: #726c60; }
+      .line  { stroke: #1c1a17; }
+      .rule  { stroke: #b9b3a4; }
+      .box   { fill: #ffffff; stroke: #1c1a17; stroke-width: 1.3; }
+      .box2  { fill: #f1efe8; stroke: #1c1a17; stroke-width: 1.3; }
+      .dash  { fill: #ffffff; stroke: #726c60; stroke-width: 1.2; stroke-dasharray: 4 3; }
+      .accentbox { fill: #dce7e4; stroke: #2b5d5a; stroke-width: 1.4; }
+      .accentline { stroke: #2b5d5a; }
+      .accenttext { fill: #2b5d5a; }
+      text { font-family: 'Helvetica Neue', Arial, sans-serif; }
+      .h    { font-size: 13px; font-weight: 600; }
+      .s    { font-size: 10.5px; }
+      .lbl  { font-size: 10px; }
+      @media (prefers-color-scheme: dark) {
+        .ink   { fill: #ece9e1; }
+        .dim   { fill: #9a9686; }
+        .line  { stroke: #ece9e1; }
+        .rule  { stroke: #4a473e; }
+        .box   { fill: #1d1f22; stroke: #ece9e1; }
+        .box2  { fill: #23262a; stroke: #ece9e1; }
+        .dash  { fill: #1d1f22; stroke: #9a9686; }
+        .accentbox { fill: #203330; stroke: #6fb3ac; }
+        .accentline { stroke: #6fb3ac; }
+        .accenttext { fill: #6fb3ac; }
+      }
+    ]]>
+  </style>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" class="ink" style="fill: currentColor;"/>
+    </marker>
+  </defs>
+
+  <!-- ============ INPUTS ============ -->
+  <rect class="box" x="300" y="14" width="240" height="46" rx="6"/>
+  <text class="ink h" x="420" y="42" text-anchor="middle">Reference document</text>
+
+  <rect class="box" x="620" y="14" width="220" height="46" rx="6"/>
+  <text class="ink h" x="730" y="42" text-anchor="middle">Claim: id + text</text>
+
+  <line class="line" x1="420" y1="60" x2="420" y2="92" marker-end="url(#arrow)"/>
+  <rect class="box" x="280" y="94" width="280" height="58" rx="6"/>
+  <text class="ink h" x="420" y="118" text-anchor="middle">Ontology + RAG index</text>
+  <text class="dim s" x="420" y="136" text-anchor="middle">cached by content hash</text>
+
+  <!-- ontology + claim both feed retrieval -->
+  <line class="line" x1="420" y1="152" x2="420" y2="186" marker-end="url(#arrow)"/>
+  <line class="line" x1="730" y1="60" x2="730" y2="204" marker-end="url(#arrow)"/>
+
+  <!-- ============ RETRIEVAL ============ -->
+  <text class="dim lbl" x="470" y="188">retrieval — claim_retrieval.py</text>
+  <polygon class="box2" points="575,190 700,220 575,250 450,220"/>
+  <text class="ink s" x="575" y="214" text-anchor="middle">Looks compound?</text>
+  <text class="ink s" x="575" y="228" text-anchor="middle">comma/; before "and"</text>
+
+  <line class="line" x1="450" y1="220" x2="220" y2="220" marker-end="url(#arrow)"/>
+  <text class="dim lbl" x="335" y="212" text-anchor="middle">no</text>
+  <rect class="box" x="60" y="245" width="260" height="46" rx="6"/>
+  <text class="ink s" x="190" y="273" text-anchor="middle">Single retrieve_union query</text>
+
+  <line class="line" x1="700" y1="220" x2="840" y2="220" marker-end="url(#arrow)"/>
+  <text class="dim lbl" x="770" y="212" text-anchor="middle">yes</text>
+  <rect class="box" x="660" y="245" width="280" height="46" rx="6"/>
+  <text class="ink s" x="800" y="266" text-anchor="middle">Whole-claim + one query per clause</text>
+  <text class="ink s" x="800" y="280" text-anchor="middle">→ union + dedupe chunks</text>
+
+  <line class="line" x1="190" y1="291" x2="190" y2="320" marker-end="none"/>
+  <line class="line" x1="800" y1="291" x2="800" y2="320" marker-end="none"/>
+  <line class="line" x1="190" y1="320" x2="800" y2="320" marker-end="none"/>
+  <line class="line" x1="420" y1="320" x2="420" y2="336" marker-end="url(#arrow)"/>
+
+  <rect class="box" x="290" y="338" width="260" height="46" rx="6"/>
+  <text class="ink h" x="420" y="366" text-anchor="middle">Cited passages</text>
+
+  <!-- ============ SHAPE CHECK (never gates) ============ -->
+  <line class="line" x1="420" y1="384" x2="420" y2="410" marker-end="url(#arrow)"/>
+  <rect class="box" x="270" y="412" width="300" height="56" rx="6"/>
+  <text class="ink h" x="420" y="436" text-anchor="middle">Shape check</text>
+  <text class="dim s" x="420" y="452" text-anchor="middle">deterministic, no LLM — flagged, never blocks</text>
+
+  <!-- ============ JUDGE DISPATCH ============ -->
+  <line class="line" x1="420" y1="468" x2="420" y2="500" marker-end="url(#arrow)"/>
+  <text class="dim lbl" x="470" y="496">entailment.py / logprob_judge.py</text>
+  <polygon class="box2" points="420,502 520,532 420,562 320,532"/>
+  <text class="ink s" x="420" y="536" text-anchor="middle">judge_method</text>
+
+  <line class="line" x1="320" y1="532" x2="130" y2="532" marker-end="url(#arrow)"/>
+  <text class="dim lbl" x="230" y="524" text-anchor="middle">logprob — Ollama only</text>
+  <rect class="box" x="20" y="557" width="260" height="56" rx="6"/>
+  <text class="ink s" x="150" y="580" text-anchor="middle">Single pass</text>
+  <text class="dim s" x="150" y="596" text-anchor="middle">confidence from token logprobs</text>
+
+  <line class="line" x1="520" y1="532" x2="720" y2="532" marker-end="url(#arrow)"/>
+  <text class="dim lbl" x="630" y="524" text-anchor="middle">majority_vote — default</text>
+  <rect class="box" x="590" y="557" width="260" height="46" rx="6"/>
+  <text class="ink s" x="720" y="585" text-anchor="middle">3 runs × batches of 3 claims</text>
+
+  <line class="line" x1="720" y1="603" x2="720" y2="628" marker-end="url(#arrow)"/>
+  <rect class="box" x="590" y="630" width="260" height="46" rx="6"/>
+  <text class="ink s" x="720" y="658" text-anchor="middle">_consensus: majority verdict</text>
+
+  <line class="line" x1="720" y1="676" x2="720" y2="702" marker-end="url(#arrow)"/>
+  <polygon class="box2" points="720,704 850,742 720,780 590,742"/>
+  <text class="ink s" x="720" y="736" text-anchor="middle">Doubtful?</text>
+  <text class="ink s" x="720" y="750" text-anchor="middle">no majority, or bare 2/3</text>
+
+  <line class="line" x1="850" y1="742" x2="890" y2="742" marker-end="none"/>
+  <line class="line" x1="890" y1="742" x2="890" y2="808" marker-end="url(#arrow)"/>
+  <text class="dim lbl" x="868" y="734" text-anchor="middle">yes</text>
+  <rect class="box" x="650" y="810" width="260" height="56" rx="6"/>
+  <text class="ink s" x="780" y="833" text-anchor="middle">Escalate to stronger model</text>
+  <text class="dim s" x="780" y="849" text-anchor="middle">re-judge same cited passages</text>
+
+  <text class="dim lbl" x="700" y="796" text-anchor="middle">no</text>
+
+  <!-- merge all three judge paths down to verdict -->
+  <line class="line" x1="150" y1="613" x2="150" y2="960" marker-end="none"/>
+  <line class="line" x1="720" y1="780" x2="720" y2="960" marker-end="none"/>
+  <line class="line" x1="780" y1="866" x2="780" y2="960" marker-end="none"/>
+  <line class="line" x1="150" y1="960" x2="780" y2="960" marker-end="none"/>
+  <line class="line" x1="420" y1="960" x2="420" y2="986" marker-end="url(#arrow)"/>
+
+  <rect class="box" x="270" y="988" width="300" height="56" rx="6"/>
+  <text class="ink h" x="420" y="1012" text-anchor="middle">Verdict</text>
+  <text class="dim s" x="420" y="1030" text-anchor="middle">entails / contradicts / mentions_only / no_evidence</text>
+
+  <!-- ============ NUMERIC STRUCTURAL OVERRIDE ============ -->
+  <line class="line" x1="420" y1="1044" x2="420" y2="1070" marker-end="url(#arrow)"/>
+  <text class="dim lbl" x="480" y="1066">numeric_threshold_check.py</text>
+  <polygon class="box2" points="420,1072 560,1108 420,1144 280,1108"/>
+  <text class="ink s" x="420" y="1104" text-anchor="middle">entails or contradicts?</text>
+  <text class="ink s" x="420" y="1118" text-anchor="middle">(never mentions_only/no_evidence)</text>
+
+  <line class="line" x1="280" y1="1108" x2="90" y2="1108" marker-end="none"/>
+  <text class="dim lbl" x="185" y="1100" text-anchor="middle">no</text>
+  <line class="line" x1="90" y1="1108" x2="90" y2="1330" marker-end="none"/>
+
+  <line class="line" x1="420" y1="1144" x2="420" y2="1170" marker-end="url(#arrow)"/>
+  <text class="dim lbl" x="470" y="1160" text-anchor="middle">yes</text>
+  <rect class="box" x="290" y="1172" width="260" height="46" rx="6"/>
+  <text class="ink s" x="420" y="1200" text-anchor="middle">Numeric threshold check</text>
+
+  <line class="line" x1="420" y1="1218" x2="420" y2="1244" marker-end="url(#arrow)"/>
+  <polygon class="box2" points="420,1246 590,1284 420,1322 250,1284"/>
+  <text class="ink s" x="420" y="1280" text-anchor="middle">Recognized shape</text>
+  <text class="ink s" x="420" y="1294" text-anchor="middle">AND disagrees with judge?</text>
+
+  <line class="line" x1="590" y1="1284" x2="680" y2="1284" marker-end="url(#arrow)"/>
+  <text class="dim lbl" x="640" y="1276" text-anchor="middle">yes</text>
+  <rect class="accentbox" x="620" y="1306" width="260" height="46" rx="6"/>
+  <text class="accenttext s" x="750" y="1334" text-anchor="middle">Override verdict + reason</text>
+
+  <text class="dim lbl" x="355" y="1330" text-anchor="middle">no, or abstain</text>
+  <line class="line" x1="420" y1="1322" x2="420" y2="1358" marker-end="none"/>
+
+  <line class="line" x1="750" y1="1352" x2="750" y2="1372" marker-end="none"/>
+  <line class="line" x1="90" y1="1330" x2="90" y2="1372" marker-end="none"/>
+  <line class="line" x1="90" y1="1372" x2="750" y2="1372" marker-end="none"/>
+  <line class="line" x1="420" y1="1372" x2="420" y2="1372" marker-end="none"/>
+  <line class="line" x1="420" y1="1358" x2="420" y2="1394" marker-end="url(#arrow)"/>
+
+  <rect class="box" x="290" y="1396" width="260" height="46" rx="6"/>
+  <text class="ink h" x="420" y="1424" text-anchor="middle">Final per-claim verdict</text>
+
+  <!-- ============ CENSUS / GAP REPORT (independent) ============ -->
+  <line class="rule" x1="280" y1="123" x2="130" y2="123" stroke-dasharray="3 3" marker-end="none"/>
+  <line class="rule" x1="130" y1="123" x2="130" y2="350" stroke-dasharray="3 3" marker-end="url(#arrow)"/>
+  <rect class="dash" x="20" y="352" width="220" height="50" rx="6"/>
+  <text class="ink s" x="130" y="372" text-anchor="middle">Concept census</text>
+  <text class="dim s" x="130" y="388" text-anchor="middle">independent of any claim</text>
+
+  <line class="rule" x1="130" y1="402" x2="130" y2="422" stroke-dasharray="3 3" marker-end="url(#arrow)"/>
+  <rect class="dash" x="20" y="424" width="220" height="46" rx="6"/>
+  <text class="ink s" x="130" y="452" text-anchor="middle">Gap report</text>
+
+  <line class="rule" x1="130" y1="470" x2="130" y2="1470" stroke-dasharray="3 3" marker-end="none"/>
+
+  <!-- ============ CONVERGE ============ -->
+  <line class="line" x1="420" y1="1442" x2="420" y2="1470" marker-end="none"/>
+  <line class="rule" x1="130" y1="1470" x2="420" y2="1470" stroke-dasharray="3 3" marker-end="none"/>
+  <line class="line" x1="420" y1="1470" x2="420" y2="1494" marker-end="url(#arrow)"/>
+
+  <rect class="box" x="280" y="1496" width="280" height="56" rx="6"/>
+  <text class="ink h" x="420" y="1520" text-anchor="middle">Validation report</text>
+  <text class="dim s" x="420" y="1538" text-anchor="middle">JSON + Excel — never one blended score</text>
+
+  <!-- ============ LEGEND ============ -->
+  <line class="rule" x1="20" y1="1590" x2="880" y2="1590"/>
+  <rect class="dash" x="20" y="1610" width="26" height="16" rx="3"/>
+  <text class="dim lbl" x="54" y="1622">independent of any claim's verdict</text>
+  <polygon class="accentbox" points="350,1610 366,1618 350,1626 334,1618"/>
+  <text class="dim lbl" x="378" y="1622">the one place a verdict actually changes after the judge</text>
+</svg>

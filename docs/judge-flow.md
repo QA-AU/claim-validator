@@ -12,6 +12,17 @@ override), or the call order in `claimvalidator/pipeline.py::run_validation()`.
 If a code change moves where a step happens relative to the others,
 this diagram is wrong until it's edited to match.
 
+![Judge logic and data flow](judge-flow.svg)
+
+The image above (`judge-flow.svg`, same directory) is the diagram —
+open it directly if your viewer doesn't render an `<img>` inside
+markdown. It's a self-contained, hand-authored SVG (light/dark aware
+via its own `prefers-color-scheme` media query), not a screenshot, so
+editing it means editing the shapes and text in the file directly, the
+same as any other source file. The Mermaid block below is kept as a
+plain-text fallback and a quicker diff when only the logic changes,
+not the layout — update both together.
+
 ```mermaid
 flowchart TD
     DOC[Reference document] --> ONT["Ontology + RAG index<br/>cached by content hash"]
