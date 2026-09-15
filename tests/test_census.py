@@ -110,6 +110,25 @@ def test_the_same_instance_twice_is_one_instance():
     assert census_many([("endpoint", "")], ["a"], client)["endpoint"].count == 1
 
 
+def test_the_same_instance_across_two_batches_keeps_every_chunk():
+    """Issue #11: each batch is its own LLM call with no memory of prior
+    batches, so a concept genuinely re-identified in a later batch is a real,
+    independently-confirmed sighting — not a duplicate to discard. chunk_of
+    stays first-wins, unchanged; chunks_of must keep both."""
+    from phases.census import census_many
+
+    client = MultiClient(
+        json.dumps([_sighting("token", "access_token", 0)]),
+        json.dumps([_sighting("token", "access_token", 1)]),
+    )
+
+    result = census_many([("token", "")], ["a", "b"], client, batch_size=1)["token"]
+
+    assert result.count == 1
+    assert result.chunk_of["access-token"] == 0
+    assert result.chunks_of["access-token"] == [0, 1]
+
+
 def test_a_failed_batch_fails_it_for_every_concept():
     """One call covered them all, so none of them read the whole document."""
     from phases.census import census_many

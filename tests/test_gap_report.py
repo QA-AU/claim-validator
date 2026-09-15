@@ -49,6 +49,75 @@ def test_claim_touching_a_chunk_marks_that_instance_addressed(monkeypatch):
     assert gap.never_addressed == ["authorization_code"]
 
 
+def test_a_claim_touching_a_secondary_confirmed_chunk_is_also_addressed(monkeypatch):
+    """Issue #11: the census's primary anchor (chunk_of) is only ever one of
+    possibly several chunks an instance was independently confirmed in. A
+    claim citing a different, but still genuinely confirmed, sighting must
+    not be reported as never-addressed just because it missed the primary
+    one."""
+    spread = CensusSpread(
+        concept="grant_type",
+        counts=[2, 2, 2],
+        seen_in={"authorization_code": 3},
+        display={"authorization_code": "authorization_code"},
+        runs=3,
+    )
+    result = CensusResult(
+        concept="grant_type",
+        names=["authorization_code"],
+        chunk_of={"authorization-code": 24},
+        # The same instance was also independently confirmed in chunk 99 —
+        # a later census batch re-identified it, same as chunk_of's own 24.
+        chunks_of={"authorization-code": [24, 99]},
+    )
+
+    monkeypatch.setattr("claimvalidator.gap_report.census_repeated",
+                         lambda *a, **k: {"grant_type": spread})
+    monkeypatch.setattr("claimvalidator.gap_report.census_many",
+                         lambda *a, **k: {"grant_type": result})
+
+    # Cites 99, not the primary 24 — would be never_addressed before this fix.
+    claims = [ResolvedClaim(id="C1", text="about authorization code", source_chunks=[99])]
+    report = build_gap_report(_ontology([("grant_type", "d")]), ["c"] * 100, llm_client=None,
+                               claims=claims)
+
+    gap = report.per_concept["grant_type"]
+    assert gap.addressed_count == 1
+    assert gap.never_addressed == []
+
+
+def test_no_secondary_chunks_recorded_behaves_exactly_as_before(monkeypatch):
+    """Backward-compatibility guard: a CensusResult with no chunks_of at all
+    (the default — e.g. cached data from before this fix) must fall through
+    to exactly today's behaviour, not silently change."""
+    spread = CensusSpread(
+        concept="grant_type",
+        counts=[1, 1, 1],
+        seen_in={"authorization_code": 3},
+        display={"authorization_code": "authorization_code"},
+        runs=3,
+    )
+    result = CensusResult(
+        concept="grant_type",
+        names=["authorization_code"],
+        chunk_of={"authorization-code": 24},
+        # chunks_of deliberately omitted -- defaults to {}.
+    )
+
+    monkeypatch.setattr("claimvalidator.gap_report.census_repeated",
+                         lambda *a, **k: {"grant_type": spread})
+    monkeypatch.setattr("claimvalidator.gap_report.census_many",
+                         lambda *a, **k: {"grant_type": result})
+
+    claims = [ResolvedClaim(id="C1", text="unrelated", source_chunks=[99])]
+    report = build_gap_report(_ontology([("grant_type", "d")]), ["c"] * 100, llm_client=None,
+                               claims=claims)
+
+    gap = report.per_concept["grant_type"]
+    assert gap.addressed_count == 0
+    assert gap.never_addressed == ["authorization_code"]
+
+
 def test_no_claims_touch_anything_everything_is_a_gap(monkeypatch):
     spread = CensusSpread(concept="error", counts=[2, 2],
                            seen_in={"invalid_request": 2, "access_denied": 2},

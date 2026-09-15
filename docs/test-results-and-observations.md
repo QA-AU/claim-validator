@@ -745,3 +745,75 @@ still holding).
 
 Live-test script: `live_test_quantifier_fix.py` in this session's
 scratchpad.
+
+---
+
+## 2026-09-15 — Issue #11: gap report now credits a claim that confirms a concept in a different chunk than the census's primary anchor
+
+**Why:** the gap report's "addressed" check only ever compared a
+claim's cited chunk against the *one* chunk the census recorded for a
+concept instance. A document discussing the same instance across
+several chunks could have a claim genuinely about it citing a
+different chunk than the census's single anchor — the two never
+coincide, and the report calls it never-addressed. Measured directly
+in this project's own paper: RFC 6749's `token` and `http_response`
+concepts showed as zero-coverage gaps despite claims that plainly
+discuss both.
+
+**Root cause, confirmed by reading the code, not assumed:**
+`census_many()` (`phases/census.py`) processes a document in
+independent batches — no memory of prior batches. When the same
+instance genuinely appears in two batches, the model correctly
+re-identifies it in both, but the outer dedup (`if slug in
+seen[concept]: continue`) discarded every sighting after the first
+before it ever reached `chunk_of`. The data that would close this gap
+was already computed by the census's own verification; it was just
+thrown away. Not a missing capability — a data-retention bug.
+
+**Fix:** added `chunks_of: Dict[str, List[int]]` to `CensusResult`,
+populated in both `census()` and `census_many()` by *appending* every
+confirmed sighting, alongside the existing `chunk_of` (unchanged, same
+value, same behavior). `gap_report.py`'s addressed-check now falls
+back to `chunks_of` only when the primary `chunk_of` check misses —
+zero new LLM calls, zero new API cost, purely a local check against
+data the census already computes. New tests in `tests/test_census.py`
+and `tests/test_gap_report.py`; full suite 309/309, up from 306.
+
+**Live verification, isolated to remove sampling noise between
+"before" and "after":** rather than two separate full census runs
+(which would differ from ordinary LLM sampling variance alone, making
+any difference hard to attribute), ran `census_many` **once**, live,
+against the real cached RFC 6749 ontology and its 182 chunks — reusing
+the exact fixtures the paper's own evidence run used
+(`tests/fixtures/rfc6749.txt`, the cached `rfc6749-8b06` ontology) —
+then computed the old-logic and new-logic "addressed" decision from
+that identical single dataset, so the only variable between the two
+counts is the code change itself:
+
+| Concept | Instances located | With 2+ confirmed chunks | Old logic addressed | New logic addressed | Rescued |
+|---|---|---|---|---|---|
+| `token` | 91 | 3 | 14/91 | 15/91 | 1 |
+| `http_response` | 34 | 2 | 4/34 | 4/34 | 0 |
+
+**The mechanism is real, not hypothetical** — 5 instances across the
+two concepts the paper specifically flagged genuinely have more than
+one independently-confirmed chunk on this real document, direct
+evidence the root-cause diagnosis (independent per-batch
+re-identification, discarded by the old dedup) is correct.
+
+**Honest result on this specific 8-claim fixture:** `token` gained one
+concretely rescued instance (`access-token-issued-by-authorization-server`
+— census's primary anchor was chunk 60, never cited; also independently
+confirmed in chunks 94/102/114, and chunk 94 *was* cited by three of
+the eight claims). `http_response` gained zero with this exact claim
+set — its two multi-chunk instances' secondary sightings didn't happen
+to land on what these particular 8 claims cited. Not a sign the fix
+doesn't work for `http_response`: with only 8 claims exercising a
+182-chunk document, most concept instances of any kind go untouched
+regardless of this fix — a larger or more targeted claim set would
+have more chances to exercise the same mechanism. Reported plainly
+rather than re-running with a hand-picked claim set to force a bigger
+number.
+
+Verification scripts: `verify_issue11.py`,
+`verify_issue11_isolated.py` in this session's scratchpad.

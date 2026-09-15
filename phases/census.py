@@ -86,6 +86,16 @@ class CensusResult:
     # properly. A name whose citation could not be verified is absent here
     # rather than guessed at — the same rule extraction uses.
     chunk_of: Dict[str, int] = field(default_factory=dict)
+    # slug -> EVERY chunk the instance was independently confirmed in, not
+    # just the one `chunk_of` keeps (issue #11). Each document batch is read
+    # by its own LLM call with no memory of prior batches, so the same
+    # instance genuinely gets re-identified in a later batch when it's
+    # mentioned again — `chunk_of`'s first/last-wins logic already discards
+    # that, even though the census itself did the work to confirm it. This
+    # field keeps what would otherwise be thrown away, purely additively:
+    # `chunk_of` is written exactly as before, this is populated alongside
+    # it, never instead of it.
+    chunks_of: Dict[str, List[int]] = field(default_factory=dict)
     chunks_read: int = 0
     chunks_total: int = 0
     calls_made: int = 0
@@ -116,6 +126,7 @@ class CensusResult:
             "count": self.count,
             "names": self.names,
             "chunk_of": self.chunk_of,
+            "chunks_of": self.chunks_of,
             "located": len(self.chunk_of),
             "chunks_read": self.chunks_read,
             "chunks_total": self.chunks_total,
@@ -257,6 +268,14 @@ Return ONLY the JSON array."""
             if key not in seen:
                 seen.add(key)
                 result.names.append(name)
+
+            # Every independently-confirmed sighting, not just the one
+            # chunk_of below keeps — issue #11. Recorded before the
+            # first-wins gate so a concept genuinely re-identified in a
+            # later batch isn't silently lost the way chunk_of alone loses
+            # it.
+            if chunk in offered:
+                result.chunks_of.setdefault(key, []).append(chunk)
 
             # Locating is separate from counting. A name first sighted in a
             # batch that mis-cited it would otherwise be locked in without a
@@ -476,6 +495,14 @@ Return ONLY the JSON array."""
                 continue
 
             slug = slugify(name)
+
+            # Every independently-confirmed sighting, not just the first —
+            # issue #11. Recorded before the dedup gate below so a concept
+            # genuinely re-identified in a later batch isn't silently lost
+            # the way the dedup below loses it for chunk_of.
+            if chunk in offered:
+                results[concept].chunks_of.setdefault(slug, []).append(chunk)
+
             if slug in seen[concept]:
                 continue
             seen[concept].add(slug)
