@@ -58,18 +58,44 @@ others.
 
 ### Judge-model matrix (Haiku / Sonnet / Opus, same claims, same retrieval)
 
-| | api-testing | ui-testing |
-|---|---|---|
-| Haiku (deployed default) | 24/33 (72.7%) | 29/33 (87.9%) |
-| Sonnet | 22/33 (66.7%) | 31/33 (93.9%) |
-| Opus | 26/33 (78.8%) | 31/33 (93.9%) |
+Both example specs (`tools/openspec-adapter/examples/`) have known
+defects planted in them on purpose — see each example's own README:
+a subset of requirements deliberately disagree with the source brief
+(seeded, expected `contradicts`/`no_evidence`), and the rest are
+faithfully grounded (clean, expected `entails`). Split out below,
+because a blended accuracy number can't tell you whether a tier's
+misses are missed defects (the actionable failure) or false alarms on
+claims that were actually fine (a different, less serious failure).
+
+**api-testing (33 claims: 8 seeded, 25 clean)**
+
+| | Total | Seeded defects caught | Clean claims correctly entailed |
+|---|---|---|---|
+| Haiku (deployed default) | 24/33 (72.7%) | 7/8 | 17/25 |
+| Sonnet | 22/33 (66.7%) | 6/8 | 16/25 |
+| Opus | 26/33 (78.8%) | 6/8 | 20/25 |
+
+**ui-testing (33 claims: 12 seeded, 21 clean)**
+
+| | Total | Seeded defects caught | Clean claims correctly entailed |
+|---|---|---|---|
+| Haiku (deployed default) | 29/33 (87.9%) | 11/12 | 18/21 |
+| Sonnet | 31/33 (93.9%) | 12/12 | 19/21 |
+| Opus | 31/33 (93.9%) | 12/12 | 19/21 |
 
 **Finding:** Haiku is not obviously worse — it beat Sonnet on both
 documents. Opus was best on both, but by a modest margin (6 points on
-each). Every tier's misses cluster on the same shape: `expected=entails,
-got=mentions_only`, model-independent, most likely a retrieval/phrasing
-gap between OpenSpec-generated requirement text and the source brief's
-own wording, not a per-model judgment quality difference.
+each). The split sharpens why: **every tier catches seeded defects
+well** (6–7 of 8 on api-testing, 11–12 of 12 on ui-testing) — that's
+the actionable failure mode, and it's rare regardless of tier. Almost
+every miss, on every tier, is the *other* direction: a genuinely clean
+claim called `mentions_only` instead of `entails` — a false alarm, not
+a blown defect. Same shape, same rate, across all three models — a
+retrieval/phrasing gap between OpenSpec-generated requirement text and
+the source brief's own wording, not a per-model judgment-quality
+difference. Upgrading the deployed tier would buy very little: the
+gap isn't in what Haiku fails to catch, it's in how often all three
+models flag something that didn't need flagging.
 
 ### Adversarial taxonomy set (28 claims, 2 documents)
 
