@@ -1,0 +1,134 @@
+{
+  "model": "claude-haiku-4-5",
+  "rates": {
+    "input_per_mtok_usd": 1.0,
+    "output_per_mtok_usd": 5.0
+  },
+  "num_claims": 6,
+  "claim_validator": {
+    "ontology_build": {
+      "calls": 23,
+      "input_tokens": 24433,
+      "output_tokens": 6190,
+      "cost_usd": 0.05538
+    },
+    "judge_6_claims": {
+      "calls": 6,
+      "input_tokens": 14688,
+      "output_tokens": 1432,
+      "cost_usd": 0.02185
+    },
+    "total_first_run": {
+      "calls": 29,
+      "input_tokens": 39121,
+      "output_tokens": 7622,
+      "cost_usd": 0.07723
+    },
+    "marginal_per_claim_batch_after_ontology_cached": {
+      "calls": 6,
+      "input_tokens": 14688,
+      "output_tokens": 1432,
+      "cost_usd": 0.02185
+    }
+  },
+  "deepeval": {
+    "calls": 24,
+    "input_tokens": 10397,
+    "output_tokens": 2385,
+    "cost_usd": 0.02232
+  },
+  "cv_verdicts": {
+    "OFF.1": {
+      "text": "Employees can spend up to $40 per month on standard office supplies without needing approval first.",
+      "verdict": "entails",
+      "cited_passages": [
+        "# Office Supplies Reimbursement Policy\n\n## Eligible Purchases\n\nEmployees may purchase standard office supplies \u2014 pens, notebooks, printer\npaper, and desk organizers \u2014 up to $40 per month without prior approval.\nPurchases above $40 in a single month require written approval from a\ndirect manager before the purchase is made, not after.\n\n## Equipment\n\nRequests for equipment (monitors, keyboards, headsets, chairs) are handled\nseparately from the monthly supplies allowance and must go through the IT\nprocurement form, regardless of cost.\n\n## Reimbursement Method\n\nApproved supply purchases are reimbursed via the next scheduled payroll\nrun, not as a standalone payment. Receipts must be submitted within 14\ndays of purchase; purchases submitted after 14 days are not reimbursed.\n\n## Restricted Items\n\nPersonal subscriptions, furniture beyond a standard desk chair, and any\nitem costing more than $150 individually are never eligible under this\npolicy, even with manager approval."
+      ]
+    },
+    "OFF.2": {
+      "text": "A $60 supply purchase in one month is fine as long as the employee gets written approval before making it.",
+      "verdict": "entails",
+      "cited_passages": [
+        "# Office Supplies Reimbursement Policy\n\n## Eligible Purchases\n\nEmployees may purchase standard office supplies \u2014 pens, notebooks, printer\npaper, and desk organizers \u2014 up to $40 per month without prior approval.\nPurchases above $40 in a single month require written approval from a\ndirect manager before the purchase is made, not after.\n\n## Equipment\n\nRequests for equipment (monitors, keyboards, headsets, chairs) are handled\nseparately from the monthly supplies allowance and must go through the IT\nprocurement form, regardless of cost.\n\n## Reimbursement Method\n\nApproved supply purchases are reimbursed via the next scheduled payroll\nrun, not as a standalone payment. Receipts must be submitted within 14\ndays of purchase; purchases submitted after 14 days are not reimbursed.\n\n## Restricted Items\n\nPersonal subscriptions, furniture beyond a standard desk chair, and any\nitem costing more than $150 individually are never eligible under this\npolicy, even with manager approval."
+      ]
+    },
+    "OFF.3": {
+      "text": "Equipment requests like monitors and keyboards are reimbursed the same way as the monthly supplies allowance.",
+      "verdict": "contradicts",
+      "cited_passages": [
+        "# Office Supplies Reimbursement Policy\n\n## Eligible Purchases\n\nEmployees may purchase standard office supplies \u2014 pens, notebooks, printer\npaper, and desk organizers \u2014 up to $40 per month without prior approval.\nPurchases above $40 in a single month require written approval from a\ndirect manager before the purchase is made, not after.\n\n## Equipment\n\nRequests for equipment (monitors, keyboards, headsets, chairs) are handled\nseparately from the monthly supplies allowance and must go through the IT\nprocurement form, regardless of cost.\n\n## Reimbursement Method\n\nApproved supply purchases are reimbursed via the next scheduled payroll\nrun, not as a standalone payment. Receipts must be submitted within 14\ndays of purchase; purchases submitted after 14 days are not reimbursed.\n\n## Restricted Items\n\nPersonal subscriptions, furniture beyond a standard desk chair, and any\nitem costing more than $150 individually are never eligible under this\npolicy, even with manager approval."
+      ]
+    },
+    "OFF.4": {
+      "text": "Receipts submitted 20 days after purchase are still reimbursed as long as the item was pre-approved.",
+      "verdict": "contradicts",
+      "cited_passages": [
+        "# Office Supplies Reimbursement Policy\n\n## Eligible Purchases\n\nEmployees may purchase standard office supplies \u2014 pens, notebooks, printer\npaper, and desk organizers \u2014 up to $40 per month without prior approval.\nPurchases above $40 in a single month require written approval from a\ndirect manager before the purchase is made, not after.\n\n## Equipment\n\nRequests for equipment (monitors, keyboards, headsets, chairs) are handled\nseparately from the monthly supplies allowance and must go through the IT\nprocurement form, regardless of cost.\n\n## Reimbursement Method\n\nApproved supply purchases are reimbursed via the next scheduled payroll\nrun, not as a standalone payment. Receipts must be submitted within 14\ndays of purchase; purchases submitted after 14 days are not reimbursed.\n\n## Restricted Items\n\nPersonal subscriptions, furniture beyond a standard desk chair, and any\nitem costing more than $150 individually are never eligible under this\npolicy, even with manager approval."
+      ]
+    },
+    "OFF.5": {
+      "text": "The company offers a stipend for employees to expense a home internet upgrade.",
+      "verdict": "no_evidence",
+      "cited_passages": [
+        "# Office Supplies Reimbursement Policy\n\n## Eligible Purchases\n\nEmployees may purchase standard office supplies \u2014 pens, notebooks, printer\npaper, and desk organizers \u2014 up to $40 per month without prior approval.\nPurchases above $40 in a single month require written approval from a\ndirect manager before the purchase is made, not after.\n\n## Equipment\n\nRequests for equipment (monitors, keyboards, headsets, chairs) are handled\nseparately from the monthly supplies allowance and must go through the IT\nprocurement form, regardless of cost.\n\n## Reimbursement Method\n\nApproved supply purchases are reimbursed via the next scheduled payroll\nrun, not as a standalone payment. Receipts must be submitted within 14\ndays of purchase; purchases submitted after 14 days are not reimbursed.\n\n## Restricted Items\n\nPersonal subscriptions, furniture beyond a standard desk chair, and any\nitem costing more than $150 individually are never eligible under this\npolicy, even with manager approval."
+      ]
+    },
+    "OFF.6": {
+      "text": "The IT procurement form for equipment requests can be submitted online.",
+      "verdict": "mentions_only",
+      "cited_passages": [
+        "# Office Supplies Reimbursement Policy\n\n## Eligible Purchases\n\nEmployees may purchase standard office supplies \u2014 pens, notebooks, printer\npaper, and desk organizers \u2014 up to $40 per month without prior approval.\nPurchases above $40 in a single month require written approval from a\ndirect manager before the purchase is made, not after.\n\n## Equipment\n\nRequests for equipment (monitors, keyboards, headsets, chairs) are handled\nseparately from the monthly supplies allowance and must go through the IT\nprocurement form, regardless of cost.\n\n## Reimbursement Method\n\nApproved supply purchases are reimbursed via the next scheduled payroll\nrun, not as a standalone payment. Receipts must be submitted within 14\ndays of purchase; purchases submitted after 14 days are not reimbursed.\n\n## Restricted Items\n\nPersonal subscriptions, furniture beyond a standard desk chair, and any\nitem costing more than $150 individually are never eligible under this\npolicy, even with manager approval."
+      ]
+    }
+  },
+  "deepeval_rows": [
+    {
+      "id": "OFF.1",
+      "expected": "entails",
+      "cv_verdict": "entails",
+      "deepeval_score": 1.0,
+      "deepeval_faithful": true,
+      "deepeval_reason": "The score is 1.00 because the actual output perfectly aligns with the retrieval context with no contradictions detected. Great job!"
+    },
+    {
+      "id": "OFF.2",
+      "expected": "entails",
+      "cv_verdict": "entails",
+      "deepeval_score": 1.0,
+      "deepeval_faithful": true,
+      "deepeval_reason": "The score is 1.00 because the actual output contains no contradictions with the retrieval context. Great job\u2014the information is perfectly aligned and faithful to the source material!"
+    },
+    {
+      "id": "OFF.3",
+      "expected": "contradicts",
+      "cv_verdict": "contradicts",
+      "deepeval_score": 0.0,
+      "deepeval_faithful": false,
+      "deepeval_reason": "The score is 0.00 because the actual output contradicts the retrieval context regarding IT equipment procurement. The retrieval context clearly states that equipment such as monitors and keyboards must go through the IT procurement form, which is a distinct process separate from the standard monthly supplies allowance. The actual output either incorrectly suggests these items can be purchased through the standard monthly supplies allowance (which allows up to $40 per month without prior approval) or fails to distinguish between these two different procurement processes."
+    },
+    {
+      "id": "OFF.4",
+      "expected": "contradicts",
+      "cv_verdict": "contradicts",
+      "deepeval_score": 0.0,
+      "deepeval_faithful": false,
+      "deepeval_reason": "The score is 0.00 because the actual output claims that receipts submitted 20 days after purchase would be reimbursed, which directly contradicts the retrieval context stating that 'Purchases submitted after 14 days are not reimbursed.' This is a fundamental factual error that makes the output completely unreliable."
+    },
+    {
+      "id": "OFF.5",
+      "expected": "no_evidence",
+      "cv_verdict": "no_evidence",
+      "deepeval_score": 1.0,
+      "deepeval_faithful": true,
+      "deepeval_reason": "The score is 1.00 because the actual output contains no contradictions with the retrieval context. The information presented is entirely faithful and accurately aligned with the source material!"
+    },
+    {
+      "id": "OFF.6",
+      "expected": "mentions_only",
+      "cv_verdict": "mentions_only",
+      "deepeval_score": 1.0,
+      "deepeval_faithful": true,
+      "deepeval_reason": "The score is 1.00 because the actual output is perfectly aligned with the retrieval context, with no contradictions detected. Great job!"
+    }
+  ]
+}
