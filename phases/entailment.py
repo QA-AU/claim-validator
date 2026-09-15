@@ -552,6 +552,20 @@ it — so the order decides the verdict, not which description sounds closest.
                      quantity (not a fixed value), do not compare the two
                      numbers directly — follow this procedure first:
                      {_THRESHOLD_PROCEDURE}
+
+                     If the claim restates a passage's rule with a WEAKER
+                     quantifier — the passage says "all"/"every"/"any"/
+                     "never"/"no X" and the claim says "some"/"most"/"many",
+                     or the reverse (loosening a restriction the same way) —
+                     that is also "contradicts", even though the weaker
+                     statement is technically true whenever the stronger one
+                     is. Do not reason "all implies some, so this follows" —
+                     that reading drops the exact fact the passage actually
+                     asserts (no exceptions exist) and replaces it with a
+                     different, weaker claim (exceptions might exist). A
+                     document that states a rule with no exceptions and a
+                     claim that describes it as holding only "usually" or
+                     "mostly" are not the same statement.
 2. "no_evidence"   — is the SUBJECT the claim is about (the field, endpoint,
                      process, or mechanism it names — not the specific detail
                      it asserts, the underlying thing itself) absent from the

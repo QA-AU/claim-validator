@@ -677,3 +677,71 @@ backed by 44 unit tests in `tests/test_numeric_threshold_check.py`
 
 Test document, claims, and script: `range_test/` in this session's
 scratchpad.
+
+---
+
+## 2026-09-15 — Issue #14: quantifier-weakening guidance added to the judge prompt, live-tested
+
+**Why:** across every benchmark round, the judge treated a claim that
+weakens a document's universal quantifier ("all"/"every"/"any"/"never")
+into a partial one ("some"/"most") inconsistently — sometimes correctly
+flagging it as misleading, sometimes reasoning "all implies some, so
+this follows" and calling it `entails`. Pulling every quantifier-shift
+case's actual reasoning text (6 claims across all 3 taxonomy documents,
+2 per document) showed the judge *already notices* the quantifier
+narrowing in its own stated reasoning in all 6 cases — the prompt
+simply never told it which way to score that observation, so it split
+roughly down the middle by chance rather than by design:
+
+| Claim | Passage's quantifier | Claim's quantifier | Before |
+|---|---|---|---|
+| `API.3` | "for every response" | "some checks" | `contradicts` (see below — this one's different) |
+| `API.4` | "explicitly out of scope" (unquantified = absolute) | "most forms... out of scope" | `entails` (wrong) |
+| `EXP.3` | "every reimbursement request" | "some reimbursement requests" | `entails` (wrong) |
+| `EXP.4` | "applies regardless of trip cost" (absolute) | "most international trips" | `contradicts` |
+| `WAR.3` | "not accepted for any repair category" | "not accepted for most repair categories" | `contradicts` |
+| `WAR.4` | "never covered" | "some cosmetic wear is covered" | `contradicts` |
+
+**Fix:** added an explicit clause to the judge prompt's `contradicts`
+rule, right alongside the existing numeric-threshold procedure: a claim
+that restates a passage's rule with a weaker quantifier is
+`contradicts`, even though the weaker statement is technically implied
+by the stronger one — because "all implies some" reasoning drops the
+exact fact the passage asserts (no exceptions) and substitutes a
+different, weaker claim (exceptions might exist).
+
+**Live results, 3 passes on all 6 claims, `usera-claimval`:**
+
+- `API.4` and `EXP.3` — both previously wrong, **now correctly
+  `contradicts`, 3/3 passes**, with the reasoning text now explicitly
+  citing the new instruction ("the claim weakens this universal
+  requirement... which contradicts the assertion").
+- `EXP.4`, `WAR.3`, `WAR.4` — already correct, **held correct, 3/3**.
+- `API.3` — flipped to `entails`, 3/3 (not noise — fully reproducible).
+
+**`API.3` is not a regression — it's a different, ambiguous claim
+shape the taxonomy design didn't distinguish from the other five.**
+The source text: *"For every response it checks two things: 1. the
+status code... 2. the response body validates against the schema."*
+The claim: *"Some checks require the response body to validate against
+the documented schema."* Read literally, "some checks" quantifies over
+**check types** (and check #2 genuinely is the schema-validation
+check — a true, unremarkable statement), not over **responses** the
+way the other five examples cleanly do (same noun weakened on both
+sides: "every reimbursement request" → "some reimbursement requests").
+`API.3` shifts which noun is being quantified between the claim and the
+passage, making the "correct" verdict genuinely ambiguous by
+construction — and it was already unstable before this fix (it reads
+`contradicts` in one historical run, `entails` in another, independent
+of this change). This is a finding about the taxonomy's own example
+design, not a defect introduced by the fix — the same category of
+issue already documented for the `conditional_truth` category.
+
+**Full 45-claim, 3-document regression check:** **37/45 → 42/45**
+(82.2% → 93.3%), **zero regressions**. Five total fixes credited in
+this pass: `API.4`, `EXP.3` (this fix), plus `API.6`, `API.13`,
+`WAR.14` (already-shipped fixes from earlier this session, confirmed
+still holding).
+
+Live-test script: `live_test_quantifier_fix.py` in this session's
+scratchpad.
