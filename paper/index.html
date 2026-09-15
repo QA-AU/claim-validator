@@ -1090,7 +1090,106 @@
       </table>
     </div>
 
-    <p>Claim Validator scores higher, but the more useful fact is that the two tools' misses never overlapped — every claim one got wrong, the other got right. DeepEval independently caught the same quantifier-shift weakening ("all" &rarr; "some") this project's own judge misses, corroborating that gap from an outside tool. Claim Validator, in turn, catches two things DeepEval's Faithfulness metric is not designed to: a half-true compound claim (DeepEval scores it 0.5, but its own pass/fail threshold rounds that up to "faithful"), and a claim that adds an unstated or fabricated specific (nothing in it contradicts the source, so a metric that only checks for contradiction has nothing to flag — the concrete, measured version of the gap named earlier in this section).</p>
+    <p>Claim Validator scores higher, but the more useful fact is that the two tools' misses never overlapped — every claim one got wrong, the other got right. DeepEval independently caught the same quantifier-shift weakening ("all" &rarr; "some") this project's own judge misses, corroborating that gap from an outside tool. Claim Validator, in turn, catches two things DeepEval's Faithfulness metric is not designed to: a half-true compound claim (DeepEval scores it 0.5, but its own pass/fail threshold rounds that up to "faithful"), and a claim that adds an unstated or fabricated specific (nothing in it contradicts the source, so a metric that only checks for contradiction has nothing to flag).</p>
+
+    <p>Five real cases, one per failure shape, both systems' actual output side by side — not paraphrased:</p>
+
+    <div class="specimen">
+      <div class="specimen-head">
+        <span class="specimen-doc"><b>expense-policy</b> · plausible_fabrication</span>
+      </div>
+      <div class="specimen-body">
+        <p class="specimen-claim">"Employees may earn reward points redeemable for future travel upgrades when submitting expenses through the mobile app."</p>
+        <div class="compare">
+          <div class="compare-col them">
+            <h4>DeepEval — 1.0, faithful</h4>
+            <p>"The score is 1.00 because the actual output contains no contradictions with the retrieval context. The information presented is entirely faithful and accurate!"</p>
+          </div>
+          <div class="compare-col us">
+            <h4>Claim Validator — no_evidence</h4>
+            <p>"Passages concern expense reimbursement policy; they contain no discussion of reward points, mobile apps, or travel upgrades."</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="specimen">
+      <div class="specimen-head">
+        <span class="specimen-doc"><b>expense-policy</b> · on_topic_unstated</span>
+      </div>
+      <div class="specimen-body">
+        <p class="specimen-claim">"Software subscription approvals must be logged in the company's IT asset-management system."</p>
+        <div class="compare">
+          <div class="compare-col them">
+            <h4>DeepEval — 1.0, faithful</h4>
+            <p>"The score is 1.00 because the actual output contains no contradictions with the retrieval context. The information presented is entirely faithful and accurate!"</p>
+          </div>
+          <div class="compare-col us">
+            <h4>Claim Validator — mentions_only</h4>
+            <p>"Passages address software subscription approvals and thresholds ($100/month) but are silent on whether approvals must be logged in an IT asset-management system."</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="specimen">
+      <div class="specimen-head">
+        <span class="specimen-doc"><b>expense-policy</b> · compound_mixed_truth</span>
+      </div>
+      <div class="specimen-body">
+        <p class="specimen-claim">"Alcohol is never reimbursable, and meal claims are capped at $100 per day."</p>
+        <div class="compare">
+          <div class="compare-col them">
+            <h4>DeepEval — 0.5, rounds to faithful</h4>
+            <p>"The score is 0.50 because the actual output incorrectly states that employees can claim $100 per day for meals... when the retrieval context clearly specifies the limit is $75 per day." Detected internally — but the 0.5 threshold rounds a half-true claim up to a pass.</p>
+          </div>
+          <div class="compare-col us">
+            <h4>Claim Validator — contradicts</h4>
+            <p>"The passages state 'alcohol is never a reimbursable expense under any circumstance' (first part supported) but specify 'up to $75 per day for meals' (contradicts the claim's '$100 per day' cap)."</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="specimen">
+      <div class="specimen-head">
+        <span class="specimen-doc"><b>api-testing</b> · quantifier_shift — open, issue #14</span>
+      </div>
+      <div class="specimen-body">
+        <p class="specimen-claim">"Most forms of security scanning are out of scope for v1."</p>
+        <div class="compare">
+          <div class="compare-col them">
+            <h4>DeepEval — 0.0, correctly not faithful</h4>
+            <p>"The actual output misrepresents the scope... stating it is 'most forms'... when the retrieval context explicitly states... a complete exclusion rather than a partial one."</p>
+          </div>
+          <div class="compare-col us">
+            <h4>Claim Validator — entails <em>(wrong)</em></h4>
+            <p>"The passages explicitly state '...security scanning... [is] explicitly out of scope for v1', which directly supports that security scanning forms are out of scope." — valid logic, wrong call: "most" understates a rule that has no exceptions.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="specimen">
+      <div class="specimen-head">
+        <span class="specimen-doc"><b>api-testing</b> · numeric_boundary — since fixed, issue #15</span>
+      </div>
+      <div class="specimen-body">
+        <p class="specimen-claim">"The verifier sends no more than 11 requests per second to the target service."</p>
+        <div class="compare">
+          <div class="compare-col them">
+            <h4>DeepEval — 0.0, correctly not faithful</h4>
+            <p>"The actual output claims 11 requests per second, which directly contradicts the retrieval context stating... no more than 10 requests per second."</p>
+          </div>
+          <div class="compare-col us">
+            <h4>Claim Validator — entails <em>(wrong, at the time)</em></h4>
+            <p>"11 requests per second is above the threshold of 10, so it exceeds the limit. The claim 'no more than 11' would permit up to 11, which satisfies the passage's stricter limit..." — the judge's own reasoning reached the right answer, then stated the opposite verdict. Fixed by <code>numeric_threshold_check.py</code>'s deterministic override; re-verified as <code>contradicts</code> against the current build.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p style="font-size:14.5px;color:var(--muted);">Two of these five are DeepEval's wins — both real, both now tracked (one fixed, one still open). Three are Claim Validator's, and they're not the same kind of win: catching a fabrication and an unstated specific is architectural (Faithfulness only ever checks for contradiction), while the compound-claim case is a threshold artifact — DeepEval's own number shows it found the same problem and then rounded past it.</p>
 
     <p>Cost was measured the same way — real Anthropic usage from both systems, not an estimate, on a small held-out document and six claims:</p>
 

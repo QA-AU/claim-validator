@@ -238,6 +238,70 @@ architectural reasons, not one:**
 was caught by at least one of the two tools, meaning their blind spots
 are genuinely different, not overlapping copies of the same gap.
 
+**Five real cases, one per failure shape, verbatim — not paraphrased.**
+The exact `FaithfulnessMetric` call behind every row: `FaithfulnessMetric(threshold=0.5, model=<AnthropicDeepEvalModel>, include_reason=True, async_mode=False)`,
+measured against an `LLMTestCase(input=..., actual_output=<claim text>, retrieval_context=<Claim Validator's own cited_passages>)` — same evidence fed to both systems, so the comparison isolates judgment.
+
+**1. `plausible_fabrication` — DeepEval structurally can't catch this (architectural, not a bug in DeepEval):**
+
+> Claim: *"Employees may earn reward points redeemable for future travel upgrades when submitting expenses through the mobile app."*
+
+| | Verdict | Reason (verbatim) |
+|---|---|---|
+| DeepEval | **1.0, faithful** | "The score is 1.00 because the actual output contains no contradictions with the retrieval context. The information presented is entirely faithful and accurate!" |
+| Claim Validator | **no_evidence** | "Passages concern expense reimbursement policy; they contain no discussion of reward points, mobile apps, or travel upgrades." |
+
+**2. `on_topic_unstated` — same structural gap:**
+
+> Claim: *"Software subscription approvals must be logged in the company's IT asset-management system."*
+
+| | Verdict | Reason (verbatim) |
+|---|---|---|
+| DeepEval | **1.0, faithful** | "The score is 1.00 because the actual output contains no contradictions with the retrieval context. The information presented is entirely faithful and accurate!" |
+| Claim Validator | **mentions_only** | "Passages address software subscription approvals and thresholds ($100/month) but are silent on whether approvals must be logged in an IT asset-management system." |
+
+**3. `compound_mixed_truth` — DeepEval detects it, the threshold erases it:**
+
+> Claim: *"Alcohol is never reimbursable, and meal claims are capped at $100 per day."*
+
+| | Verdict | Reason (verbatim) |
+|---|---|---|
+| DeepEval | **0.5 → rounds to faithful** | "The score is 0.50 because the actual output incorrectly states that employees can claim $100 per day for meals... when the retrieval context clearly specifies the limit is $75 per day." |
+| Claim Validator | **contradicts** | "The passages state 'alcohol is never a reimbursable expense under any circumstance' (first part supported) but specify 'up to \$75 per day for meals' (contradicts the claim's '\$100 per day' cap)." |
+
+**4. `quantifier_shift` — DeepEval's win, still open as issue #14:**
+
+> Claim: *"Most forms of security scanning are out of scope for v1."*
+
+| | Verdict | Reason (verbatim) |
+|---|---|---|
+| DeepEval | **0.0, correctly not faithful** | "The actual output misrepresents the scope of security scanning by stating it is 'most forms'... when the retrieval context explicitly states... a complete exclusion rather than a partial one." |
+| Claim Validator | **entails (wrong)** | "The passages explicitly state '...security scanning...[is] explicitly out of scope for v1', which directly supports that security scanning forms are out of scope." — valid logic on a literal reading, wrong call: "most" understates a rule with no stated exceptions. |
+
+**5. `numeric_boundary` — DeepEval's other win, since fixed as issue #15:**
+
+> Claim: *"The verifier sends no more than 11 requests per second to the target service."*
+
+| | Verdict | Reason (verbatim) |
+|---|---|---|
+| DeepEval | **0.0, correctly not faithful** | "The actual output claims 11 requests per second, which directly contradicts the retrieval context stating... no more than 10 requests per second." |
+| Claim Validator (at the time) | **entails (wrong)** | "11 requests per second is above the threshold of 10, so it exceeds the limit. The claim 'no more than 11' would permit up to 11, which satisfies the passage's stricter limit..." — the judge's own reasoning reached the right answer, then stated the opposite verdict. |
+
+`numeric_threshold_check.py`'s deterministic override now catches this
+shape structurally; re-run against the current build, this exact claim
+correctly returns `contradicts`.
+
+**Reading across all five:** DeepEval's two wins are both real and both
+now tracked (one open, one fixed) — genuine independent corroboration,
+not noise. Claim Validator's three wins split into two different
+reasons, not one: the fabrication and unstated-specific cases are
+architectural (`FaithfulnessMetric` only ever checks for contradiction,
+so a claim that merely *adds* something unconfirmed has nothing to
+trip it), while the compound-claim case is a threshold artifact —
+DeepEval's own 0.5 score proves it found the same problem this session
+did, and its binary cutoff is what threw the finding away, not a
+failure to detect it in the first place.
+
 Script and Anthropic-model wrapper live in this session's scratchpad
 (`anthropic_deepeval_model.py`, `tier2_deepeval_comparison.py`) —
 worth promoting into the repo if this comparison gets rerun as the
