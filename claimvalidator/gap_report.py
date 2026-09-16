@@ -204,6 +204,11 @@ def build_gap_report(
     for name, spread in spreads.items():
         result = located.get(name)
         chunk_of = result.chunk_of if result else {}
+        # Every chunk each slug was independently confirmed in, not just the
+        # one chunk_of keeps — issue #11. Consulted only as a fallback below,
+        # once the primary chunk (chunk_of) fails to explain a claim's own
+        # citation.
+        chunks_of = result.chunks_of if result else {}
         result_names = result.names if result else []
         probable = spread.probable
 
@@ -212,16 +217,19 @@ def build_gap_report(
         # goes to `residual` for a tier-3 attempt below, rather than being
         # concluded unaddressed immediately.
         located_chunk_of: Dict[str, Optional[int]] = {}
+        located_chunks_of: Dict[str, List[int]] = {}
         matched_via: Dict[str, str] = {}
         residual: List[str] = []
         for display_name in probable:
             located_chunk = chunk_of.get(slugify(display_name))
             if located_chunk is not None:
                 located_chunk_of[display_name] = located_chunk
+                located_chunks_of[display_name] = chunks_of.get(slugify(display_name), [])
                 continue
             fuzzy_hit = _best_fuzzy_match(display_name, result_names)
             if fuzzy_hit is not None:
                 located_chunk_of[display_name] = chunk_of.get(slugify(fuzzy_hit))
+                located_chunks_of[display_name] = chunks_of.get(slugify(fuzzy_hit), [])
                 matched_via[display_name] = fuzzy_hit
                 continue
             residual.append(display_name)
@@ -252,6 +260,7 @@ def build_gap_report(
             if recon is not None:
                 for display_name, matched in recon.matched.items():
                     located_chunk_of[display_name] = chunk_of.get(slugify(matched))
+                    located_chunks_of[display_name] = chunks_of.get(slugify(matched), [])
                     matched_via[display_name] = matched
                 for display_name, candidates in recon.ambiguous:
                     ambiguous_candidates[display_name] = candidates
@@ -261,6 +270,15 @@ def build_gap_report(
         for display_name in probable:
             located_chunk = located_chunk_of.get(display_name)
             if located_chunk in touched_chunks:
+                continue
+            # Issue #11: the primary chunk missed, but the census may have
+            # independently confirmed this same instance in another chunk
+            # too — each document batch is read with no memory of prior
+            # batches, so a concept mentioned again later genuinely gets
+            # re-identified, not just repeated. If any of those other
+            # confirmed sightings is one a claim actually cited, this is
+            # addressed — just not via the chunk chunk_of happened to keep.
+            if any(c in touched_chunks for c in located_chunks_of.get(display_name, [])):
                 continue
             never_addressed.append(display_name)
             if display_name in ambiguous_candidates:
