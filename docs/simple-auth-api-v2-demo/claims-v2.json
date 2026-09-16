@@ -1,0 +1,22 @@
+[
+  {"id": "C1", "text": "The rate limit is 100 requests per minute per IP address."},
+  {"id": "C2", "text": "Authentication tokens never expire once issued."},
+  {"id": "C3", "text": "A 429 status code is returned when the rate limit is exceeded."},
+  {"id": "C4", "text": "The API supports the OAuth 2.0 device authorization grant flow."},
+  {"id": "C5", "text": "The authenticate endpoint requires a valid Bearer token in the Authorization header."},
+  {"id": "C6", "text": "Refreshing a token requires a POST request to /api/v1/refresh with a refresh_token."},
+  {"id": "C7", "text": "Passwords must be at least 12 characters long."},
+  {"id": "C8", "text": "Getting the user profile returns a 404 status code if the user is not found."},
+  {"id": "C9", "text": "The login page shows 'Incorrect email or password' when authentication fails with a 401 response."},
+  {"id": "C10", "text": "The logout endpoint accepts a DELETE request to /api/v1/logout."},
+  {"id": "C11", "text": "The session-expiry banner appears when the access token has less than 5 minutes remaining."},
+  {"id": "C12", "text": "The session-expiry banner appears when fewer than 10 minutes remain on the access token."},
+  {"id": "C13", "text": "The profile page displays a 'Member since' label showing the account creation month and year."},
+  {"id": "C14", "text": "The API supports single sign-on (SSO) via SAML."},
+  {"id": "C15", "text": "A failed token refresh redirects the user to the login page with a message that their session has expired."},
+  {"id": "C16", "text": "Users can enable biometric login (Face ID / Touch ID) from the profile page."},
+  {"id": "C17", "text": "The profile page shows a 'Contact support' link when the profile request returns a 404."},
+  {"id": "C18", "text": "The API's authentication mechanism uses industry-standard security practices."},
+  {"id": "C19", "text": "The 'Sign in' button is disabled after a 429 response from the authenticate endpoint."},
+  {"id": "C20", "text": "A successful login redirects the user to the profile page."}
+]

@@ -1,0 +1,10 @@
+[
+  {"id": "C1", "text": "The rate limit is 100 requests per minute per IP address."},
+  {"id": "C2", "text": "Authentication tokens never expire once issued."},
+  {"id": "C3", "text": "A 429 status code is returned when the rate limit is exceeded."},
+  {"id": "C4", "text": "The API supports the OAuth 2.0 device authorization grant flow."},
+  {"id": "C5", "text": "The authenticate endpoint requires a valid Bearer token in the Authorization header."},
+  {"id": "C6", "text": "Refreshing a token requires a POST request to /api/v1/refresh with a refresh_token."},
+  {"id": "C7", "text": "Passwords must be at least 12 characters long."},
+  {"id": "C8", "text": "Getting the user profile returns a 404 status code if the user is not found."}
+]

@@ -1,0 +1,146 @@
+# SimpleAuthAPI Specification
+
+## Base URL
+https://auth.example.com/api/v1
+
+## Overview
+SimpleAuthAPI provides user authentication and rate limiting for web applications.
+
+## Authentication
+The API uses Bearer token authentication. All requests (except login) must include:
+
+```
+Authorization: Bearer {jwt_token}
+Content-Type: application/json
+X-Request-ID: {uuid}
+```
+
+## Rate Limiting
+- Limit: 100 requests per minute per IP address
+- Headers: X-RateLimit-Remaining, X-RateLimit-Reset
+- Exceeded: Returns 429 Too Many Requests
+
+## API Endpoints
+
+### 1. POST /api/v1/authenticate
+Authenticate user with credentials.
+
+**Request:**
+```json
+{
+  "username": "user@example.com",
+  "password": "password123"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIs...",
+  "token_type": "Bearer",
+  "expires_in": 3600,
+  "user_id": "uuid"
+}
+```
+
+**Response Codes:**
+- 200: Authentication successful
+- 400: Invalid request (missing fields, malformed JSON)
+- 401: Invalid credentials
+- 429: Rate limit exceeded
+- 500: Server error
+
+### 2. POST /api/v1/refresh
+Refresh expired JWT token.
+
+**Request:**
+```json
+{
+  "refresh_token": "refresh_token_value"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIs...",
+  "expires_in": 3600
+}
+```
+
+**Response Codes:**
+- 200: Token refreshed
+- 401: Invalid or expired refresh token
+- 429: Rate limit exceeded
+
+### 3. GET /api/v1/user/profile
+Get current user profile.
+
+**Request Headers:**
+- Authorization: Bearer {token}
+
+**Response (200 OK):**
+```json
+{
+  "user_id": "uuid",
+  "username": "user@example.com",
+  "email": "user@example.com",
+  "created_at": "2026-01-01T00:00:00Z"
+}
+```
+
+**Response Codes:**
+- 200: Success
+- 401: Unauthorized (missing or invalid token)
+- 404: User not found
+- 429: Rate limit exceeded
+
+### 4. POST /api/v1/logout
+Logout and invalidate token.
+
+**Request Headers:**
+- Authorization: Bearer {token}
+
+**Response (200 OK):**
+```json
+{
+  "message": "Successfully logged out"
+}
+```
+
+**Response Codes:**
+- 200: Logout successful
+- 401: Unauthorized
+- 429: Rate limit exceeded
+
+## Data Models
+
+### User
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| user_id | UUID | Yes | Unique user identifier |
+| username | String | Yes | Username (email format) |
+| email | String | Yes | Email address |
+| created_at | ISO8601 | Yes | Account creation timestamp |
+| last_login | ISO8601 | No | Last login timestamp |
+
+### AuthToken
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| token | String | Yes | JWT bearer token |
+| token_type | String | Yes | "Bearer" |
+| expires_in | Integer | Yes | Token lifetime in seconds |
+| refresh_token | String | No | Token for refresh requests |
+
+## Critical Areas
+- Authentication (all endpoints require valid credentials)
+- Rate Limiting (100 req/min per IP)
+- Token Expiration (3600 second TTL)
+- Security (requires HTTPS)
+
+## Requirements
+- All requests must use HTTPS
+- All requests must include Content-Type: application/json
+- All endpoints require X-Request-ID header for tracking
+- Authentication endpoints don't require Authorization header
+- Non-authentication endpoints require valid Bearer token

@@ -1,0 +1,21 @@
+[
+  {"id": "R1", "text": "GET /posts returns an array of exactly 100 post objects."},
+  {"id": "R2", "text": "GET /posts/1 returns a single post object containing id, title, body, and userId fields."},
+  {"id": "R3", "text": "GET /posts?userId=1 filters and returns only posts belonging to the specified user."},
+  {"id": "R4", "text": "GET /posts/1/comments returns all comments associated with post 1."},
+  {"id": "R5", "text": "GET /comments?postId=1 returns the same results as GET /posts/1/comments."},
+  {"id": "R6", "text": "POST /posts with a JSON body and Content-Type: application/json returns the submitted fields plus a generated id of 101."},
+  {"id": "R7", "text": "POST /posts does not actually persist data to the server."},
+  {"id": "R8", "text": "PUT /posts/1 with a full JSON body returns the submitted fields for the specified post."},
+  {"id": "R9", "text": "PUT /posts/1 does not actually update data on the server."},
+  {"id": "R10", "text": "PATCH /posts/1 with a partial JSON body returns the existing post with only the submitted fields changed."},
+  {"id": "R11", "text": "PATCH /posts/1 does not actually modify data on the server."},
+  {"id": "R12", "text": "DELETE /posts/1 is accepted by the API."},
+  {"id": "R13", "text": "DELETE /posts/1 does not actually remove data from the server."},
+  {"id": "R14", "text": "The API supports both http and https protocols."},
+  {"id": "R15", "text": "GET /albums/1/photos returns all photos belonging to album 1."},
+  {"id": "R16", "text": "GET /users/1/albums returns all albums belonging to user 1."},
+  {"id": "R17", "text": "GET /users/1/todos returns all todos belonging to user 1."},
+  {"id": "R18", "text": "GET /users/1/posts returns all posts belonging to user 1."},
+  {"id": "R19", "text": "The API contains 10 users, 100 albums, 200 todos, 500 comments, and 5000 photos in total."}
+]

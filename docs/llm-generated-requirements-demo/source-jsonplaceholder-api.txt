@@ -1,0 +1,108 @@
+# JSONPlaceholder API Documentation
+
+Source: https://jsonplaceholder.typicode.com/ and
+https://jsonplaceholder.typicode.com/guide/ (public documentation,
+retrieved verbatim for this reference document).
+
+## When to use
+
+JSONPlaceholder is a free online REST API that you can use whenever you
+need some fake data. It can be in a README on GitHub, for a demo on
+CodeSandbox, in code examples on Stack Overflow, or simply to test
+things locally.
+
+## Resources
+
+JSONPlaceholder comes with a set of 6 common resources:
+
+| Resource | Count |
+|---|---|
+| /posts | 100 posts |
+| /comments | 500 comments |
+| /albums | 100 albums |
+| /photos | 5000 photos |
+| /todos | 200 todos |
+| /users | 10 users |
+
+Note: resources have relations. For example: posts have many comments,
+albums have many photos.
+
+## Routes
+
+All HTTP methods are supported. You can use http or https for your
+requests.
+
+| Method | Route |
+|---|---|
+| GET | /posts |
+| GET | /posts/1 |
+| GET | /posts/1/comments |
+| GET | /comments?postId=1 |
+| POST | /posts |
+| PUT | /posts/1 |
+| PATCH | /posts/1 |
+| DELETE | /posts/1 |
+
+## Nested routes
+
+One level of nested route is available. For example,
+GET /posts/1/comments is equivalent to GET /comments?postId=1.
+
+The available nested routes are:
+- /posts/1/comments
+- /albums/1/photos
+- /users/1/albums
+- /users/1/todos
+- /users/1/posts
+
+## Filtering resources
+
+Basic filtering is supported through query parameters. For example,
+GET /posts?userId=1 returns all the posts that belong to the first
+user.
+
+## Getting a resource
+
+GET /posts/1 returns a single post object with fields id, title, body,
+and userId.
+
+## Listing all resources
+
+GET /posts returns an array of post objects, id 1 through 100.
+
+## Creating a resource
+
+POST /posts with a JSON body (e.g. title, body, userId) and header
+Content-type: application/json returns a response echoing the
+submitted fields plus a new id of 101.
+
+Important: the resource will not be really created on the server — the
+response is faked as if it had been.
+
+## Updating a resource
+
+PUT /posts/1 with a full JSON body returns a response echoing the
+submitted fields for id 1.
+
+Important: the resource will not be really updated on the server — the
+response is faked as if it had been.
+
+## Patching a resource
+
+PATCH /posts/1 with a partial JSON body (e.g. just title) returns the
+existing post object with only that field changed.
+
+Important: the resource will not be really updated on the server — the
+response is faked as if it had been.
+
+## Deleting a resource
+
+DELETE /posts/1 is accepted.
+
+Important: the resource will not be really deleted on the server — the
+response is faked as if it had been.
+
+## Use your own data
+
+A sponsor project, Mockend, lets you point a GitHub repo at your own
+fake online REST server.

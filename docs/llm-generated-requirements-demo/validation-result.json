@@ -1,0 +1,919 @@
+{
+  "job_id": "job_9bfaeb6d8641",
+  "status": "done",
+  "ontology_key": "doc-0fc2ccd7-c6fc",
+  "ontology_reused": true,
+  "per_claim": [
+    {
+      "id": "R1",
+      "text": "GET /posts returns an array of exactly 100 post objects.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "entails",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        0,
+        1,
+        2
+      ],
+      "cited_passages": [
+        "# JSONPlaceholder API Documentation\n\nSource: https://jsonplaceholder.typicode.com/ and\nhttps://jsonplaceholder.typicode.com/guide/ (public documentation,\nretrieved verbatim for this reference document).\n\n## When to use\n\nJSONPlaceholder is a free online REST API that you can use whenever you\nneed some fake data. It can be in a README on GitHub, for a demo on\nCodeSandbox, in code examples on Stack Overflow, or simply to test\nthings locally.\n\n## Resources\n\nJSONPlaceholder comes with a set of 6 common resources:\n\n| Resource | Count |\n|---|---|\n| /posts | 100 posts |\n| /comments | 500 comments |\n| /albums | 100 albums |\n| /photos | 5000 photos |\n| /todos | 200 todos |\n| /users | 10 users |\n\nNote: resources have relations. For example: posts have many comments,\nalbums have many photos.\n\n## Routes\n\nAll HTTP methods are supported. You can use http or https for your\nrequests.\n\n| Method | Route |\n|---|---|\n| GET | /posts |\n| GET | /posts/1 |\n| GET | /posts/1/comments |\n| GET | /comments?postId=1",
+        "|---|---|\n| GET | /posts |\n| GET | /posts/1 |\n| GET | /posts/1/comments |\n| GET | /comments?postId=1 |\n| POST | /posts |\n| PUT | /posts/1 |\n| PATCH | /posts/1 |\n| DELETE | /posts/1 |\n\n## Nested routes\n\nOne level of nested route is available. For example,\nGET /posts/1/comments is equivalent to GET /comments?postId=1.\n\nThe available nested routes are:\n- /posts/1/comments\n- /albums/1/photos\n- /users/1/albums\n- /users/1/todos\n- /users/1/posts\n\n## Filtering resources\n\nBasic filtering is supported through query parameters. For example,\nGET /posts?userId=1 returns all the posts that belong to the first\nuser.\n\n## Getting a resource\n\nGET /posts/1 returns a single post object with fields id, title, body,\nand userId.\n\n## Listing all resources\n\nGET /posts returns an array of post objects, id 1 through 100.\n\n## Creating a resource\n\nPOST /posts with a JSON body (e.g. title, body, userId) and header\nContent-type: application/json returns a response echoing the\nsubmitted fields plus a new id of 101.",
+        "ntent-type: application/json returns a response echoing the\nsubmitted fields plus a new id of 101.\n\nImportant: the resource will not be really created on the server \u2014 the\nresponse is faked as if it had been.\n\n## Updating a resource\n\nPUT /posts/1 with a full JSON body returns a response echoing the\nsubmitted fields for id 1.\n\nImportant: the resource will not be really updated on the server \u2014 the\nresponse is faked as if it had been.\n\n## Patching a resource\n\nPATCH /posts/1 with a partial JSON body (e.g. just title) returns the\nexisting post object with only that field changed.\n\nImportant: the resource will not be really updated on the server \u2014 the\nresponse is faked as if it had been.\n\n## Deleting a resource\n\nDELETE /posts/1 is accepted.\n\nImportant: the resource will not be really deleted on the server \u2014 the\nresponse is faked as if it had been.\n\n## Use your own data\n\nA sponsor project, Mockend, lets you point a GitHub repo at your own\nfake online REST server."
+      ],
+      "cited_sources": [
+        "source-jsonplaceholder-api.txt",
+        "source-jsonplaceholder-api.txt",
+        "source-jsonplaceholder-api.txt"
+      ],
+      "reason": "Passages state 'GET /posts returns an array of post objects, id 1 through 100' and resources table shows '/posts | 100 posts'",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    },
+    {
+      "id": "R2",
+      "text": "GET /posts/1 returns a single post object containing id, title, body, and userId fields.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "entails",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        0,
+        1,
+        2
+      ],
+      "cited_passages": [
+        "# JSONPlaceholder API Documentation\n\nSource: https://jsonplaceholder.typicode.com/ and\nhttps://jsonplaceholder.typicode.com/guide/ (public documentation,\nretrieved verbatim for this reference document).\n\n## When to use\n\nJSONPlaceholder is a free online REST API that you can use whenever you\nneed some fake data. It can be in a README on GitHub, for a demo on\nCodeSandbox, in code examples on Stack Overflow, or simply to test\nthings locally.\n\n## Resources\n\nJSONPlaceholder comes with a set of 6 common resources:\n\n| Resource | Count |\n|---|---|\n| /posts | 100 posts |\n| /comments | 500 comments |\n| /albums | 100 albums |\n| /photos | 5000 photos |\n| /todos | 200 todos |\n| /users | 10 users |\n\nNote: resources have relations. For example: posts have many comments,\nalbums have many photos.\n\n## Routes\n\nAll HTTP methods are supported. You can use http or https for your\nrequests.\n\n| Method | Route |\n|---|---|\n| GET | /posts |\n| GET | /posts/1 |\n| GET | /posts/1/comments |\n| GET | /comments?postId=1",
+        "|---|---|\n| GET | /posts |\n| GET | /posts/1 |\n| GET | /posts/1/comments |\n| GET | /comments?postId=1 |\n| POST | /posts |\n| PUT | /posts/1 |\n| PATCH | /posts/1 |\n| DELETE | /posts/1 |\n\n## Nested routes\n\nOne level of nested route is available. For example,\nGET /posts/1/comments is equivalent to GET /comments?postId=1.\n\nThe available nested routes are:\n- /posts/1/comments\n- /albums/1/photos\n- /users/1/albums\n- /users/1/todos\n- /users/1/posts\n\n## Filtering resources\n\nBasic filtering is supported through query parameters. For example,\nGET /posts?userId=1 returns all the posts that belong to the first\nuser.\n\n## Getting a resource\n\nGET /posts/1 returns a single post object with fields id, title, body,\nand userId.\n\n## Listing all resources\n\nGET /posts returns an array of post objects, id 1 through 100.\n\n## Creating a resource\n\nPOST /posts with a JSON body (e.g. title, body, userId) and header\nContent-type: application/json returns a response echoing the\nsubmitted fields plus a new id of 101.",
+        "ntent-type: application/json returns a response echoing the\nsubmitted fields plus a new id of 101.\n\nImportant: the resource will not be really created on the server \u2014 the\nresponse is faked as if it had been.\n\n## Updating a resource\n\nPUT /posts/1 with a full JSON body returns a response echoing the\nsubmitted fields for id 1.\n\nImportant: the resource will not be really updated on the server \u2014 the\nresponse is faked as if it had been.\n\n## Patching a resource\n\nPATCH /posts/1 with a partial JSON body (e.g. just title) returns the\nexisting post object with only that field changed.\n\nImportant: the resource will not be really updated on the server \u2014 the\nresponse is faked as if it had been.\n\n## Deleting a resource\n\nDELETE /posts/1 is accepted.\n\nImportant: the resource will not be really deleted on the server \u2014 the\nresponse is faked as if it had been.\n\n## Use your own data\n\nA sponsor project, Mockend, lets you point a GitHub repo at your own\nfake online REST server."
+      ],
+      "cited_sources": [
+        "source-jsonplaceholder-api.txt",
+        "source-jsonplaceholder-api.txt",
+        "source-jsonplaceholder-api.txt"
+      ],
+      "reason": "Passages state 'GET /posts/1 returns a single post object with fields id, title, body, and userId'",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    },
+    {
+      "id": "R3",
+      "text": "GET /posts?userId=1 filters and returns only posts belonging to the specified user.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "entails",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        0,
+        1,
+        2
+      ],
+      "cited_passages": [
+        "# JSONPlaceholder API Documentation\n\nSource: https://jsonplaceholder.typicode.com/ and\nhttps://jsonplaceholder.typicode.com/guide/ (public documentation,\nretrieved verbatim for this reference document).\n\n## When to use\n\nJSONPlaceholder is a free online REST API that you can use whenever you\nneed some fake data. It can be in a README on GitHub, for a demo on\nCodeSandbox, in code examples on Stack Overflow, or simply to test\nthings locally.\n\n## Resources\n\nJSONPlaceholder comes with a set of 6 common resources:\n\n| Resource | Count |\n|---|---|\n| /posts | 100 posts |\n| /comments | 500 comments |\n| /albums | 100 albums |\n| /photos | 5000 photos |\n| /todos | 200 todos |\n| /users | 10 users |\n\nNote: resources have relations. For example: posts have many comments,\nalbums have many photos.\n\n## Routes\n\nAll HTTP methods are supported. You can use http or https for your\nrequests.\n\n| Method | Route |\n|---|---|\n| GET | /posts |\n| GET | /posts/1 |\n| GET | /posts/1/comments |\n| GET | /comments?postId=1",
+        "|---|---|\n| GET | /posts |\n| GET | /posts/1 |\n| GET | /posts/1/comments |\n| GET | /comments?postId=1 |\n| POST | /posts |\n| PUT | /posts/1 |\n| PATCH | /posts/1 |\n| DELETE | /posts/1 |\n\n## Nested routes\n\nOne level of nested route is available. For example,\nGET /posts/1/comments is equivalent to GET /comments?postId=1.\n\nThe available nested routes are:\n- /posts/1/comments\n- /albums/1/photos\n- /users/1/albums\n- /users/1/todos\n- /users/1/posts\n\n## Filtering resources\n\nBasic filtering is supported through query parameters. For example,\nGET /posts?userId=1 returns all the posts that belong to the first\nuser.\n\n## Getting a resource\n\nGET /posts/1 returns a single post object with fields id, title, body,\nand userId.\n\n## Listing all resources\n\nGET /posts returns an array of post objects, id 1 through 100.\n\n## Creating a resource\n\nPOST /posts with a JSON body (e.g. title, body, userId) and header\nContent-type: application/json returns a response echoing the\nsubmitted fields plus a new id of 101.",
+        "ntent-type: application/json returns a response echoing the\nsubmitted fields plus a new id of 101.\n\nImportant: the resource will not be really created on the server \u2014 the\nresponse is faked as if it had been.\n\n## Updating a resource\n\nPUT /posts/1 with a full JSON body returns a response echoing the\nsubmitted fields for id 1.\n\nImportant: the resource will not be really updated on the server \u2014 the\nresponse is faked as if it had been.\n\n## Patching a resource\n\nPATCH /posts/1 with a partial JSON body (e.g. just title) returns the\nexisting post object with only that field changed.\n\nImportant: the resource will not be really updated on the server \u2014 the\nresponse is faked as if it had been.\n\n## Deleting a resource\n\nDELETE /posts/1 is accepted.\n\nImportant: the resource will not be really deleted on the server \u2014 the\nresponse is faked as if it had been.\n\n## Use your own data\n\nA sponsor project, Mockend, lets you point a GitHub repo at your own\nfake online REST server."
+      ],
+      "cited_sources": [
+        "source-jsonplaceholder-api.txt",
+        "source-jsonplaceholder-api.txt",
+        "source-jsonplaceholder-api.txt"
+      ],
+      "reason": "Passages state 'GET /posts?userId=1 returns all the posts that belong to the first user' under filtering section",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    },
+    {
+      "id": "R4",
+      "text": "GET /posts/1/comments returns all comments associated with post 1.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "mentions_only",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        0,
+        1,
+        2
+      ],
+      "cited_passages": [
+        "# JSONPlaceholder API Documentation\n\nSource: https://jsonplaceholder.typicode.com/ and\nhttps://jsonplaceholder.typicode.com/guide/ (public documentation,\nretrieved verbatim for this reference document).\n\n## When to use\n\nJSONPlaceholder is a free online REST API that you can use whenever you\nneed some fake data. It can be in a README on GitHub, for a demo on\nCodeSandbox, in code examples on Stack Overflow, or simply to test\nthings locally.\n\n## Resources\n\nJSONPlaceholder comes with a set of 6 common resources:\n\n| Resource | Count |\n|---|---|\n| /posts | 100 posts |\n| /comments | 500 comments |\n| /albums | 100 albums |\n| /photos | 5000 photos |\n| /todos | 200 todos |\n| /users | 10 users |\n\nNote: resources have relations. For example: posts have many comments,\nalbums have many photos.\n\n## Routes\n\nAll HTTP methods are supported. You can use http or https for your\nrequests.\n\n| Method | Route |\n|---|---|\n| GET | /posts |\n| GET | /posts/1 |\n| GET | /posts/1/comments |\n| GET | /comments?postId=1",
+        "|---|---|\n| GET | /posts |\n| GET | /posts/1 |\n| GET | /posts/1/comments |\n| GET | /comments?postId=1 |\n| POST | /posts |\n| PUT | /posts/1 |\n| PATCH | /posts/1 |\n| DELETE | /posts/1 |\n\n## Nested routes\n\nOne level of nested route is available. For example,\nGET /posts/1/comments is equivalent to GET /comments?postId=1.\n\nThe available nested routes are:\n- /posts/1/comments\n- /albums/1/photos\n- /users/1/albums\n- /users/1/todos\n- /users/1/posts\n\n## Filtering resources\n\nBasic filtering is supported through query parameters. For example,\nGET /posts?userId=1 returns all the posts that belong to the first\nuser.\n\n## Getting a resource\n\nGET /posts/1 returns a single post object with fields id, title, body,\nand userId.\n\n## Listing all resources\n\nGET /posts returns an array of post objects, id 1 through 100.\n\n## Creating a resource\n\nPOST /posts with a JSON body (e.g. title, body, userId) and header\nContent-type: application/json returns a response echoing the\nsubmitted fields plus a new id of 101.",
+        "ntent-type: application/json returns a response echoing the\nsubmitted fields plus a new id of 101.\n\nImportant: the resource will not be really created on the server \u2014 the\nresponse is faked as if it had been.\n\n## Updating a resource\n\nPUT /posts/1 with a full JSON body returns a response echoing the\nsubmitted fields for id 1.\n\nImportant: the resource will not be really updated on the server \u2014 the\nresponse is faked as if it had been.\n\n## Patching a resource\n\nPATCH /posts/1 with a partial JSON body (e.g. just title) returns the\nexisting post object with only that field changed.\n\nImportant: the resource will not be really updated on the server \u2014 the\nresponse is faked as if it had been.\n\n## Deleting a resource\n\nDELETE /posts/1 is accepted.\n\nImportant: the resource will not be really deleted on the server \u2014 the\nresponse is faked as if it had been.\n\n## Use your own data\n\nA sponsor project, Mockend, lets you point a GitHub repo at your own\nfake online REST server."
+      ],
+      "cited_sources": [
+        "source-jsonplaceholder-api.txt",
+        "source-jsonplaceholder-api.txt",
+        "source-jsonplaceholder-api.txt"
+      ],
+      "reason": "The passages list 'GET /posts/1/comments' as an available route and note that 'posts have many comments', but do not explicitly state what this endpoint returns or confirm it returns 'all comments associated with post 1'.",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    },
+    {
+      "id": "R5",
+      "text": "GET /comments?postId=1 returns the same results as GET /posts/1/comments.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "entails",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        0,
+        1,
+        2
+      ],
+      "cited_passages": [
+        "# JSONPlaceholder API Documentation\n\nSource: https://jsonplaceholder.typicode.com/ and\nhttps://jsonplaceholder.typicode.com/guide/ (public documentation,\nretrieved verbatim for this reference document).\n\n## When to use\n\nJSONPlaceholder is a free online REST API that you can use whenever you\nneed some fake data. It can be in a README on GitHub, for a demo on\nCodeSandbox, in code examples on Stack Overflow, or simply to test\nthings locally.\n\n## Resources\n\nJSONPlaceholder comes with a set of 6 common resources:\n\n| Resource | Count |\n|---|---|\n| /posts | 100 posts |\n| /comments | 500 comments |\n| /albums | 100 albums |\n| /photos | 5000 photos |\n| /todos | 200 todos |\n| /users | 10 users |\n\nNote: resources have relations. For example: posts have many comments,\nalbums have many photos.\n\n## Routes\n\nAll HTTP methods are supported. You can use http or https for your\nrequests.\n\n| Method | Route |\n|---|---|\n| GET | /posts |\n| GET | /posts/1 |\n| GET | /posts/1/comments |\n| GET | /comments?postId=1",
+        "|---|---|\n| GET | /posts |\n| GET | /posts/1 |\n| GET | /posts/1/comments |\n| GET | /comments?postId=1 |\n| POST | /posts |\n| PUT | /posts/1 |\n| PATCH | /posts/1 |\n| DELETE | /posts/1 |\n\n## Nested routes\n\nOne level of nested route is available. For example,\nGET /posts/1/comments is equivalent to GET /comments?postId=1.\n\nThe available nested routes are:\n- /posts/1/comments\n- /albums/1/photos\n- /users/1/albums\n- /users/1/todos\n- /users/1/posts\n\n## Filtering resources\n\nBasic filtering is supported through query parameters. For example,\nGET /posts?userId=1 returns all the posts that belong to the first\nuser.\n\n## Getting a resource\n\nGET /posts/1 returns a single post object with fields id, title, body,\nand userId.\n\n## Listing all resources\n\nGET /posts returns an array of post objects, id 1 through 100.\n\n## Creating a resource\n\nPOST /posts with a JSON body (e.g. title, body, userId) and header\nContent-type: application/json returns a response echoing the\nsubmitted fields plus a new id of 101.",
+        "ntent-type: application/json returns a response echoing the\nsubmitted fields plus a new id of 101.\n\nImportant: the resource will not be really created on the server \u2014 the\nresponse is faked as if it had been.\n\n## Updating a resource\n\nPUT /posts/1 with a full JSON body returns a response echoing the\nsubmitted fields for id 1.\n\nImportant: the resource will not be really updated on the server \u2014 the\nresponse is faked as if it had been.\n\n## Patching a resource\n\nPATCH /posts/1 with a partial JSON body (e.g. just title) returns the\nexisting post object with only that field changed.\n\nImportant: the resource will not be really updated on the server \u2014 the\nresponse is faked as if it had been.\n\n## Deleting a resource\n\nDELETE /posts/1 is accepted.\n\nImportant: the resource will not be really deleted on the server \u2014 the\nresponse is faked as if it had been.\n\n## Use your own data\n\nA sponsor project, Mockend, lets you point a GitHub repo at your own\nfake online REST server."
+      ],
+      "cited_sources": [
+        "source-jsonplaceholder-api.txt",
+        "source-jsonplaceholder-api.txt",
+        "source-jsonplaceholder-api.txt"
+      ],
+      "reason": "The passages explicitly state: 'GET /posts/1/comments is equivalent to GET /comments?postId=1.'",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    },
+    {
+      "id": "R6",
+      "text": "POST /posts with a JSON body and Content-Type: application/json returns the submitted fields plus a generated id of 101.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "entails",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        0,
+        1,
+        2
+      ],
+      "cited_passages": [
+        "# JSONPlaceholder API Documentation\n\nSource: https://jsonplaceholder.typicode.com/ and\nhttps://jsonplaceholder.typicode.com/guide/ (public documentation,\nretrieved verbatim for this reference document).\n\n## When to use\n\nJSONPlaceholder is a free online REST API that you can use whenever you\nneed some fake data. It can be in a README on GitHub, for a demo on\nCodeSandbox, in code examples on Stack Overflow, or simply to test\nthings locally.\n\n## Resources\n\nJSONPlaceholder comes with a set of 6 common resources:\n\n| Resource | Count |\n|---|---|\n| /posts | 100 posts |\n| /comments | 500 comments |\n| /albums | 100 albums |\n| /photos | 5000 photos |\n| /todos | 200 todos |\n| /users | 10 users |\n\nNote: resources have relations. For example: posts have many comments,\nalbums have many photos.\n\n## Routes\n\nAll HTTP methods are supported. You can use http or https for your\nrequests.\n\n| Method | Route |\n|---|---|\n| GET | /posts |\n| GET | /posts/1 |\n| GET | /posts/1/comments |\n| GET | /comments?postId=1",
+        "|---|---|\n| GET | /posts |\n| GET | /posts/1 |\n| GET | /posts/1/comments |\n| GET | /comments?postId=1 |\n| POST | /posts |\n| PUT | /posts/1 |\n| PATCH | /posts/1 |\n| DELETE | /posts/1 |\n\n## Nested routes\n\nOne level of nested route is available. For example,\nGET /posts/1/comments is equivalent to GET /comments?postId=1.\n\nThe available nested routes are:\n- /posts/1/comments\n- /albums/1/photos\n- /users/1/albums\n- /users/1/todos\n- /users/1/posts\n\n## Filtering resources\n\nBasic filtering is supported through query parameters. For example,\nGET /posts?userId=1 returns all the posts that belong to the first\nuser.\n\n## Getting a resource\n\nGET /posts/1 returns a single post object with fields id, title, body,\nand userId.\n\n## Listing all resources\n\nGET /posts returns an array of post objects, id 1 through 100.\n\n## Creating a resource\n\nPOST /posts with a JSON body (e.g. title, body, userId) and header\nContent-type: application/json returns a response echoing the\nsubmitted fields plus a new id of 101.",
+        "ntent-type: application/json returns a response echoing the\nsubmitted fields plus a new id of 101.\n\nImportant: the resource will not be really created on the server \u2014 the\nresponse is faked as if it had been.\n\n## Updating a resource\n\nPUT /posts/1 with a full JSON body returns a response echoing the\nsubmitted fields for id 1.\n\nImportant: the resource will not be really updated on the server \u2014 the\nresponse is faked as if it had been.\n\n## Patching a resource\n\nPATCH /posts/1 with a partial JSON body (e.g. just title) returns the\nexisting post object with only that field changed.\n\nImportant: the resource will not be really updated on the server \u2014 the\nresponse is faked as if it had been.\n\n## Deleting a resource\n\nDELETE /posts/1 is accepted.\n\nImportant: the resource will not be really deleted on the server \u2014 the\nresponse is faked as if it had been.\n\n## Use your own data\n\nA sponsor project, Mockend, lets you point a GitHub repo at your own\nfake online REST server."
+      ],
+      "cited_sources": [
+        "source-jsonplaceholder-api.txt",
+        "source-jsonplaceholder-api.txt",
+        "source-jsonplaceholder-api.txt"
+      ],
+      "reason": "The passages state: 'POST /posts with a JSON body (e.g. title, body, userId) and header Content-type: application/json returns a response echoing the submitted fields plus a new id of 101.'",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    },
+    {
+      "id": "R7",
+      "text": "POST /posts does not actually persist data to the server.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "entails",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        0,
+        1,
+        2
+      ],
+      "cited_passages": [
+        "# JSONPlaceholder API Documentation\n\nSource: https://jsonplaceholder.typicode.com/ and\nhttps://jsonplaceholder.typicode.com/guide/ (public documentation,\nretrieved verbatim for this reference document).\n\n## When to use\n\nJSONPlaceholder is a free online REST API that you can use whenever you\nneed some fake data. It can be in a README on GitHub, for a demo on\nCodeSandbox, in code examples on Stack Overflow, or simply to test\nthings locally.\n\n## Resources\n\nJSONPlaceholder comes with a set of 6 common resources:\n\n| Resource | Count |\n|---|---|\n| /posts | 100 posts |\n| /comments | 500 comments |\n| /albums | 100 albums |\n| /photos | 5000 photos |\n| /todos | 200 todos |\n| /users | 10 users |\n\nNote: resources have relations. For example: posts have many comments,\nalbums have many photos.\n\n## Routes\n\nAll HTTP methods are supported. You can use http or https for your\nrequests.\n\n| Method | Route |\n|---|---|\n| GET | /posts |\n| GET | /posts/1 |\n| GET | /posts/1/comments |\n| GET | /comments?postId=1",
+        "|---|---|\n| GET | /posts |\n| GET | /posts/1 |\n| GET | /posts/1/comments |\n| GET | /comments?postId=1 |\n| POST | /posts |\n| PUT | /posts/1 |\n| PATCH | /posts/1 |\n| DELETE | /posts/1 |\n\n## Nested routes\n\nOne level of nested route is available. For example,\nGET /posts/1/comments is equivalent to GET /comments?postId=1.\n\nThe available nested routes are:\n- /posts/1/comments\n- /albums/1/photos\n- /users/1/albums\n- /users/1/todos\n- /users/1/posts\n\n## Filtering resources\n\nBasic filtering is supported through query parameters. For example,\nGET /posts?userId=1 returns all the posts that belong to the first\nuser.\n\n## Getting a resource\n\nGET /posts/1 returns a single post object with fields id, title, body,\nand userId.\n\n## Listing all resources\n\nGET /posts returns an array of post objects, id 1 through 100.\n\n## Creating a resource\n\nPOST /posts with a JSON body (e.g. title, body, userId) and header\nContent-type: application/json returns a response echoing the\nsubmitted fields plus a new id of 101.",
+        "ntent-type: application/json returns a response echoing the\nsubmitted fields plus a new id of 101.\n\nImportant: the resource will not be really created on the server \u2014 the\nresponse is faked as if it had been.\n\n## Updating a resource\n\nPUT /posts/1 with a full JSON body returns a response echoing the\nsubmitted fields for id 1.\n\nImportant: the resource will not be really updated on the server \u2014 the\nresponse is faked as if it had been.\n\n## Patching a resource\n\nPATCH /posts/1 with a partial JSON body (e.g. just title) returns the\nexisting post object with only that field changed.\n\nImportant: the resource will not be really updated on the server \u2014 the\nresponse is faked as if it had been.\n\n## Deleting a resource\n\nDELETE /posts/1 is accepted.\n\nImportant: the resource will not be really deleted on the server \u2014 the\nresponse is faked as if it had been.\n\n## Use your own data\n\nA sponsor project, Mockend, lets you point a GitHub repo at your own\nfake online REST server."
+      ],
+      "cited_sources": [
+        "source-jsonplaceholder-api.txt",
+        "source-jsonplaceholder-api.txt",
+        "source-jsonplaceholder-api.txt"
+      ],
+      "reason": "the resource will not be really created on the server \u2014 the response is faked as if it had been",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    },
+    {
+      "id": "R8",
+      "text": "PUT /posts/1 with a full JSON body returns the submitted fields for the specified post.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "entails",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        0,
+        1,
+        2
+      ],
+      "cited_passages": [
+        "# JSONPlaceholder API Documentation\n\nSource: https://jsonplaceholder.typicode.com/ and\nhttps://jsonplaceholder.typicode.com/guide/ (public documentation,\nretrieved verbatim for this reference document).\n\n## When to use\n\nJSONPlaceholder is a free online REST API that you can use whenever you\nneed some fake data. It can be in a README on GitHub, for a demo on\nCodeSandbox, in code examples on Stack Overflow, or simply to test\nthings locally.\n\n## Resources\n\nJSONPlaceholder comes with a set of 6 common resources:\n\n| Resource | Count |\n|---|---|\n| /posts | 100 posts |\n| /comments | 500 comments |\n| /albums | 100 albums |\n| /photos | 5000 photos |\n| /todos | 200 todos |\n| /users | 10 users |\n\nNote: resources have relations. For example: posts have many comments,\nalbums have many photos.\n\n## Routes\n\nAll HTTP methods are supported. You can use http or https for your\nrequests.\n\n| Method | Route |\n|---|---|\n| GET | /posts |\n| GET | /posts/1 |\n| GET | /posts/1/comments |\n| GET | /comments?postId=1",
+        "|---|---|\n| GET | /posts |\n| GET | /posts/1 |\n| GET | /posts/1/comments |\n| GET | /comments?postId=1 |\n| POST | /posts |\n| PUT | /posts/1 |\n| PATCH | /posts/1 |\n| DELETE | /posts/1 |\n\n## Nested routes\n\nOne level of nested route is available. For example,\nGET /posts/1/comments is equivalent to GET /comments?postId=1.\n\nThe available nested routes are:\n- /posts/1/comments\n- /albums/1/photos\n- /users/1/albums\n- /users/1/todos\n- /users/1/posts\n\n## Filtering resources\n\nBasic filtering is supported through query parameters. For example,\nGET /posts?userId=1 returns all the posts that belong to the first\nuser.\n\n## Getting a resource\n\nGET /posts/1 returns a single post object with fields id, title, body,\nand userId.\n\n## Listing all resources\n\nGET /posts returns an array of post objects, id 1 through 100.\n\n## Creating a resource\n\nPOST /posts with a JSON body (e.g. title, body, userId) and header\nContent-type: application/json returns a response echoing the\nsubmitted fields plus a new id of 101.",
+        "ntent-type: application/json returns a response echoing the\nsubmitted fields plus a new id of 101.\n\nImportant: the resource will not be really created on the server \u2014 the\nresponse is faked as if it had been.\n\n## Updating a resource\n\nPUT /posts/1 with a full JSON body returns a response echoing the\nsubmitted fields for id 1.\n\nImportant: the resource will not be really updated on the server \u2014 the\nresponse is faked as if it had been.\n\n## Patching a resource\n\nPATCH /posts/1 with a partial JSON body (e.g. just title) returns the\nexisting post object with only that field changed.\n\nImportant: the resource will not be really updated on the server \u2014 the\nresponse is faked as if it had been.\n\n## Deleting a resource\n\nDELETE /posts/1 is accepted.\n\nImportant: the resource will not be really deleted on the server \u2014 the\nresponse is faked as if it had been.\n\n## Use your own data\n\nA sponsor project, Mockend, lets you point a GitHub repo at your own\nfake online REST server."
+      ],
+      "cited_sources": [
+        "source-jsonplaceholder-api.txt",
+        "source-jsonplaceholder-api.txt",
+        "source-jsonplaceholder-api.txt"
+      ],
+      "reason": "PUT /posts/1 with a full JSON body returns a response echoing the submitted fields for id 1",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    },
+    {
+      "id": "R9",
+      "text": "PUT /posts/1 does not actually update data on the server.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "entails",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        0,
+        1,
+        2
+      ],
+      "cited_passages": [
+        "# JSONPlaceholder API Documentation\n\nSource: https://jsonplaceholder.typicode.com/ and\nhttps://jsonplaceholder.typicode.com/guide/ (public documentation,\nretrieved verbatim for this reference document).\n\n## When to use\n\nJSONPlaceholder is a free online REST API that you can use whenever you\nneed some fake data. It can be in a README on GitHub, for a demo on\nCodeSandbox, in code examples on Stack Overflow, or simply to test\nthings locally.\n\n## Resources\n\nJSONPlaceholder comes with a set of 6 common resources:\n\n| Resource | Count |\n|---|---|\n| /posts | 100 posts |\n| /comments | 500 comments |\n| /albums | 100 albums |\n| /photos | 5000 photos |\n| /todos | 200 todos |\n| /users | 10 users |\n\nNote: resources have relations. For example: posts have many comments,\nalbums have many photos.\n\n## Routes\n\nAll HTTP methods are supported. You can use http or https for your\nrequests.\n\n| Method | Route |\n|---|---|\n| GET | /posts |\n| GET | /posts/1 |\n| GET | /posts/1/comments |\n| GET | /comments?postId=1",
+        "|---|---|\n| GET | /posts |\n| GET | /posts/1 |\n| GET | /posts/1/comments |\n| GET | /comments?postId=1 |\n| POST | /posts |\n| PUT | /posts/1 |\n| PATCH | /posts/1 |\n| DELETE | /posts/1 |\n\n## Nested routes\n\nOne level of nested route is available. For example,\nGET /posts/1/comments is equivalent to GET /comments?postId=1.\n\nThe available nested routes are:\n- /posts/1/comments\n- /albums/1/photos\n- /users/1/albums\n- /users/1/todos\n- /users/1/posts\n\n## Filtering resources\n\nBasic filtering is supported through query parameters. For example,\nGET /posts?userId=1 returns all the posts that belong to the first\nuser.\n\n## Getting a resource\n\nGET /posts/1 returns a single post object with fields id, title, body,\nand userId.\n\n## Listing all resources\n\nGET /posts returns an array of post objects, id 1 through 100.\n\n## Creating a resource\n\nPOST /posts with a JSON body (e.g. title, body, userId) and header\nContent-type: application/json returns a response echoing the\nsubmitted fields plus a new id of 101.",
+        "ntent-type: application/json returns a response echoing the\nsubmitted fields plus a new id of 101.\n\nImportant: the resource will not be really created on the server \u2014 the\nresponse is faked as if it had been.\n\n## Updating a resource\n\nPUT /posts/1 with a full JSON body returns a response echoing the\nsubmitted fields for id 1.\n\nImportant: the resource will not be really updated on the server \u2014 the\nresponse is faked as if it had been.\n\n## Patching a resource\n\nPATCH /posts/1 with a partial JSON body (e.g. just title) returns the\nexisting post object with only that field changed.\n\nImportant: the resource will not be really updated on the server \u2014 the\nresponse is faked as if it had been.\n\n## Deleting a resource\n\nDELETE /posts/1 is accepted.\n\nImportant: the resource will not be really deleted on the server \u2014 the\nresponse is faked as if it had been.\n\n## Use your own data\n\nA sponsor project, Mockend, lets you point a GitHub repo at your own\nfake online REST server."
+      ],
+      "cited_sources": [
+        "source-jsonplaceholder-api.txt",
+        "source-jsonplaceholder-api.txt",
+        "source-jsonplaceholder-api.txt"
+      ],
+      "reason": "the resource will not be really updated on the server \u2014 the response is faked as if it had been",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    },
+    {
+      "id": "R10",
+      "text": "PATCH /posts/1 with a partial JSON body returns the existing post with only the submitted fields changed.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "entails",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        0,
+        1,
+        2
+      ],
+      "cited_passages": [
+        "# JSONPlaceholder API Documentation\n\nSource: https://jsonplaceholder.typicode.com/ and\nhttps://jsonplaceholder.typicode.com/guide/ (public documentation,\nretrieved verbatim for this reference document).\n\n## When to use\n\nJSONPlaceholder is a free online REST API that you can use whenever you\nneed some fake data. It can be in a README on GitHub, for a demo on\nCodeSandbox, in code examples on Stack Overflow, or simply to test\nthings locally.\n\n## Resources\n\nJSONPlaceholder comes with a set of 6 common resources:\n\n| Resource | Count |\n|---|---|\n| /posts | 100 posts |\n| /comments | 500 comments |\n| /albums | 100 albums |\n| /photos | 5000 photos |\n| /todos | 200 todos |\n| /users | 10 users |\n\nNote: resources have relations. For example: posts have many comments,\nalbums have many photos.\n\n## Routes\n\nAll HTTP methods are supported. You can use http or https for your\nrequests.\n\n| Method | Route |\n|---|---|\n| GET | /posts |\n| GET | /posts/1 |\n| GET | /posts/1/comments |\n| GET | /comments?postId=1",
+        "|---|---|\n| GET | /posts |\n| GET | /posts/1 |\n| GET | /posts/1/comments |\n| GET | /comments?postId=1 |\n| POST | /posts |\n| PUT | /posts/1 |\n| PATCH | /posts/1 |\n| DELETE | /posts/1 |\n\n## Nested routes\n\nOne level of nested route is available. For example,\nGET /posts/1/comments is equivalent to GET /comments?postId=1.\n\nThe available nested routes are:\n- /posts/1/comments\n- /albums/1/photos\n- /users/1/albums\n- /users/1/todos\n- /users/1/posts\n\n## Filtering resources\n\nBasic filtering is supported through query parameters. For example,\nGET /posts?userId=1 returns all the posts that belong to the first\nuser.\n\n## Getting a resource\n\nGET /posts/1 returns a single post object with fields id, title, body,\nand userId.\n\n## Listing all resources\n\nGET /posts returns an array of post objects, id 1 through 100.\n\n## Creating a resource\n\nPOST /posts with a JSON body (e.g. title, body, userId) and header\nContent-type: application/json returns a response echoing the\nsubmitted fields plus a new id of 101.",
+        "ntent-type: application/json returns a response echoing the\nsubmitted fields plus a new id of 101.\n\nImportant: the resource will not be really created on the server \u2014 the\nresponse is faked as if it had been.\n\n## Updating a resource\n\nPUT /posts/1 with a full JSON body returns a response echoing the\nsubmitted fields for id 1.\n\nImportant: the resource will not be really updated on the server \u2014 the\nresponse is faked as if it had been.\n\n## Patching a resource\n\nPATCH /posts/1 with a partial JSON body (e.g. just title) returns the\nexisting post object with only that field changed.\n\nImportant: the resource will not be really updated on the server \u2014 the\nresponse is faked as if it had been.\n\n## Deleting a resource\n\nDELETE /posts/1 is accepted.\n\nImportant: the resource will not be really deleted on the server \u2014 the\nresponse is faked as if it had been.\n\n## Use your own data\n\nA sponsor project, Mockend, lets you point a GitHub repo at your own\nfake online REST server."
+      ],
+      "cited_sources": [
+        "source-jsonplaceholder-api.txt",
+        "source-jsonplaceholder-api.txt",
+        "source-jsonplaceholder-api.txt"
+      ],
+      "reason": "PATCH /posts/1 with a partial JSON body (e.g. just title) returns the existing post object with only that field changed.",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    },
+    {
+      "id": "R11",
+      "text": "PATCH /posts/1 does not actually modify data on the server.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "entails",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        0,
+        1,
+        2
+      ],
+      "cited_passages": [
+        "# JSONPlaceholder API Documentation\n\nSource: https://jsonplaceholder.typicode.com/ and\nhttps://jsonplaceholder.typicode.com/guide/ (public documentation,\nretrieved verbatim for this reference document).\n\n## When to use\n\nJSONPlaceholder is a free online REST API that you can use whenever you\nneed some fake data. It can be in a README on GitHub, for a demo on\nCodeSandbox, in code examples on Stack Overflow, or simply to test\nthings locally.\n\n## Resources\n\nJSONPlaceholder comes with a set of 6 common resources:\n\n| Resource | Count |\n|---|---|\n| /posts | 100 posts |\n| /comments | 500 comments |\n| /albums | 100 albums |\n| /photos | 5000 photos |\n| /todos | 200 todos |\n| /users | 10 users |\n\nNote: resources have relations. For example: posts have many comments,\nalbums have many photos.\n\n## Routes\n\nAll HTTP methods are supported. You can use http or https for your\nrequests.\n\n| Method | Route |\n|---|---|\n| GET | /posts |\n| GET | /posts/1 |\n| GET | /posts/1/comments |\n| GET | /comments?postId=1",
+        "|---|---|\n| GET | /posts |\n| GET | /posts/1 |\n| GET | /posts/1/comments |\n| GET | /comments?postId=1 |\n| POST | /posts |\n| PUT | /posts/1 |\n| PATCH | /posts/1 |\n| DELETE | /posts/1 |\n\n## Nested routes\n\nOne level of nested route is available. For example,\nGET /posts/1/comments is equivalent to GET /comments?postId=1.\n\nThe available nested routes are:\n- /posts/1/comments\n- /albums/1/photos\n- /users/1/albums\n- /users/1/todos\n- /users/1/posts\n\n## Filtering resources\n\nBasic filtering is supported through query parameters. For example,\nGET /posts?userId=1 returns all the posts that belong to the first\nuser.\n\n## Getting a resource\n\nGET /posts/1 returns a single post object with fields id, title, body,\nand userId.\n\n## Listing all resources\n\nGET /posts returns an array of post objects, id 1 through 100.\n\n## Creating a resource\n\nPOST /posts with a JSON body (e.g. title, body, userId) and header\nContent-type: application/json returns a response echoing the\nsubmitted fields plus a new id of 101.",
+        "ntent-type: application/json returns a response echoing the\nsubmitted fields plus a new id of 101.\n\nImportant: the resource will not be really created on the server \u2014 the\nresponse is faked as if it had been.\n\n## Updating a resource\n\nPUT /posts/1 with a full JSON body returns a response echoing the\nsubmitted fields for id 1.\n\nImportant: the resource will not be really updated on the server \u2014 the\nresponse is faked as if it had been.\n\n## Patching a resource\n\nPATCH /posts/1 with a partial JSON body (e.g. just title) returns the\nexisting post object with only that field changed.\n\nImportant: the resource will not be really updated on the server \u2014 the\nresponse is faked as if it had been.\n\n## Deleting a resource\n\nDELETE /posts/1 is accepted.\n\nImportant: the resource will not be really deleted on the server \u2014 the\nresponse is faked as if it had been.\n\n## Use your own data\n\nA sponsor project, Mockend, lets you point a GitHub repo at your own\nfake online REST server."
+      ],
+      "cited_sources": [
+        "source-jsonplaceholder-api.txt",
+        "source-jsonplaceholder-api.txt",
+        "source-jsonplaceholder-api.txt"
+      ],
+      "reason": "the resource will not be really updated on the server \u2014 the response is faked as if it had been.",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    },
+    {
+      "id": "R12",
+      "text": "DELETE /posts/1 is accepted by the API.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "entails",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        0,
+        1,
+        2
+      ],
+      "cited_passages": [
+        "# JSONPlaceholder API Documentation\n\nSource: https://jsonplaceholder.typicode.com/ and\nhttps://jsonplaceholder.typicode.com/guide/ (public documentation,\nretrieved verbatim for this reference document).\n\n## When to use\n\nJSONPlaceholder is a free online REST API that you can use whenever you\nneed some fake data. It can be in a README on GitHub, for a demo on\nCodeSandbox, in code examples on Stack Overflow, or simply to test\nthings locally.\n\n## Resources\n\nJSONPlaceholder comes with a set of 6 common resources:\n\n| Resource | Count |\n|---|---|\n| /posts | 100 posts |\n| /comments | 500 comments |\n| /albums | 100 albums |\n| /photos | 5000 photos |\n| /todos | 200 todos |\n| /users | 10 users |\n\nNote: resources have relations. For example: posts have many comments,\nalbums have many photos.\n\n## Routes\n\nAll HTTP methods are supported. You can use http or https for your\nrequests.\n\n| Method | Route |\n|---|---|\n| GET | /posts |\n| GET | /posts/1 |\n| GET | /posts/1/comments |\n| GET | /comments?postId=1",
+        "|---|---|\n| GET | /posts |\n| GET | /posts/1 |\n| GET | /posts/1/comments |\n| GET | /comments?postId=1 |\n| POST | /posts |\n| PUT | /posts/1 |\n| PATCH | /posts/1 |\n| DELETE | /posts/1 |\n\n## Nested routes\n\nOne level of nested route is available. For example,\nGET /posts/1/comments is equivalent to GET /comments?postId=1.\n\nThe available nested routes are:\n- /posts/1/comments\n- /albums/1/photos\n- /users/1/albums\n- /users/1/todos\n- /users/1/posts\n\n## Filtering resources\n\nBasic filtering is supported through query parameters. For example,\nGET /posts?userId=1 returns all the posts that belong to the first\nuser.\n\n## Getting a resource\n\nGET /posts/1 returns a single post object with fields id, title, body,\nand userId.\n\n## Listing all resources\n\nGET /posts returns an array of post objects, id 1 through 100.\n\n## Creating a resource\n\nPOST /posts with a JSON body (e.g. title, body, userId) and header\nContent-type: application/json returns a response echoing the\nsubmitted fields plus a new id of 101.",
+        "ntent-type: application/json returns a response echoing the\nsubmitted fields plus a new id of 101.\n\nImportant: the resource will not be really created on the server \u2014 the\nresponse is faked as if it had been.\n\n## Updating a resource\n\nPUT /posts/1 with a full JSON body returns a response echoing the\nsubmitted fields for id 1.\n\nImportant: the resource will not be really updated on the server \u2014 the\nresponse is faked as if it had been.\n\n## Patching a resource\n\nPATCH /posts/1 with a partial JSON body (e.g. just title) returns the\nexisting post object with only that field changed.\n\nImportant: the resource will not be really updated on the server \u2014 the\nresponse is faked as if it had been.\n\n## Deleting a resource\n\nDELETE /posts/1 is accepted.\n\nImportant: the resource will not be really deleted on the server \u2014 the\nresponse is faked as if it had been.\n\n## Use your own data\n\nA sponsor project, Mockend, lets you point a GitHub repo at your own\nfake online REST server."
+      ],
+      "cited_sources": [
+        "source-jsonplaceholder-api.txt",
+        "source-jsonplaceholder-api.txt",
+        "source-jsonplaceholder-api.txt"
+      ],
+      "reason": "DELETE /posts/1 is accepted.",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    },
+    {
+      "id": "R13",
+      "text": "DELETE /posts/1 does not actually remove data from the server.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "entails",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        0,
+        1,
+        2
+      ],
+      "cited_passages": [
+        "# JSONPlaceholder API Documentation\n\nSource: https://jsonplaceholder.typicode.com/ and\nhttps://jsonplaceholder.typicode.com/guide/ (public documentation,\nretrieved verbatim for this reference document).\n\n## When to use\n\nJSONPlaceholder is a free online REST API that you can use whenever you\nneed some fake data. It can be in a README on GitHub, for a demo on\nCodeSandbox, in code examples on Stack Overflow, or simply to test\nthings locally.\n\n## Resources\n\nJSONPlaceholder comes with a set of 6 common resources:\n\n| Resource | Count |\n|---|---|\n| /posts | 100 posts |\n| /comments | 500 comments |\n| /albums | 100 albums |\n| /photos | 5000 photos |\n| /todos | 200 todos |\n| /users | 10 users |\n\nNote: resources have relations. For example: posts have many comments,\nalbums have many photos.\n\n## Routes\n\nAll HTTP methods are supported. You can use http or https for your\nrequests.\n\n| Method | Route |\n|---|---|\n| GET | /posts |\n| GET | /posts/1 |\n| GET | /posts/1/comments |\n| GET | /comments?postId=1",
+        "|---|---|\n| GET | /posts |\n| GET | /posts/1 |\n| GET | /posts/1/comments |\n| GET | /comments?postId=1 |\n| POST | /posts |\n| PUT | /posts/1 |\n| PATCH | /posts/1 |\n| DELETE | /posts/1 |\n\n## Nested routes\n\nOne level of nested route is available. For example,\nGET /posts/1/comments is equivalent to GET /comments?postId=1.\n\nThe available nested routes are:\n- /posts/1/comments\n- /albums/1/photos\n- /users/1/albums\n- /users/1/todos\n- /users/1/posts\n\n## Filtering resources\n\nBasic filtering is supported through query parameters. For example,\nGET /posts?userId=1 returns all the posts that belong to the first\nuser.\n\n## Getting a resource\n\nGET /posts/1 returns a single post object with fields id, title, body,\nand userId.\n\n## Listing all resources\n\nGET /posts returns an array of post objects, id 1 through 100.\n\n## Creating a resource\n\nPOST /posts with a JSON body (e.g. title, body, userId) and header\nContent-type: application/json returns a response echoing the\nsubmitted fields plus a new id of 101.",
+        "ntent-type: application/json returns a response echoing the\nsubmitted fields plus a new id of 101.\n\nImportant: the resource will not be really created on the server \u2014 the\nresponse is faked as if it had been.\n\n## Updating a resource\n\nPUT /posts/1 with a full JSON body returns a response echoing the\nsubmitted fields for id 1.\n\nImportant: the resource will not be really updated on the server \u2014 the\nresponse is faked as if it had been.\n\n## Patching a resource\n\nPATCH /posts/1 with a partial JSON body (e.g. just title) returns the\nexisting post object with only that field changed.\n\nImportant: the resource will not be really updated on the server \u2014 the\nresponse is faked as if it had been.\n\n## Deleting a resource\n\nDELETE /posts/1 is accepted.\n\nImportant: the resource will not be really deleted on the server \u2014 the\nresponse is faked as if it had been.\n\n## Use your own data\n\nA sponsor project, Mockend, lets you point a GitHub repo at your own\nfake online REST server."
+      ],
+      "cited_sources": [
+        "source-jsonplaceholder-api.txt",
+        "source-jsonplaceholder-api.txt",
+        "source-jsonplaceholder-api.txt"
+      ],
+      "reason": "The passages explicitly state under 'Deleting a resource': 'DELETE /posts/1 is accepted. Important: the resource will not be really deleted on the server \u2014 the response is faked as if it had been.'",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    },
+    {
+      "id": "R14",
+      "text": "The API supports both http and https protocols.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "entails",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        0,
+        1,
+        2
+      ],
+      "cited_passages": [
+        "# JSONPlaceholder API Documentation\n\nSource: https://jsonplaceholder.typicode.com/ and\nhttps://jsonplaceholder.typicode.com/guide/ (public documentation,\nretrieved verbatim for this reference document).\n\n## When to use\n\nJSONPlaceholder is a free online REST API that you can use whenever you\nneed some fake data. It can be in a README on GitHub, for a demo on\nCodeSandbox, in code examples on Stack Overflow, or simply to test\nthings locally.\n\n## Resources\n\nJSONPlaceholder comes with a set of 6 common resources:\n\n| Resource | Count |\n|---|---|\n| /posts | 100 posts |\n| /comments | 500 comments |\n| /albums | 100 albums |\n| /photos | 5000 photos |\n| /todos | 200 todos |\n| /users | 10 users |\n\nNote: resources have relations. For example: posts have many comments,\nalbums have many photos.\n\n## Routes\n\nAll HTTP methods are supported. You can use http or https for your\nrequests.\n\n| Method | Route |\n|---|---|\n| GET | /posts |\n| GET | /posts/1 |\n| GET | /posts/1/comments |\n| GET | /comments?postId=1",
+        "|---|---|\n| GET | /posts |\n| GET | /posts/1 |\n| GET | /posts/1/comments |\n| GET | /comments?postId=1 |\n| POST | /posts |\n| PUT | /posts/1 |\n| PATCH | /posts/1 |\n| DELETE | /posts/1 |\n\n## Nested routes\n\nOne level of nested route is available. For example,\nGET /posts/1/comments is equivalent to GET /comments?postId=1.\n\nThe available nested routes are:\n- /posts/1/comments\n- /albums/1/photos\n- /users/1/albums\n- /users/1/todos\n- /users/1/posts\n\n## Filtering resources\n\nBasic filtering is supported through query parameters. For example,\nGET /posts?userId=1 returns all the posts that belong to the first\nuser.\n\n## Getting a resource\n\nGET /posts/1 returns a single post object with fields id, title, body,\nand userId.\n\n## Listing all resources\n\nGET /posts returns an array of post objects, id 1 through 100.\n\n## Creating a resource\n\nPOST /posts with a JSON body (e.g. title, body, userId) and header\nContent-type: application/json returns a response echoing the\nsubmitted fields plus a new id of 101.",
+        "ntent-type: application/json returns a response echoing the\nsubmitted fields plus a new id of 101.\n\nImportant: the resource will not be really created on the server \u2014 the\nresponse is faked as if it had been.\n\n## Updating a resource\n\nPUT /posts/1 with a full JSON body returns a response echoing the\nsubmitted fields for id 1.\n\nImportant: the resource will not be really updated on the server \u2014 the\nresponse is faked as if it had been.\n\n## Patching a resource\n\nPATCH /posts/1 with a partial JSON body (e.g. just title) returns the\nexisting post object with only that field changed.\n\nImportant: the resource will not be really updated on the server \u2014 the\nresponse is faked as if it had been.\n\n## Deleting a resource\n\nDELETE /posts/1 is accepted.\n\nImportant: the resource will not be really deleted on the server \u2014 the\nresponse is faked as if it had been.\n\n## Use your own data\n\nA sponsor project, Mockend, lets you point a GitHub repo at your own\nfake online REST server."
+      ],
+      "cited_sources": [
+        "source-jsonplaceholder-api.txt",
+        "source-jsonplaceholder-api.txt",
+        "source-jsonplaceholder-api.txt"
+      ],
+      "reason": "The passages state under 'Routes': 'You can use http or https for your requests.'",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    },
+    {
+      "id": "R15",
+      "text": "GET /albums/1/photos returns all photos belonging to album 1.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "mentions_only",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        0,
+        1,
+        2
+      ],
+      "cited_passages": [
+        "# JSONPlaceholder API Documentation\n\nSource: https://jsonplaceholder.typicode.com/ and\nhttps://jsonplaceholder.typicode.com/guide/ (public documentation,\nretrieved verbatim for this reference document).\n\n## When to use\n\nJSONPlaceholder is a free online REST API that you can use whenever you\nneed some fake data. It can be in a README on GitHub, for a demo on\nCodeSandbox, in code examples on Stack Overflow, or simply to test\nthings locally.\n\n## Resources\n\nJSONPlaceholder comes with a set of 6 common resources:\n\n| Resource | Count |\n|---|---|\n| /posts | 100 posts |\n| /comments | 500 comments |\n| /albums | 100 albums |\n| /photos | 5000 photos |\n| /todos | 200 todos |\n| /users | 10 users |\n\nNote: resources have relations. For example: posts have many comments,\nalbums have many photos.\n\n## Routes\n\nAll HTTP methods are supported. You can use http or https for your\nrequests.\n\n| Method | Route |\n|---|---|\n| GET | /posts |\n| GET | /posts/1 |\n| GET | /posts/1/comments |\n| GET | /comments?postId=1",
+        "|---|---|\n| GET | /posts |\n| GET | /posts/1 |\n| GET | /posts/1/comments |\n| GET | /comments?postId=1 |\n| POST | /posts |\n| PUT | /posts/1 |\n| PATCH | /posts/1 |\n| DELETE | /posts/1 |\n\n## Nested routes\n\nOne level of nested route is available. For example,\nGET /posts/1/comments is equivalent to GET /comments?postId=1.\n\nThe available nested routes are:\n- /posts/1/comments\n- /albums/1/photos\n- /users/1/albums\n- /users/1/todos\n- /users/1/posts\n\n## Filtering resources\n\nBasic filtering is supported through query parameters. For example,\nGET /posts?userId=1 returns all the posts that belong to the first\nuser.\n\n## Getting a resource\n\nGET /posts/1 returns a single post object with fields id, title, body,\nand userId.\n\n## Listing all resources\n\nGET /posts returns an array of post objects, id 1 through 100.\n\n## Creating a resource\n\nPOST /posts with a JSON body (e.g. title, body, userId) and header\nContent-type: application/json returns a response echoing the\nsubmitted fields plus a new id of 101.",
+        "ntent-type: application/json returns a response echoing the\nsubmitted fields plus a new id of 101.\n\nImportant: the resource will not be really created on the server \u2014 the\nresponse is faked as if it had been.\n\n## Updating a resource\n\nPUT /posts/1 with a full JSON body returns a response echoing the\nsubmitted fields for id 1.\n\nImportant: the resource will not be really updated on the server \u2014 the\nresponse is faked as if it had been.\n\n## Patching a resource\n\nPATCH /posts/1 with a partial JSON body (e.g. just title) returns the\nexisting post object with only that field changed.\n\nImportant: the resource will not be really updated on the server \u2014 the\nresponse is faked as if it had been.\n\n## Deleting a resource\n\nDELETE /posts/1 is accepted.\n\nImportant: the resource will not be really deleted on the server \u2014 the\nresponse is faked as if it had been.\n\n## Use your own data\n\nA sponsor project, Mockend, lets you point a GitHub repo at your own\nfake online REST server."
+      ],
+      "cited_sources": [
+        "source-jsonplaceholder-api.txt",
+        "source-jsonplaceholder-api.txt",
+        "source-jsonplaceholder-api.txt"
+      ],
+      "reason": "The passages list '/albums/1/photos' as an available nested route and note 'albums have many photos', but do not explicitly specify what GET /albums/1/photos returns or confirm it returns all photos belonging to album 1.",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    },
+    {
+      "id": "R16",
+      "text": "GET /users/1/albums returns all albums belonging to user 1.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "entails",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        0,
+        1,
+        2
+      ],
+      "cited_passages": [
+        "# JSONPlaceholder API Documentation\n\nSource: https://jsonplaceholder.typicode.com/ and\nhttps://jsonplaceholder.typicode.com/guide/ (public documentation,\nretrieved verbatim for this reference document).\n\n## When to use\n\nJSONPlaceholder is a free online REST API that you can use whenever you\nneed some fake data. It can be in a README on GitHub, for a demo on\nCodeSandbox, in code examples on Stack Overflow, or simply to test\nthings locally.\n\n## Resources\n\nJSONPlaceholder comes with a set of 6 common resources:\n\n| Resource | Count |\n|---|---|\n| /posts | 100 posts |\n| /comments | 500 comments |\n| /albums | 100 albums |\n| /photos | 5000 photos |\n| /todos | 200 todos |\n| /users | 10 users |\n\nNote: resources have relations. For example: posts have many comments,\nalbums have many photos.\n\n## Routes\n\nAll HTTP methods are supported. You can use http or https for your\nrequests.\n\n| Method | Route |\n|---|---|\n| GET | /posts |\n| GET | /posts/1 |\n| GET | /posts/1/comments |\n| GET | /comments?postId=1",
+        "|---|---|\n| GET | /posts |\n| GET | /posts/1 |\n| GET | /posts/1/comments |\n| GET | /comments?postId=1 |\n| POST | /posts |\n| PUT | /posts/1 |\n| PATCH | /posts/1 |\n| DELETE | /posts/1 |\n\n## Nested routes\n\nOne level of nested route is available. For example,\nGET /posts/1/comments is equivalent to GET /comments?postId=1.\n\nThe available nested routes are:\n- /posts/1/comments\n- /albums/1/photos\n- /users/1/albums\n- /users/1/todos\n- /users/1/posts\n\n## Filtering resources\n\nBasic filtering is supported through query parameters. For example,\nGET /posts?userId=1 returns all the posts that belong to the first\nuser.\n\n## Getting a resource\n\nGET /posts/1 returns a single post object with fields id, title, body,\nand userId.\n\n## Listing all resources\n\nGET /posts returns an array of post objects, id 1 through 100.\n\n## Creating a resource\n\nPOST /posts with a JSON body (e.g. title, body, userId) and header\nContent-type: application/json returns a response echoing the\nsubmitted fields plus a new id of 101.",
+        "ntent-type: application/json returns a response echoing the\nsubmitted fields plus a new id of 101.\n\nImportant: the resource will not be really created on the server \u2014 the\nresponse is faked as if it had been.\n\n## Updating a resource\n\nPUT /posts/1 with a full JSON body returns a response echoing the\nsubmitted fields for id 1.\n\nImportant: the resource will not be really updated on the server \u2014 the\nresponse is faked as if it had been.\n\n## Patching a resource\n\nPATCH /posts/1 with a partial JSON body (e.g. just title) returns the\nexisting post object with only that field changed.\n\nImportant: the resource will not be really updated on the server \u2014 the\nresponse is faked as if it had been.\n\n## Deleting a resource\n\nDELETE /posts/1 is accepted.\n\nImportant: the resource will not be really deleted on the server \u2014 the\nresponse is faked as if it had been.\n\n## Use your own data\n\nA sponsor project, Mockend, lets you point a GitHub repo at your own\nfake online REST server."
+      ],
+      "cited_sources": [
+        "source-jsonplaceholder-api.txt",
+        "source-jsonplaceholder-api.txt",
+        "source-jsonplaceholder-api.txt"
+      ],
+      "reason": "Passages list '/users/1/albums' as an available nested route and state 'One level of nested route is available' with the example that nested routes work like filtering (e.g., 'GET /posts/1/comments is equivalent to GET /comments?postId=1'). The filtering section states 'GET /posts?userId=1 returns all the posts that belong to the first user,' establishing the pattern that these routes return all belonging resources.",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    },
+    {
+      "id": "R17",
+      "text": "GET /users/1/todos returns all todos belonging to user 1.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "entails",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        0,
+        1,
+        2
+      ],
+      "cited_passages": [
+        "# JSONPlaceholder API Documentation\n\nSource: https://jsonplaceholder.typicode.com/ and\nhttps://jsonplaceholder.typicode.com/guide/ (public documentation,\nretrieved verbatim for this reference document).\n\n## When to use\n\nJSONPlaceholder is a free online REST API that you can use whenever you\nneed some fake data. It can be in a README on GitHub, for a demo on\nCodeSandbox, in code examples on Stack Overflow, or simply to test\nthings locally.\n\n## Resources\n\nJSONPlaceholder comes with a set of 6 common resources:\n\n| Resource | Count |\n|---|---|\n| /posts | 100 posts |\n| /comments | 500 comments |\n| /albums | 100 albums |\n| /photos | 5000 photos |\n| /todos | 200 todos |\n| /users | 10 users |\n\nNote: resources have relations. For example: posts have many comments,\nalbums have many photos.\n\n## Routes\n\nAll HTTP methods are supported. You can use http or https for your\nrequests.\n\n| Method | Route |\n|---|---|\n| GET | /posts |\n| GET | /posts/1 |\n| GET | /posts/1/comments |\n| GET | /comments?postId=1",
+        "|---|---|\n| GET | /posts |\n| GET | /posts/1 |\n| GET | /posts/1/comments |\n| GET | /comments?postId=1 |\n| POST | /posts |\n| PUT | /posts/1 |\n| PATCH | /posts/1 |\n| DELETE | /posts/1 |\n\n## Nested routes\n\nOne level of nested route is available. For example,\nGET /posts/1/comments is equivalent to GET /comments?postId=1.\n\nThe available nested routes are:\n- /posts/1/comments\n- /albums/1/photos\n- /users/1/albums\n- /users/1/todos\n- /users/1/posts\n\n## Filtering resources\n\nBasic filtering is supported through query parameters. For example,\nGET /posts?userId=1 returns all the posts that belong to the first\nuser.\n\n## Getting a resource\n\nGET /posts/1 returns a single post object with fields id, title, body,\nand userId.\n\n## Listing all resources\n\nGET /posts returns an array of post objects, id 1 through 100.\n\n## Creating a resource\n\nPOST /posts with a JSON body (e.g. title, body, userId) and header\nContent-type: application/json returns a response echoing the\nsubmitted fields plus a new id of 101.",
+        "ntent-type: application/json returns a response echoing the\nsubmitted fields plus a new id of 101.\n\nImportant: the resource will not be really created on the server \u2014 the\nresponse is faked as if it had been.\n\n## Updating a resource\n\nPUT /posts/1 with a full JSON body returns a response echoing the\nsubmitted fields for id 1.\n\nImportant: the resource will not be really updated on the server \u2014 the\nresponse is faked as if it had been.\n\n## Patching a resource\n\nPATCH /posts/1 with a partial JSON body (e.g. just title) returns the\nexisting post object with only that field changed.\n\nImportant: the resource will not be really updated on the server \u2014 the\nresponse is faked as if it had been.\n\n## Deleting a resource\n\nDELETE /posts/1 is accepted.\n\nImportant: the resource will not be really deleted on the server \u2014 the\nresponse is faked as if it had been.\n\n## Use your own data\n\nA sponsor project, Mockend, lets you point a GitHub repo at your own\nfake online REST server."
+      ],
+      "cited_sources": [
+        "source-jsonplaceholder-api.txt",
+        "source-jsonplaceholder-api.txt",
+        "source-jsonplaceholder-api.txt"
+      ],
+      "reason": "Passages list '/users/1/todos' as an available nested route and establish the pattern that nested routes return all resources belonging to a user (consistent with R16 logic and the filtering example).",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    },
+    {
+      "id": "R18",
+      "text": "GET /users/1/posts returns all posts belonging to user 1.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "entails",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        0,
+        1,
+        2
+      ],
+      "cited_passages": [
+        "# JSONPlaceholder API Documentation\n\nSource: https://jsonplaceholder.typicode.com/ and\nhttps://jsonplaceholder.typicode.com/guide/ (public documentation,\nretrieved verbatim for this reference document).\n\n## When to use\n\nJSONPlaceholder is a free online REST API that you can use whenever you\nneed some fake data. It can be in a README on GitHub, for a demo on\nCodeSandbox, in code examples on Stack Overflow, or simply to test\nthings locally.\n\n## Resources\n\nJSONPlaceholder comes with a set of 6 common resources:\n\n| Resource | Count |\n|---|---|\n| /posts | 100 posts |\n| /comments | 500 comments |\n| /albums | 100 albums |\n| /photos | 5000 photos |\n| /todos | 200 todos |\n| /users | 10 users |\n\nNote: resources have relations. For example: posts have many comments,\nalbums have many photos.\n\n## Routes\n\nAll HTTP methods are supported. You can use http or https for your\nrequests.\n\n| Method | Route |\n|---|---|\n| GET | /posts |\n| GET | /posts/1 |\n| GET | /posts/1/comments |\n| GET | /comments?postId=1",
+        "|---|---|\n| GET | /posts |\n| GET | /posts/1 |\n| GET | /posts/1/comments |\n| GET | /comments?postId=1 |\n| POST | /posts |\n| PUT | /posts/1 |\n| PATCH | /posts/1 |\n| DELETE | /posts/1 |\n\n## Nested routes\n\nOne level of nested route is available. For example,\nGET /posts/1/comments is equivalent to GET /comments?postId=1.\n\nThe available nested routes are:\n- /posts/1/comments\n- /albums/1/photos\n- /users/1/albums\n- /users/1/todos\n- /users/1/posts\n\n## Filtering resources\n\nBasic filtering is supported through query parameters. For example,\nGET /posts?userId=1 returns all the posts that belong to the first\nuser.\n\n## Getting a resource\n\nGET /posts/1 returns a single post object with fields id, title, body,\nand userId.\n\n## Listing all resources\n\nGET /posts returns an array of post objects, id 1 through 100.\n\n## Creating a resource\n\nPOST /posts with a JSON body (e.g. title, body, userId) and header\nContent-type: application/json returns a response echoing the\nsubmitted fields plus a new id of 101.",
+        "ntent-type: application/json returns a response echoing the\nsubmitted fields plus a new id of 101.\n\nImportant: the resource will not be really created on the server \u2014 the\nresponse is faked as if it had been.\n\n## Updating a resource\n\nPUT /posts/1 with a full JSON body returns a response echoing the\nsubmitted fields for id 1.\n\nImportant: the resource will not be really updated on the server \u2014 the\nresponse is faked as if it had been.\n\n## Patching a resource\n\nPATCH /posts/1 with a partial JSON body (e.g. just title) returns the\nexisting post object with only that field changed.\n\nImportant: the resource will not be really updated on the server \u2014 the\nresponse is faked as if it had been.\n\n## Deleting a resource\n\nDELETE /posts/1 is accepted.\n\nImportant: the resource will not be really deleted on the server \u2014 the\nresponse is faked as if it had been.\n\n## Use your own data\n\nA sponsor project, Mockend, lets you point a GitHub repo at your own\nfake online REST server."
+      ],
+      "cited_sources": [
+        "source-jsonplaceholder-api.txt",
+        "source-jsonplaceholder-api.txt",
+        "source-jsonplaceholder-api.txt"
+      ],
+      "reason": "Passages list '/users/1/posts' as an available nested route and establish the pattern that nested routes return all resources belonging to a user.",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    },
+    {
+      "id": "R19",
+      "text": "The API contains 10 users, 100 albums, 200 todos, 500 comments, and 5000 photos in total.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "entails",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        0,
+        1,
+        2
+      ],
+      "cited_passages": [
+        "# JSONPlaceholder API Documentation\n\nSource: https://jsonplaceholder.typicode.com/ and\nhttps://jsonplaceholder.typicode.com/guide/ (public documentation,\nretrieved verbatim for this reference document).\n\n## When to use\n\nJSONPlaceholder is a free online REST API that you can use whenever you\nneed some fake data. It can be in a README on GitHub, for a demo on\nCodeSandbox, in code examples on Stack Overflow, or simply to test\nthings locally.\n\n## Resources\n\nJSONPlaceholder comes with a set of 6 common resources:\n\n| Resource | Count |\n|---|---|\n| /posts | 100 posts |\n| /comments | 500 comments |\n| /albums | 100 albums |\n| /photos | 5000 photos |\n| /todos | 200 todos |\n| /users | 10 users |\n\nNote: resources have relations. For example: posts have many comments,\nalbums have many photos.\n\n## Routes\n\nAll HTTP methods are supported. You can use http or https for your\nrequests.\n\n| Method | Route |\n|---|---|\n| GET | /posts |\n| GET | /posts/1 |\n| GET | /posts/1/comments |\n| GET | /comments?postId=1",
+        "|---|---|\n| GET | /posts |\n| GET | /posts/1 |\n| GET | /posts/1/comments |\n| GET | /comments?postId=1 |\n| POST | /posts |\n| PUT | /posts/1 |\n| PATCH | /posts/1 |\n| DELETE | /posts/1 |\n\n## Nested routes\n\nOne level of nested route is available. For example,\nGET /posts/1/comments is equivalent to GET /comments?postId=1.\n\nThe available nested routes are:\n- /posts/1/comments\n- /albums/1/photos\n- /users/1/albums\n- /users/1/todos\n- /users/1/posts\n\n## Filtering resources\n\nBasic filtering is supported through query parameters. For example,\nGET /posts?userId=1 returns all the posts that belong to the first\nuser.\n\n## Getting a resource\n\nGET /posts/1 returns a single post object with fields id, title, body,\nand userId.\n\n## Listing all resources\n\nGET /posts returns an array of post objects, id 1 through 100.\n\n## Creating a resource\n\nPOST /posts with a JSON body (e.g. title, body, userId) and header\nContent-type: application/json returns a response echoing the\nsubmitted fields plus a new id of 101.",
+        "ntent-type: application/json returns a response echoing the\nsubmitted fields plus a new id of 101.\n\nImportant: the resource will not be really created on the server \u2014 the\nresponse is faked as if it had been.\n\n## Updating a resource\n\nPUT /posts/1 with a full JSON body returns a response echoing the\nsubmitted fields for id 1.\n\nImportant: the resource will not be really updated on the server \u2014 the\nresponse is faked as if it had been.\n\n## Patching a resource\n\nPATCH /posts/1 with a partial JSON body (e.g. just title) returns the\nexisting post object with only that field changed.\n\nImportant: the resource will not be really updated on the server \u2014 the\nresponse is faked as if it had been.\n\n## Deleting a resource\n\nDELETE /posts/1 is accepted.\n\nImportant: the resource will not be really deleted on the server \u2014 the\nresponse is faked as if it had been.\n\n## Use your own data\n\nA sponsor project, Mockend, lets you point a GitHub repo at your own\nfake online REST server."
+      ],
+      "cited_sources": [
+        "source-jsonplaceholder-api.txt",
+        "source-jsonplaceholder-api.txt",
+        "source-jsonplaceholder-api.txt"
+      ],
+      "reason": "The passages contain a table stating: '/users | 10 users', '/albums | 100 albums', '/todos | 200 todos', '/comments | 500 comments', '/photos | 5000 photos', which exactly matches all quantities in the claim.",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    }
+  ],
+  "gap_report": {
+    "ran": true,
+    "skipped_reason": "",
+    "per_concept": {
+      "resource": {
+        "spread": {
+          "low": 6,
+          "high": 6,
+          "probable": [
+            "albums",
+            "comments",
+            "photos",
+            "posts",
+            "todos",
+            "users"
+          ]
+        },
+        "claims_never_addressed": [],
+        "claims_never_addressed_reasons": {},
+        "addressed_count": 6
+      },
+      "route": {
+        "spread": {
+          "low": 12,
+          "high": 12,
+          "probable": [
+            "DELETE /posts/1",
+            "GET /albums/1/photos",
+            "GET /comments?postId=1",
+            "GET /posts",
+            "GET /posts/1",
+            "GET /posts/1/comments",
+            "GET /users/1/albums",
+            "GET /users/1/posts",
+            "GET /users/1/todos",
+            "PATCH /posts/1",
+            "POST /posts",
+            "PUT /posts/1"
+          ]
+        },
+        "claims_never_addressed": [],
+        "claims_never_addressed_reasons": {},
+        "addressed_count": 12
+      },
+      "http_method": {
+        "spread": {
+          "low": 5,
+          "high": 5,
+          "probable": [
+            "DELETE",
+            "GET",
+            "PATCH",
+            "POST",
+            "PUT"
+          ]
+        },
+        "claims_never_addressed": [],
+        "claims_never_addressed_reasons": {},
+        "addressed_count": 5
+      },
+      "relationship": {
+        "spread": {
+          "low": 2,
+          "high": 2,
+          "probable": [
+            "albums have many photos",
+            "posts have many comments"
+          ]
+        },
+        "claims_never_addressed": [],
+        "claims_never_addressed_reasons": {},
+        "addressed_count": 2
+      },
+      "operation": {
+        "spread": {
+          "low": 6,
+          "high": 6,
+          "probable": [
+            "create resource",
+            "delete resource",
+            "list all resources",
+            "patch resource",
+            "retrieve single resource",
+            "update resource"
+          ]
+        },
+        "claims_never_addressed": [],
+        "claims_never_addressed_reasons": {},
+        "addressed_count": 6
+      },
+      "query_parameter": {
+        "spread": {
+          "low": 2,
+          "high": 2,
+          "probable": [
+            "postId",
+            "userId"
+          ]
+        },
+        "claims_never_addressed": [],
+        "claims_never_addressed_reasons": {},
+        "addressed_count": 2
+      },
+      "request_body": {
+        "spread": {
+          "low": 3,
+          "high": 3,
+          "probable": [
+            "PATCH /posts/1 partial JSON body",
+            "POST /posts JSON body",
+            "PUT /posts/1 full JSON body"
+          ]
+        },
+        "claims_never_addressed": [],
+        "claims_never_addressed_reasons": {},
+        "addressed_count": 3
+      },
+      "use_case": {
+        "spread": {
+          "low": 4,
+          "high": 4,
+          "probable": [
+            "README on GitHub",
+            "code examples on Stack Overflow",
+            "demo on CodeSandbox",
+            "test things locally"
+          ]
+        },
+        "claims_never_addressed": [],
+        "claims_never_addressed_reasons": {},
+        "addressed_count": 4
+      }
+    },
+    "structural_coverage": {
+      "sections_read": 3,
+      "sections_total": 13
+    }
+  },
+  "quality": {
+    "claims_submitted": 19,
+    "shape_checked": 19,
+    "shape_violations": 0,
+    "shape_profile_source": "llm",
+    "shape_profile_overridden_by_request": false,
+    "retrieval_found_nothing": 0,
+    "retrieval_widened_for_clauses": 0,
+    "judged": 19,
+    "entailed": 17,
+    "mentions_only": 2,
+    "contradicted": 0,
+    "no_evidence": 0,
+    "undecided": 0,
+    "escalated": 0,
+    "escalation_failed_batches": 0,
+    "overturned": 0,
+    "structurally_overridden": 0,
+    "main_model": "AnthropicClient (claude-haiku-4-5)",
+    "judge_model": "AnthropicClient (claude-haiku-4-5)",
+    "judge_method": "majority_vote",
+    "runs": 3,
+    "concepts_covered": 8,
+    "concepts_total": 8,
+    "llm_calls": 25,
+    "input_tokens": 103784,
+    "output_tokens": 9300,
+    "total_tokens": 113084,
+    "cost_cents": "not available",
+    "usage_by_phase": {
+      "ontology": {
+        "calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "total_tokens": 0,
+        "cost_cents": "not available"
+      },
+      "retrieval": {
+        "calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "total_tokens": 0,
+        "cost_cents": "not available"
+      },
+      "shape_check": {
+        "calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "total_tokens": 0,
+        "cost_cents": "not available"
+      },
+      "entailment": {
+        "calls": 21,
+        "input_tokens": 98460,
+        "output_tokens": 4068,
+        "total_tokens": 102528,
+        "cost_cents": "not available"
+      },
+      "completeness": {
+        "calls": 4,
+        "input_tokens": 5324,
+        "output_tokens": 5232,
+        "total_tokens": 10556,
+        "cost_cents": "not available"
+      }
+    }
+  },
+  "duration_seconds": 95.0,
+  "excel_report": "/data/reports/job_9bfaeb6d8641.xlsx",
+  "report_url": "/api/validations/job_9bfaeb6d8641/report"
+}
