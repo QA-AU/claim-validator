@@ -88,6 +88,13 @@ Edge cases found hardening these:
 - A concept's census spread genuinely `[0, N]` (seen in some runs, not
   others) caused a `ZeroDivisionError` in the gap report's reconciled
   capture-range math.
+- A concept instance genuinely re-identified by the census in a later
+  batch (each batch reads with no memory of prior ones) was silently
+  discarded before it ever reached `chunk_of` — so a claim citing that
+  later chunk still read as never-addressed. Every confirmed sighting
+  is now kept (`chunks_of`), and the gap report credits any of them, not
+  just the one `chunk_of` happened to keep
+  ([#11](https://github.com/QA-AU/claim-validator/issues/11)).
 
 ## Shape check
 
