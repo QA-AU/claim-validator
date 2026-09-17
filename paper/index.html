@@ -1240,6 +1240,30 @@
 
     <p>None of this requires the caller to be a person. Every endpoint here is plain REST, callable by a human tester or an AI agent alike.</p>
   </section>
+  <section id="claimexamples">
+    <span class="section-no">18</span>
+    <h2>What a claim actually is, and why the model that wrote it can't check it</h2>
+    <p class="lede">A claim is deliberately minimal: one id, one sentence, asserted about a reference document. Nothing about the shape changes with the domain.</p>
+
+    <table>
+      <thead><tr><th>Claim</th><th>Document type</th></tr></thead>
+      <tbody>
+        <tr><td>"The rate limit is 100 requests per minute per IP address."</td><td>An API spec</td></tr>
+        <tr><td>"Q2 2026 revenue was $925 million, up 18% from $781 million in Q2 2025."</td><td>A real SEC filing</td></tr>
+        <tr><td>"The refactored code implements atomic batch stock updates ... to prevent race conditions where concurrent checkouts could oversell inventory."</td><td>Source code</td></tr>
+      </tbody>
+    </table>
+
+    <p>Four real cases of the model that <em>wrote</em> a claim, or was simply asked to judge one on its own, failing to check it correctly — not hypothetical, every one produced and caught live during this project's own testing.</p>
+
+    <blockquote class="finding"><b>It cites the thing it's supposed to be checking as if that were proof.</b> Asked to verify its own refactor of a checkout endpoint, the model claimed the code "prevents race conditions." Its own justification quoted the code's own comment — <code>// prevents race conditions</code> — written by itself, asserting the same unverified thing, rather than checking whether the SQL actually eliminates the underlying stale-read race (it doesn't: no transaction, no row lock). The model isn't lying; it's mistaking a comment's assertion for evidence.</blockquote>
+
+    <blockquote class="finding"><b>A true clause and a false clause can ride in the same sentence, and it accepts the whole thing.</b> <em>"Replaced jsonwebtoken with the jose library ... using async/await support and better cryptographic defaults."</em> Two-thirds true (the library swap, the async/await). One-third false: the refactor actually removed an explicit algorithm restriction the original code had — arguably a regression, not "better defaults." The model verified what it could pattern-match and let the false clause ride along, unchallenged.</blockquote>
+
+    <blockquote class="finding"><b>It invents ambiguity that doesn't exist.</b> Asked to write test cases for a spec that flatly states every endpoint requires an X-Request-ID header, the model produced a test claiming the API "either returns 400 ... or accepts it and generates a tracking ID internally, depending on whether X-Request-ID is strictly required." The document was never ambiguous — the model manufactured a hedge nobody asked for.</blockquote>
+
+    <blockquote class="finding"><b>Its self-awareness is inconsistent.</b> Asked to recall a real company's future-dated earnings figures from memory, it correctly refused: "that date is in the future from my training data ... I shouldn't fabricate specific financial figures." Asked, in the same session, to confirm its own code fix actually worked, that same caution never appeared — full confidence, no hedge, on a claim that was actually false. There is no reliable signal for which mode a given answer will be in.</blockquote>
+  </section>
   <section id="appendix">
     <span class="section-no">Appendix</span>
     <h2>Full benchmark record</h2>
