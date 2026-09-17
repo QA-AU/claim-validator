@@ -25,7 +25,10 @@ For the API itself — endpoints, request/response shapes, verdict types,
 the gap report, the Excel report's sheets — see the
 **[user manual](https://qa-au.github.io/claim-validator/manual.html)**
 (source: [docs/manual.html](docs/manual.html), GitHub shows `.html` files as
-source rather than rendering them). This file covers what the manual
+source rather than rendering them). For the full argument — why this
+exists, the evidence behind every claim above, and where it doesn't
+work — see the **[paper](https://claude.ai/artifact/HXJ66qmSJEAte8vTD1NgPp)**
+(source: [paper/index.html](paper/index.html)). This file covers what the manual
 doesn't: how the pieces fit together, how it's deployed, and what's tested.
 
 ## What it does
