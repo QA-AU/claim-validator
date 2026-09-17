@@ -1,0 +1,26 @@
+[
+  {
+    "id": "C1",
+    "text": "The refactored code replaced jsonwebtoken with the jose library for JWT verification, using async/await support and better cryptographic defaults."
+  },
+  {
+    "id": "C2",
+    "text": "The refactored code optimizes database queries by fetching all products in a single ANY() query instead of N separate queries, reducing round trips and improving performance."
+  },
+  {
+    "id": "C3",
+    "text": "The refactored code implements atomic batch stock updates using a SQL CASE statement to prevent race conditions where concurrent checkouts could oversell inventory."
+  },
+  {
+    "id": "C4",
+    "text": "The refactored code adds pre-validation of all cart items before performing any database mutations to ensure atomicity and fail fast."
+  },
+  {
+    "id": "C5",
+    "text": "The refactored code adds a response_sent flag to prevent multiple response writes if errors occur after headers are sent, making error handling safer."
+  },
+  {
+    "id": "C6",
+    "text": "The refactored code improves error messages to be generic for security and adds server-side logging for debugging without exposing internal details to clients."
+  }
+]

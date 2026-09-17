@@ -1,0 +1,429 @@
+{
+  "job_id": "job_ab967b4da7f2",
+  "status": "done",
+  "ontology_key": "doc-70ee995a-d1a7",
+  "ontology_reused": true,
+  "per_claim": [
+    {
+      "id": "C1",
+      "text": "The refactored code replaced jsonwebtoken with the jose library for JWT verification, using async/await support and better cryptographic defaults.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "entails",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "cited_passages": [
+        "const express = require('express');\nconst router = express.Router();\nconst db = require('../db');\nconst { jwtVerify } = require('jose');\n\n// Convert JWT_SECRET to Uint8Array for jose library\nconst secret = new TextEncoder().encode(process.env.JWT_SECRET);\n\n// FEATURE: Checkout a shopping cart and deduct inventory\nrouter.post('/checkout', async (req, res) => {\n  let response_sent = false;\n\n  try {\n    const authHeader = req.headers.authorization;\n    if (!authHeader) return res.status(401).json({ error: 'Missing token' });\n\n    // 1. JWT verification using modern jose library\n    const token = authHeader.split(' ')[1];\n    const { payload: user } = await jwtVerify(token, secret);\n\n    const { cartItems, discountCode } = req.body;\n    \n    if (!cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {\n      response_sent = true;\n      return res.status(400).json({ error: 'Invalid cart items' });\n    }\n\n    // 2. Fetch all products in a single query to optimize database calls",
+        "cart items' });\n    }\n\n    // 2. Fetch all products in a single query to optimize database calls\n    const productIds = cartItems.map(item => item.id);\n    const products = await db.query(\n      'SELECT id, name, price, stock FROM products WHERE id = ANY($1)',\n      [productIds]\n    );\n    \n    const productMap = new Map(products.map(p => [p.id, p]));\n\n    // 3. Validate stock availability before any updates\n    let finalPrice = 0;\n    const updates = [];\n\n    for (const item of cartItems) {\n      const product = productMap.get(item.id);\n      \n      if (!product) {\n        response_sent = true;\n        return res.status(404).json({ error: `Product not found: ${item.id}` });\n      }\n\n      if (product.stock < item.quantity) {\n        response_sent = true;\n        return res.status(400).json({ error: `Out of stock: ${product.name}` });\n      }\n\n      finalPrice += product.price * item.quantity;\n      updates.push({ id: item.id, newStock: product.stock - item.quantity });\n    }\n\n    //",
+        "antity;\n      updates.push({ id: item.id, newStock: product.stock - item.quantity });\n    }\n\n    // 4. Apply discount code\n    if (discountCode === 'SUMMER50') {\n      finalPrice = finalPrice * 0.5;\n    }\n\n    // 5. Execute all stock updates in a single batch query (prevents race conditions)\n    if (updates.length > 0) {\n      const updateQuery = 'UPDATE products SET stock = CASE id ' +\n        updates.map((_, i) => `WHEN $${i * 2 + 1} THEN $${i * 2 + 2}`).join(' ') +\n        ' END WHERE id = ANY($' + (updates.length * 2 + 1) + ')';\n      \n      const params = updates.flatMap(u => [u.id, u.newStock]).concat([productIds]);\n      await db.query(updateQuery, params);\n    }\n\n    response_sent = true;\n    res.status(200).json({ success: true, totalPaid: finalPrice });\n\n  } catch (error) {\n    // 6. Improved error handling that checks if response was already sent\n    if (!response_sent) {\n      res.status(500).json({ error: 'Checkout failed. Please try again.' });\n    }\n    console.error('Ch",
+        "res.status(500).json({ error: 'Checkout failed. Please try again.' });\n    }\n    console.error('Checkout error:', error);\n  }\n});\n\nmodule.exports = router;"
+      ],
+      "cited_sources": [
+        "refactored-checkout.txt",
+        "refactored-checkout.txt",
+        "refactored-checkout.txt",
+        "refactored-checkout.txt"
+      ],
+      "reason": "Passages state: 'const { jwtVerify } = require('jose')' and '// 1. JWT verification using modern jose library' with 'await jwtVerify(token, secret)', showing replacement of jsonwebtoken with jose library using async/await support",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    },
+    {
+      "id": "C2",
+      "text": "The refactored code optimizes database queries by fetching all products in a single ANY() query instead of N separate queries, reducing round trips and improving performance.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "entails",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "cited_passages": [
+        "const express = require('express');\nconst router = express.Router();\nconst db = require('../db');\nconst { jwtVerify } = require('jose');\n\n// Convert JWT_SECRET to Uint8Array for jose library\nconst secret = new TextEncoder().encode(process.env.JWT_SECRET);\n\n// FEATURE: Checkout a shopping cart and deduct inventory\nrouter.post('/checkout', async (req, res) => {\n  let response_sent = false;\n\n  try {\n    const authHeader = req.headers.authorization;\n    if (!authHeader) return res.status(401).json({ error: 'Missing token' });\n\n    // 1. JWT verification using modern jose library\n    const token = authHeader.split(' ')[1];\n    const { payload: user } = await jwtVerify(token, secret);\n\n    const { cartItems, discountCode } = req.body;\n    \n    if (!cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {\n      response_sent = true;\n      return res.status(400).json({ error: 'Invalid cart items' });\n    }\n\n    // 2. Fetch all products in a single query to optimize database calls",
+        "cart items' });\n    }\n\n    // 2. Fetch all products in a single query to optimize database calls\n    const productIds = cartItems.map(item => item.id);\n    const products = await db.query(\n      'SELECT id, name, price, stock FROM products WHERE id = ANY($1)',\n      [productIds]\n    );\n    \n    const productMap = new Map(products.map(p => [p.id, p]));\n\n    // 3. Validate stock availability before any updates\n    let finalPrice = 0;\n    const updates = [];\n\n    for (const item of cartItems) {\n      const product = productMap.get(item.id);\n      \n      if (!product) {\n        response_sent = true;\n        return res.status(404).json({ error: `Product not found: ${item.id}` });\n      }\n\n      if (product.stock < item.quantity) {\n        response_sent = true;\n        return res.status(400).json({ error: `Out of stock: ${product.name}` });\n      }\n\n      finalPrice += product.price * item.quantity;\n      updates.push({ id: item.id, newStock: product.stock - item.quantity });\n    }\n\n    //",
+        "antity;\n      updates.push({ id: item.id, newStock: product.stock - item.quantity });\n    }\n\n    // 4. Apply discount code\n    if (discountCode === 'SUMMER50') {\n      finalPrice = finalPrice * 0.5;\n    }\n\n    // 5. Execute all stock updates in a single batch query (prevents race conditions)\n    if (updates.length > 0) {\n      const updateQuery = 'UPDATE products SET stock = CASE id ' +\n        updates.map((_, i) => `WHEN $${i * 2 + 1} THEN $${i * 2 + 2}`).join(' ') +\n        ' END WHERE id = ANY($' + (updates.length * 2 + 1) + ')';\n      \n      const params = updates.flatMap(u => [u.id, u.newStock]).concat([productIds]);\n      await db.query(updateQuery, params);\n    }\n\n    response_sent = true;\n    res.status(200).json({ success: true, totalPaid: finalPrice });\n\n  } catch (error) {\n    // 6. Improved error handling that checks if response was already sent\n    if (!response_sent) {\n      res.status(500).json({ error: 'Checkout failed. Please try again.' });\n    }\n    console.error('Ch",
+        "res.status(500).json({ error: 'Checkout failed. Please try again.' });\n    }\n    console.error('Checkout error:', error);\n  }\n});\n\nmodule.exports = router;"
+      ],
+      "cited_sources": [
+        "refactored-checkout.txt",
+        "refactored-checkout.txt",
+        "refactored-checkout.txt",
+        "refactored-checkout.txt"
+      ],
+      "reason": "Passages state: '// 2. Fetch all products in a single query to optimize database calls' and 'SELECT id, name, price, stock FROM products WHERE id = ANY($1)', showing single ANY() query instead of N separate queries",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    },
+    {
+      "id": "C3",
+      "text": "The refactored code implements atomic batch stock updates using a SQL CASE statement to prevent race conditions where concurrent checkouts could oversell inventory.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "entails",
+      "judged": true,
+      "agreement": "2/3",
+      "cited_chunks": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "cited_passages": [
+        "const express = require('express');\nconst router = express.Router();\nconst db = require('../db');\nconst { jwtVerify } = require('jose');\n\n// Convert JWT_SECRET to Uint8Array for jose library\nconst secret = new TextEncoder().encode(process.env.JWT_SECRET);\n\n// FEATURE: Checkout a shopping cart and deduct inventory\nrouter.post('/checkout', async (req, res) => {\n  let response_sent = false;\n\n  try {\n    const authHeader = req.headers.authorization;\n    if (!authHeader) return res.status(401).json({ error: 'Missing token' });\n\n    // 1. JWT verification using modern jose library\n    const token = authHeader.split(' ')[1];\n    const { payload: user } = await jwtVerify(token, secret);\n\n    const { cartItems, discountCode } = req.body;\n    \n    if (!cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {\n      response_sent = true;\n      return res.status(400).json({ error: 'Invalid cart items' });\n    }\n\n    // 2. Fetch all products in a single query to optimize database calls",
+        "cart items' });\n    }\n\n    // 2. Fetch all products in a single query to optimize database calls\n    const productIds = cartItems.map(item => item.id);\n    const products = await db.query(\n      'SELECT id, name, price, stock FROM products WHERE id = ANY($1)',\n      [productIds]\n    );\n    \n    const productMap = new Map(products.map(p => [p.id, p]));\n\n    // 3. Validate stock availability before any updates\n    let finalPrice = 0;\n    const updates = [];\n\n    for (const item of cartItems) {\n      const product = productMap.get(item.id);\n      \n      if (!product) {\n        response_sent = true;\n        return res.status(404).json({ error: `Product not found: ${item.id}` });\n      }\n\n      if (product.stock < item.quantity) {\n        response_sent = true;\n        return res.status(400).json({ error: `Out of stock: ${product.name}` });\n      }\n\n      finalPrice += product.price * item.quantity;\n      updates.push({ id: item.id, newStock: product.stock - item.quantity });\n    }\n\n    //",
+        "antity;\n      updates.push({ id: item.id, newStock: product.stock - item.quantity });\n    }\n\n    // 4. Apply discount code\n    if (discountCode === 'SUMMER50') {\n      finalPrice = finalPrice * 0.5;\n    }\n\n    // 5. Execute all stock updates in a single batch query (prevents race conditions)\n    if (updates.length > 0) {\n      const updateQuery = 'UPDATE products SET stock = CASE id ' +\n        updates.map((_, i) => `WHEN $${i * 2 + 1} THEN $${i * 2 + 2}`).join(' ') +\n        ' END WHERE id = ANY($' + (updates.length * 2 + 1) + ')';\n      \n      const params = updates.flatMap(u => [u.id, u.newStock]).concat([productIds]);\n      await db.query(updateQuery, params);\n    }\n\n    response_sent = true;\n    res.status(200).json({ success: true, totalPaid: finalPrice });\n\n  } catch (error) {\n    // 6. Improved error handling that checks if response was already sent\n    if (!response_sent) {\n      res.status(500).json({ error: 'Checkout failed. Please try again.' });\n    }\n    console.error('Ch",
+        "res.status(500).json({ error: 'Checkout failed. Please try again.' });\n    }\n    console.error('Checkout error:', error);\n  }\n});\n\nmodule.exports = router;"
+      ],
+      "cited_sources": [
+        "refactored-checkout.txt",
+        "refactored-checkout.txt",
+        "refactored-checkout.txt",
+        "refactored-checkout.txt"
+      ],
+      "reason": "Passages show '5. Execute all stock updates in a single batch query (prevents race conditions)' with `UPDATE products SET stock = CASE id ... END WHERE id = ANY(...)` performing atomic batch updates",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    },
+    {
+      "id": "C4",
+      "text": "The refactored code adds pre-validation of all cart items before performing any database mutations to ensure atomicity and fail fast.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "mentions_only",
+      "judged": true,
+      "agreement": "2/3",
+      "cited_chunks": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "cited_passages": [
+        "const express = require('express');\nconst router = express.Router();\nconst db = require('../db');\nconst { jwtVerify } = require('jose');\n\n// Convert JWT_SECRET to Uint8Array for jose library\nconst secret = new TextEncoder().encode(process.env.JWT_SECRET);\n\n// FEATURE: Checkout a shopping cart and deduct inventory\nrouter.post('/checkout', async (req, res) => {\n  let response_sent = false;\n\n  try {\n    const authHeader = req.headers.authorization;\n    if (!authHeader) return res.status(401).json({ error: 'Missing token' });\n\n    // 1. JWT verification using modern jose library\n    const token = authHeader.split(' ')[1];\n    const { payload: user } = await jwtVerify(token, secret);\n\n    const { cartItems, discountCode } = req.body;\n    \n    if (!cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {\n      response_sent = true;\n      return res.status(400).json({ error: 'Invalid cart items' });\n    }\n\n    // 2. Fetch all products in a single query to optimize database calls",
+        "cart items' });\n    }\n\n    // 2. Fetch all products in a single query to optimize database calls\n    const productIds = cartItems.map(item => item.id);\n    const products = await db.query(\n      'SELECT id, name, price, stock FROM products WHERE id = ANY($1)',\n      [productIds]\n    );\n    \n    const productMap = new Map(products.map(p => [p.id, p]));\n\n    // 3. Validate stock availability before any updates\n    let finalPrice = 0;\n    const updates = [];\n\n    for (const item of cartItems) {\n      const product = productMap.get(item.id);\n      \n      if (!product) {\n        response_sent = true;\n        return res.status(404).json({ error: `Product not found: ${item.id}` });\n      }\n\n      if (product.stock < item.quantity) {\n        response_sent = true;\n        return res.status(400).json({ error: `Out of stock: ${product.name}` });\n      }\n\n      finalPrice += product.price * item.quantity;\n      updates.push({ id: item.id, newStock: product.stock - item.quantity });\n    }\n\n    //",
+        "antity;\n      updates.push({ id: item.id, newStock: product.stock - item.quantity });\n    }\n\n    // 4. Apply discount code\n    if (discountCode === 'SUMMER50') {\n      finalPrice = finalPrice * 0.5;\n    }\n\n    // 5. Execute all stock updates in a single batch query (prevents race conditions)\n    if (updates.length > 0) {\n      const updateQuery = 'UPDATE products SET stock = CASE id ' +\n        updates.map((_, i) => `WHEN $${i * 2 + 1} THEN $${i * 2 + 2}`).join(' ') +\n        ' END WHERE id = ANY($' + (updates.length * 2 + 1) + ')';\n      \n      const params = updates.flatMap(u => [u.id, u.newStock]).concat([productIds]);\n      await db.query(updateQuery, params);\n    }\n\n    response_sent = true;\n    res.status(200).json({ success: true, totalPaid: finalPrice });\n\n  } catch (error) {\n    // 6. Improved error handling that checks if response was already sent\n    if (!response_sent) {\n      res.status(500).json({ error: 'Checkout failed. Please try again.' });\n    }\n    console.error('Ch",
+        "res.status(500).json({ error: 'Checkout failed. Please try again.' });\n    }\n    console.error('Checkout error:', error);\n  }\n});\n\nmodule.exports = router;"
+      ],
+      "cited_sources": [
+        "refactored-checkout.txt",
+        "refactored-checkout.txt",
+        "refactored-checkout.txt",
+        "refactored-checkout.txt"
+      ],
+      "reason": "The passages show validation of stock availability (comment 3: 'Validate stock availability before any updates') and batch database execution (comment 5: 'Execute all stock updates in a single batch query'), but are silent on whether pre-validation of ALL cart items occurs before ANY database mutations, or whether this design specifically ensures atomicity and fail-fast behavior as claimed.",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    },
+    {
+      "id": "C5",
+      "text": "The refactored code adds a response_sent flag to prevent multiple response writes if errors occur after headers are sent, making error handling safer.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "entails",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "cited_passages": [
+        "const express = require('express');\nconst router = express.Router();\nconst db = require('../db');\nconst { jwtVerify } = require('jose');\n\n// Convert JWT_SECRET to Uint8Array for jose library\nconst secret = new TextEncoder().encode(process.env.JWT_SECRET);\n\n// FEATURE: Checkout a shopping cart and deduct inventory\nrouter.post('/checkout', async (req, res) => {\n  let response_sent = false;\n\n  try {\n    const authHeader = req.headers.authorization;\n    if (!authHeader) return res.status(401).json({ error: 'Missing token' });\n\n    // 1. JWT verification using modern jose library\n    const token = authHeader.split(' ')[1];\n    const { payload: user } = await jwtVerify(token, secret);\n\n    const { cartItems, discountCode } = req.body;\n    \n    if (!cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {\n      response_sent = true;\n      return res.status(400).json({ error: 'Invalid cart items' });\n    }\n\n    // 2. Fetch all products in a single query to optimize database calls",
+        "cart items' });\n    }\n\n    // 2. Fetch all products in a single query to optimize database calls\n    const productIds = cartItems.map(item => item.id);\n    const products = await db.query(\n      'SELECT id, name, price, stock FROM products WHERE id = ANY($1)',\n      [productIds]\n    );\n    \n    const productMap = new Map(products.map(p => [p.id, p]));\n\n    // 3. Validate stock availability before any updates\n    let finalPrice = 0;\n    const updates = [];\n\n    for (const item of cartItems) {\n      const product = productMap.get(item.id);\n      \n      if (!product) {\n        response_sent = true;\n        return res.status(404).json({ error: `Product not found: ${item.id}` });\n      }\n\n      if (product.stock < item.quantity) {\n        response_sent = true;\n        return res.status(400).json({ error: `Out of stock: ${product.name}` });\n      }\n\n      finalPrice += product.price * item.quantity;\n      updates.push({ id: item.id, newStock: product.stock - item.quantity });\n    }\n\n    //",
+        "antity;\n      updates.push({ id: item.id, newStock: product.stock - item.quantity });\n    }\n\n    // 4. Apply discount code\n    if (discountCode === 'SUMMER50') {\n      finalPrice = finalPrice * 0.5;\n    }\n\n    // 5. Execute all stock updates in a single batch query (prevents race conditions)\n    if (updates.length > 0) {\n      const updateQuery = 'UPDATE products SET stock = CASE id ' +\n        updates.map((_, i) => `WHEN $${i * 2 + 1} THEN $${i * 2 + 2}`).join(' ') +\n        ' END WHERE id = ANY($' + (updates.length * 2 + 1) + ')';\n      \n      const params = updates.flatMap(u => [u.id, u.newStock]).concat([productIds]);\n      await db.query(updateQuery, params);\n    }\n\n    response_sent = true;\n    res.status(200).json({ success: true, totalPaid: finalPrice });\n\n  } catch (error) {\n    // 6. Improved error handling that checks if response was already sent\n    if (!response_sent) {\n      res.status(500).json({ error: 'Checkout failed. Please try again.' });\n    }\n    console.error('Ch",
+        "res.status(500).json({ error: 'Checkout failed. Please try again.' });\n    }\n    console.error('Checkout error:', error);\n  }\n});\n\nmodule.exports = router;"
+      ],
+      "cited_sources": [
+        "refactored-checkout.txt",
+        "refactored-checkout.txt",
+        "refactored-checkout.txt",
+        "refactored-checkout.txt"
+      ],
+      "reason": "The passages explicitly declare 'let response_sent = false;' at the start, set 'response_sent = true;' before each response, and in error handling check 'if (!response_sent)' before sending the error response, with the comment 'Improved error handling that checks if response was already sent' directly confirming the claim.",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    },
+    {
+      "id": "C6",
+      "text": "The refactored code improves error messages to be generic for security and adds server-side logging for debugging without exposing internal details to clients.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "entails",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "cited_passages": [
+        "const express = require('express');\nconst router = express.Router();\nconst db = require('../db');\nconst { jwtVerify } = require('jose');\n\n// Convert JWT_SECRET to Uint8Array for jose library\nconst secret = new TextEncoder().encode(process.env.JWT_SECRET);\n\n// FEATURE: Checkout a shopping cart and deduct inventory\nrouter.post('/checkout', async (req, res) => {\n  let response_sent = false;\n\n  try {\n    const authHeader = req.headers.authorization;\n    if (!authHeader) return res.status(401).json({ error: 'Missing token' });\n\n    // 1. JWT verification using modern jose library\n    const token = authHeader.split(' ')[1];\n    const { payload: user } = await jwtVerify(token, secret);\n\n    const { cartItems, discountCode } = req.body;\n    \n    if (!cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {\n      response_sent = true;\n      return res.status(400).json({ error: 'Invalid cart items' });\n    }\n\n    // 2. Fetch all products in a single query to optimize database calls",
+        "cart items' });\n    }\n\n    // 2. Fetch all products in a single query to optimize database calls\n    const productIds = cartItems.map(item => item.id);\n    const products = await db.query(\n      'SELECT id, name, price, stock FROM products WHERE id = ANY($1)',\n      [productIds]\n    );\n    \n    const productMap = new Map(products.map(p => [p.id, p]));\n\n    // 3. Validate stock availability before any updates\n    let finalPrice = 0;\n    const updates = [];\n\n    for (const item of cartItems) {\n      const product = productMap.get(item.id);\n      \n      if (!product) {\n        response_sent = true;\n        return res.status(404).json({ error: `Product not found: ${item.id}` });\n      }\n\n      if (product.stock < item.quantity) {\n        response_sent = true;\n        return res.status(400).json({ error: `Out of stock: ${product.name}` });\n      }\n\n      finalPrice += product.price * item.quantity;\n      updates.push({ id: item.id, newStock: product.stock - item.quantity });\n    }\n\n    //",
+        "antity;\n      updates.push({ id: item.id, newStock: product.stock - item.quantity });\n    }\n\n    // 4. Apply discount code\n    if (discountCode === 'SUMMER50') {\n      finalPrice = finalPrice * 0.5;\n    }\n\n    // 5. Execute all stock updates in a single batch query (prevents race conditions)\n    if (updates.length > 0) {\n      const updateQuery = 'UPDATE products SET stock = CASE id ' +\n        updates.map((_, i) => `WHEN $${i * 2 + 1} THEN $${i * 2 + 2}`).join(' ') +\n        ' END WHERE id = ANY($' + (updates.length * 2 + 1) + ')';\n      \n      const params = updates.flatMap(u => [u.id, u.newStock]).concat([productIds]);\n      await db.query(updateQuery, params);\n    }\n\n    response_sent = true;\n    res.status(200).json({ success: true, totalPaid: finalPrice });\n\n  } catch (error) {\n    // 6. Improved error handling that checks if response was already sent\n    if (!response_sent) {\n      res.status(500).json({ error: 'Checkout failed. Please try again.' });\n    }\n    console.error('Ch",
+        "res.status(500).json({ error: 'Checkout failed. Please try again.' });\n    }\n    console.error('Checkout error:', error);\n  }\n});\n\nmodule.exports = router;"
+      ],
+      "cited_sources": [
+        "refactored-checkout.txt",
+        "refactored-checkout.txt",
+        "refactored-checkout.txt",
+        "refactored-checkout.txt"
+      ],
+      "reason": "generic message 'Checkout failed. Please try again.' plus 'console.error(\"Checkout error:\", error)' logs server-side without exposing details",
+      "escalated": true,
+      "escalated_from": "contradicts",
+      "escalation_model": "claude-sonnet-5",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    }
+  ],
+  "gap_report": {
+    "ran": true,
+    "skipped_reason": "",
+    "per_concept": {
+      "api_endpoint": {
+        "spread": {
+          "low": 1,
+          "high": 1,
+          "probable": [
+            "POST /checkout route handler"
+          ]
+        },
+        "claims_never_addressed": [],
+        "claims_never_addressed_reasons": {},
+        "addressed_count": 1
+      },
+      "authentication_mechanism": {
+        "spread": {
+          "low": 1,
+          "high": 1,
+          "probable": [
+            "JWT verification using jose library"
+          ]
+        },
+        "claims_never_addressed": [],
+        "claims_never_addressed_reasons": {},
+        "addressed_count": 1
+      },
+      "cart_item": {
+        "spread": {
+          "low": 1,
+          "high": 1,
+          "probable": [
+            "cartItems array with id and quantity"
+          ]
+        },
+        "claims_never_addressed": [],
+        "claims_never_addressed_reasons": {},
+        "addressed_count": 1
+      },
+      "product": {
+        "spread": {
+          "low": 1,
+          "high": 1,
+          "probable": [
+            "products fetched with id, name, price, stock attributes"
+          ]
+        },
+        "claims_never_addressed": [],
+        "claims_never_addressed_reasons": {},
+        "addressed_count": 1
+      },
+      "inventory_update": {
+        "spread": {
+          "low": 1,
+          "high": 1,
+          "probable": [
+            "Batch stock reduction via UPDATE products query"
+          ]
+        },
+        "claims_never_addressed": [],
+        "claims_never_addressed_reasons": {},
+        "addressed_count": 1
+      },
+      "discount_code": {
+        "spread": {
+          "low": 1,
+          "high": 1,
+          "probable": [
+            "SUMMER50 discount code applied to reduce price by 50%"
+          ]
+        },
+        "claims_never_addressed": [],
+        "claims_never_addressed_reasons": {},
+        "addressed_count": 1
+      },
+      "error_response": {
+        "spread": {
+          "low": 5,
+          "high": 5,
+          "probable": [
+            "400 error for invalid cart items",
+            "400 error for out of stock",
+            "401 error for missing token",
+            "404 error for product not found",
+            "500 error for checkout failed"
+          ]
+        },
+        "claims_never_addressed": [],
+        "claims_never_addressed_reasons": {},
+        "addressed_count": 5
+      },
+      "database_query": {
+        "spread": {
+          "low": 2,
+          "high": 2,
+          "probable": [
+            "SELECT query to fetch products by id",
+            "UPDATE query to batch update product stock"
+          ]
+        },
+        "claims_never_addressed": [],
+        "claims_never_addressed_reasons": {},
+        "addressed_count": 2
+      }
+    },
+    "structural_coverage": {
+      "sections_read": 0,
+      "sections_total": 0
+    }
+  },
+  "quality": {
+    "claims_submitted": 6,
+    "shape_checked": 6,
+    "shape_violations": 0,
+    "shape_profile_source": "llm",
+    "shape_profile_overridden_by_request": false,
+    "retrieval_found_nothing": 0,
+    "retrieval_widened_for_clauses": 0,
+    "judged": 6,
+    "entailed": 5,
+    "mentions_only": 1,
+    "contradicted": 0,
+    "no_evidence": 0,
+    "undecided": 0,
+    "escalated": 1,
+    "escalation_failed_batches": 0,
+    "overturned": 1,
+    "structurally_overridden": 0,
+    "main_model": "AnthropicClient (claude-haiku-4-5)",
+    "judge_model": "AnthropicClient (claude-haiku-4-5)",
+    "judge_method": "majority_vote",
+    "runs": 3,
+    "concepts_covered": 8,
+    "concepts_total": 8,
+    "llm_calls": 10,
+    "input_tokens": 36615,
+    "output_tokens": 3796,
+    "total_tokens": 40411,
+    "cost_cents": "not available",
+    "usage_by_phase": {
+      "ontology": {
+        "calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "total_tokens": 0,
+        "cost_cents": "not available"
+      },
+      "retrieval": {
+        "calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "total_tokens": 0,
+        "cost_cents": "not available"
+      },
+      "shape_check": {
+        "calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "total_tokens": 0,
+        "cost_cents": "not available"
+      },
+      "entailment": {
+        "calls": 6,
+        "input_tokens": 30903,
+        "output_tokens": 1808,
+        "total_tokens": 32711,
+        "cost_cents": "not available"
+      },
+      "completeness": {
+        "calls": 4,
+        "input_tokens": 5712,
+        "output_tokens": 1988,
+        "total_tokens": 7700,
+        "cost_cents": "not available"
+      }
+    }
+  },
+  "duration_seconds": 54.1,
+  "excel_report": "/data/reports/job_ab967b4da7f2.xlsx",
+  "report_url": "/api/validations/job_ab967b4da7f2/report"
+}
