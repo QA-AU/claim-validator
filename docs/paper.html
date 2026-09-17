@@ -1264,6 +1264,33 @@
 
     <p>None of this requires the caller to be a person. Every endpoint here is plain REST, callable by a human tester or an AI agent alike.</p>
   </section>
+  <section id="technologies">
+    <span class="section-no">19</span>
+    <h2>What it's built with</h2>
+    <p class="lede">No message queue, no vector database, no bespoke inference server — the stack is small enough to read in one sitting, and every unusual absence below is a deliberate cut, not an oversight.</p>
+
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Layer</th><th>Technology</th><th>Role</th></tr></thead>
+        <tbody>
+          <tr><td>Runtime</td><td><code>Python 3.11+</code></td><td>the whole service, one language end to end</td></tr>
+          <tr><td>API</td><td><code>FastAPI</code> · <code>Uvicorn</code></td><td>REST endpoints — documents, ontologies, validations, jobs</td></tr>
+          <tr><td>Judgment</td><td><code>anthropic</code> SDK — Claude Haiku / Sonnet / Opus</td><td>entailment judging and demo claim generation; no OpenAI anywhere in the request path</td></tr>
+          <tr><td>Retrieval &amp; shape checks</td><td><code>scikit-learn</code>, <code>numpy</code>, <code>pydantic</code></td><td>chunking/retrieval math and schema validation — deterministic, no model call</td></tr>
+          <tr><td>Document parsing</td><td><code>pypdf</code>, <code>pdfplumber</code>, <code>python-docx</code>, <code>beautifulsoup4</code>, <code>openpyxl</code></td><td>PDF, Word, HTML, and spreadsheet ingestion</td></tr>
+          <tr><td>Structured data</td><td>PostgreSQL via <code>SQLAlchemy</code> / <code>psycopg2</code></td><td>jobs, settings, and the audit log only — never document content</td></tr>
+          <tr><td>Ontology &amp; source store</td><td>Azure Files, SMB-mounted</td><td>the actual RAG/ontology data lives here as files, not database rows — see "One tenant, one silo," above</td></tr>
+          <tr><td>Auth</td><td><code>pyjwt</code>; Azure Entra ID, optional</td><td>bearer-token access by default, real per-user auth when a tenant opts in</td></tr>
+          <tr><td>Deployment</td><td>Docker, Azure Container Apps, Azure Container Registry, Bicep</td><td>one autoscaling silo per tenant, provisioned as code</td></tr>
+          <tr><td>Tests</td><td><code>pytest</code></td><td>344 tests as of this update</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>Two absences are worth naming, since both are easy to assume by default and both were left out on purpose. There's no vector database: chunking and retrieval run in-process against the ontology already resolved for a document, so there's nothing extra to provision, back up, or keep in sync with the source. And there's no queue or worker pool: a validation job runs synchronously inside the same Container App that received the request, autoscaled by Azure the same way any other request is, rather than handed off to separate infrastructure.</p>
+
+    <p>The dependency list also answers a direct question plainly: does this call out to anything besides Claude for judgment? No. Every entailment verdict, every escalation, every clause re-check goes through the same <code>anthropic</code> client, at a model tier chosen per call and never hardcoded — the same principle already at work when a stronger or weaker model was swapped in for testing, above.</p>
+  </section>
   <section id="appendix">
     <span class="section-no">Appendix</span>
     <h2>Full benchmark record</h2>
