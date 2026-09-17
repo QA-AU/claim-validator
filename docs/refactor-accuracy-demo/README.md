@@ -19,6 +19,7 @@ generation mistake, a **judge** limitation.
 | [`claims.json`](claims.json) | the model's own 6 summary points, turned into `{id, text}` claims verbatim. |
 | [`validation-result.json`](validation-result.json) | the full real API response (`job_ab967b4da7f2`, `usera-claimval`, fresh ontology `doc-70ee995a-d1a7` — code isn't reused from any earlier bundle). This is the result that found issue #17 — kept as-is, not overwritten. |
 | [`validation-result-after-fix.json`](validation-result-after-fix.json) | the same document and claims, re-run locally against the fixed code once #17 was fixed — see "Fixed — issue #17" below. |
+| [`validation-result-after-clause-fix.json`](validation-result-after-clause-fix.json) | the same document and claims, re-run again after the two #17 follow-ons (per-clause verification, the concurrency checker) — see "Fixed further — per-clause verification and a concurrency checker" below. |
 
 ## The task given to the model
 
@@ -129,6 +130,62 @@ atomicity; "generic" error messages that actually leak
 missed entirely. Zero regressions on
 [`../derived-test-cases-demo/`](../derived-test-cases-demo/)'s 15
 claims — every verdict identical to the originally recorded result.
+
+## Fixed further — per-clause verification and a concurrency checker
+
+`C1` was confirmed unaffected by #17's fix, exactly as planned there —
+its problem is a different shape (a false clause riding inside an
+otherwise-true compound sentence, not a self-referential comment).
+Two follow-ons close it:
+
+1. **Per-clause re-verification** (`phases/entailment.py`) — a claim
+   that reads `entails` as a whole sentence and looks compound (any
+   plain " and ", looser than the retrieval-only splitter in
+   `claim_retrieval.py`) gets each clause judged independently against
+   the same cited passages. Any clause short of `entails` downgrades
+   the whole claim.
+2. **A deterministic concurrency checker**
+   (`claimvalidator/concurrency_claim_check.py`), modeled on
+   `numeric_threshold_check.py`'s own shape — a claim asserting
+   race-safety with no recognized synchronization marker (transaction,
+   lock, guarded conditional update) in the passages downgrades to
+   `mentions_only`, independent of whichever way the LLM judge itself
+   happened to land.
+
+**Live-verified**, full 6-claim re-run against the same document:
+
+```
+C1  mentions_only 3/3   (was: entails, 3/3 — fixed; clause breakdown shows "better cryptographic
+                         defaults" unconfirmed, the jose/async-await half correctly stays entailed)
+C2  mentions_only 3/3   (was: entails, 3/3 — same standard also catches "improving performance"
+                         as unconfirmed; see the honest caveat below)
+C3  mentions_only 3/3   (was: entails, 2/3 — #17's prompt fix alone got it right this run;
+                         neither new mechanism needed to fire)
+C4  mentions_only 3/3
+C5  entails       3/3   (unaffected — not compound, no concurrency-safety claim)
+C6  contradicts   3/3
+```
+
+**A real regression, found during this verification, fixed before
+calling it done:** the first version of the per-clause splitter judged
+each clause on its bare text alone. On a completely different bundle
+([`../derived-test-cases-demo/`](../derived-test-cases-demo/)'s `T7`,
+"the response contains the user's username **and** email matching the
+account that generated the token"), splitting at "and" produced
+`"...username"` and `"email matching the account..."` — and the second
+fragment lost the shared subject the first clause carried, reading as
+unconfirmable on its own. A previously-correct `entails` flipped to a
+false `mentions_only`. Fixed by carrying the full original sentence
+alongside each clause as context, rather than judging the bare
+fragment alone. Re-verified: `T7` back to `entails`, `C1` still
+correctly downgraded — the catch survived, the false positive didn't.
+
+One honest side effect, not hidden: `C2` also moved to `mentions_only`
+— stricter than before, since "reduces round trips" and "improves
+performance" are treated as two separately-confirmable things now, and
+the passages only state the first. Defensible (performance improvement
+genuinely isn't stated, only strongly implied), but a real behavior
+shift worth knowing about, not just an unambiguous win.
 
 ## Why this is a judge finding, not a generator finding
 

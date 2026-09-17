@@ -929,3 +929,104 @@ messages that actually leak `item.id`/`product.name` on two response
 paths). Zero regressions spot-checked against
 `docs/derived-test-cases-demo/`'s 15 claims — every verdict identical
 to the originally recorded result.
+
+## 2026-09-17 — Two follow-ons to #17: per-clause verification, and a deterministic concurrency check
+
+**Why:** #17 fixed one specific way a compound claim can smuggle a false
+clause past the judge (a self-referential code comment). A second miss
+in the same live run — `docs/refactor-accuracy-demo/`'s `C1`, "replaced
+jsonwebtoken with jose ... and better cryptographic defaults" — is a
+different shape entirely: a true clause and a false clause sharing one
+sentence, with only the true half checkable against the passages, and
+#17's fix does nothing about it. Separately: the entailment judge is
+fundamentally textual entailment, comparing claim wording to passage
+wording, never actual behavior — worth a first, deliberately narrow
+step toward something more, without pretending a text-matching model
+can become a debugger.
+
+**Considered and rejected, discussed with the user first:** full
+sandboxed code execution / property-based testing (a different product
+— a test-execution platform, not a document validator) and integrating
+a real static-analysis tool like Semgrep (a genuine new dependency and
+subprocess-execution security surface, worth it later, not folded into
+this work without its own explicit scoping).
+
+**Fix 1 — per-clause re-verification of a compound claim that reads
+`entails`.** A new, deliberately looser splitter in `phases/
+entailment.py` (`_split_into_verification_clauses`, any plain " and ",
+no comma required — separate from `claim_retrieval.py`'s own
+comma-before-"and" splitter built for retrieval, issue #3, and
+deliberately not touched: that one's conservative for a reason, one
+extra split there is a free local search, one extra split here is a
+paid judge call). Fires only on a claim already scored `entails`, never
+on a compound `contradicts`/`mentions_only`/`no_evidence` — bounded
+cost. Each clause is judged with `_judge_once` against the exact same
+cited chunks the whole claim already had — no new retrieval — and the
+result rolls up: any clause `contradicts` → the whole claim does;
+otherwise any clause short of `entails` → `mentions_only`; every clause
+`entails` → unchanged. The breakdown is never thrown away — a new
+`clause_verdicts` field on both `EntailmentVerdict` and `ClaimResult`
+records exactly which clause said what.
+
+**A real regression, found during live verification, fixed before
+calling this done:** the first version judged each clause on its own
+bare text. `docs/derived-test-cases-demo/`'s `T7` — "the response
+contains the authenticated user's username **and** email matching the
+account that generated the token" — split into `"...username"` and
+`"email matching the account..."`, and the second fragment lost the
+shared subject the first clause carried, reading as an unconfirmable
+claim about email/account matching on its own. A previously-correct
+`entails` flipped to `mentions_only` — a real, live false positive from
+over-splitting a noun-list conjunction ("username and email") that was
+never two separate assertions to begin with. Fixed by carrying the full
+original sentence alongside each clause as context (via the same
+`expected_behavior` field `_claim_of` already renders), rather than
+judging the bare fragment alone — the clause is still the thing being
+verified, the full sentence just resolves what a decontextualized
+fragment can't. Re-verified: `T7` back to the correct `entails`, `C1`
+still correctly downgraded to `mentions_only` — the fix, not the
+regression, survived.
+
+**Fix 2 — a deterministic concurrency-claim checker**, modeled directly
+on `numeric_threshold_check.py`'s own shape and history (one numeric
+pattern added at a time across issues #4/#6/#8/#15, never a general
+arithmetic engine). New file `claimvalidator/concurrency_claim_check.py`:
+fires only when a claim already scored `entails` contains a
+concurrency-safety trigger phrase ("prevents race condition(s)",
+"thread-safe", "atomic(ally)", ...) and none of the cited passages show
+a recognized synchronization marker (`transaction`, `lock`,
+`FOR UPDATE`, `mutex`, `synchronized`, or a guarded conditional update
+`WHERE ... >=`). Always downgrades toward `mentions_only`, never
+`contradicts` — absence of a recognized marker isn't proof the code is
+unsafe, only that this claim's safety property isn't confirmed.
+Deliberately scoped to concurrency claims only; extending to other
+properties (security, idempotency) is a later increment, not assumed
+here.
+
+**Test coverage:** 344/344 pass (up from 334), 17 new across three
+files — `tests/test_concurrency_claim_check.py` (7, matching
+`test_numeric_threshold_check.py`'s own style), `tests/
+test_entailment_clause_verification.py` (10 — the splitter in
+isolation, plus full end-to-end runs through `judge_entailment` with a
+scripted client proving the rollup, the disabling setting, and that a
+non-compound or already-accusing claim is never sent for clause
+verification at all).
+
+**Live-verified end to end**, real Anthropic API, no redeploy first:
+`C1` moved from unanimous `entails` to `mentions_only`, with the clause
+breakdown showing exactly which half failed; `C3` landed `mentions_only`
+unanimously this run purely from #17's prompt fix, with neither new
+mechanism needing to fire — confirmation that the fixes layer rather
+than fight each other. Zero regressions on
+`docs/postman-auth-api-defects/`'s 8 claims (byte-identical to the
+originally recorded result) and, after the context-preservation fix,
+zero regressions on `docs/derived-test-cases-demo/`'s 15 either.
+
+One honest side effect worth watching, not hidden: `C2` ("optimizes
+database queries ... reducing round trips **and** improving
+performance") also moved to `mentions_only` — the passages confirm the
+query-count reduction but never state that performance actually
+improved as a result, a defensible but stricter reading than before.
+Per-clause verification is, by construction, more literal than
+whole-sentence judging; that is the fix working as designed, not a
+new bug, but worth knowing going in.
