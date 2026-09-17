@@ -1,0 +1,62 @@
+[
+  {
+    "id": "T1",
+    "text": "When a user authenticates with valid credentials, the response includes a token with `token_type` equal to \"Bearer\" and `expires_in` equal to 3600 seconds."
+  },
+  {
+    "id": "T2",
+    "text": "When a user authenticates with an invalid password, the API returns 401 Unauthorized regardless of whether the username exists."
+  },
+  {
+    "id": "T3",
+    "text": "When the /authenticate endpoint receives a request missing the password field, the API returns 400 Bad Request."
+  },
+  {
+    "id": "T4",
+    "text": "When 100 requests are made from the same IP address within 60 seconds, the 101st request returns 429 Too Many Requests with X-RateLimit-Remaining equal to 0."
+  },
+  {
+    "id": "T5",
+    "text": "When a request is made exactly at the rate limit boundary (100th request in the window), the response includes X-RateLimit-Remaining equal to 0 but the request succeeds with the expected status code."
+  },
+  {
+    "id": "T6",
+    "text": "When the X-RateLimit-Reset timestamp passes, a new request from the same IP address succeeds and X-RateLimit-Remaining resets to 99 (assuming one request made)."
+  },
+  {
+    "id": "T7",
+    "text": "When a valid token is used to call /user/profile, the response contains the authenticated user's username and email matching the account that generated the token."
+  },
+  {
+    "id": "T8",
+    "text": "When a token is used more than 3600 seconds after it was issued without being refreshed, calling /user/profile returns 401 Unauthorized."
+  },
+  {
+    "id": "T9",
+    "text": "When a refresh token is submitted to /refresh before the original token expires, a new token is returned with a fresh 3600-second expiration window."
+  },
+  {
+    "id": "T10",
+    "text": "When a refresh token is submitted to /refresh after it has expired, the API returns 401 Unauthorized."
+  },
+  {
+    "id": "T11",
+    "text": "When a user calls /logout with a valid token, subsequent requests using that same token return 401 Unauthorized."
+  },
+  {
+    "id": "T12",
+    "text": "When a request is made without an Authorization header to /user/profile, the API returns 401 Unauthorized."
+  },
+  {
+    "id": "T13",
+    "text": "When a request is made with a malformed Bearer token (invalid JWT structure) to /user/profile, the API returns 401 Unauthorized."
+  },
+  {
+    "id": "T14",
+    "text": "When a user authenticates, then immediately calls /user/profile with the returned token within the same minute, the X-RateLimit-Remaining header in both responses reflects consumption from the same 100-request-per-minute bucket."
+  },
+  {
+    "id": "T15",
+    "text": "When a request is submitted without the X-Request-ID header to any endpoint, the API either returns 400 Bad Request or accepts it and generates a tracking ID internally (depending on whether X-Request-ID is strictly required vs. optional)."
+  }
+]
