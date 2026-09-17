@@ -50,3 +50,14 @@ def test_the_original_different_value_rule_is_scoped_not_deleted():
 def test_claim_text_still_reaches_the_prompt_body():
     prompt = _prompt_for("A 3% difference fails the page.")
     assert "A 3% difference fails the page." in prompt
+
+
+def test_prompt_warns_against_treating_a_self_referential_comment_as_evidence():
+    # Issue #17: the judge accepted "prevents race conditions" as entailed
+    # because the code carried a comment asserting the same thing, rather
+    # than checking whether the SQL actually delivers that property.
+    prompt = _build_prompt([])
+    assert "merely\n                     ASSERTS the same conclusion" in prompt
+    assert "prevents race conditions" in prompt
+    assert "is not itself\n                     sufficient evidence" in prompt
+    assert "a lock, a transaction, or a\n                     conditional check" in prompt

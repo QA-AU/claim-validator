@@ -136,9 +136,18 @@ DEFAULT_SETTINGS: Dict[str, Any] = {
     # back contradicts 2/3, where five runs put the majority at entails. A
     # contradiction is the pipeline's most actionable output and the most
     # expensive to get wrong, so a split one is worth a better model's opinion.
-    # Split *non*-accusing verdicts are left alone — there are many of them and
-    # nothing acts on the difference.
     "escalate_split_contradictions": True,
+    # Re-judge an *entailment* that only a bare majority supported — issue
+    # #17. Found live: a claim that a refactor "prevents race conditions"
+    # landed entails 2/3 (one of three runs disagreed), the majority citing
+    # the code's own comment asserting the same conclusion rather than the
+    # SQL's actual semantics. mentions_only/no_evidence stay excluded on
+    # split votes — those are still non-committal findings nothing acts on
+    # the difference of — but entails is exactly as actionable, and exactly
+    # as costly to get wrong, as a contradiction once a caller is asking
+    # "did this actually fix the bug" rather than "is this claim true of a
+    # spec."
+    "escalate_split_entails": True,
     # Which tier to escalate to. Tiers, never model ids: see phase1_model_config.
     "escalation_tier": "m",
     # The stronger model is judged by consensus too. A single pass would answer
@@ -584,6 +593,28 @@ it — so the order decides the verdict, not which description sounds closest.
                      not whether every word of the claim is.
 4. "entails"       — the passages state the claim, or it follows directly.
 
+                     A comment, docstring, or identifier name that merely
+                     ASSERTS the same conclusion the claim makes — a
+                     comment reading "prevents X" for a claim asserting the
+                     code prevents X, a function named handlesXSafely for a
+                     claim that it handles X safely — is not itself
+                     sufficient evidence for this. Trace the actual
+                     operations near that comment or name (the real data
+                     flow, the conditions actually checked) and confirm
+                     they independently deliver the claimed effect. A
+                     batched SQL UPDATE next to a comment claiming it
+                     "prevents race conditions" does not entail a claim
+                     that race conditions are prevented unless the
+                     passages also show a lock, a transaction, or a
+                     conditional check tied to the value being updated —
+                     combining several writes into one statement is not
+                     the same thing as making the value they write
+                     race-safe. Without that mechanism visible, the
+                     correct verdict is "mentions_only": the subject (the
+                     update) is covered, the added property the claim
+                     asserts about it (safety under concurrency) is not
+                     confirmed.
+
 For each item return an object:
 - id: the id exactly as given
 - verdict: exactly one of "contradicts", "no_evidence", "mentions_only", "entails"
@@ -787,10 +818,14 @@ def _consensus(passes: List[EntailmentReport]) -> EntailmentReport:
 def _needs_escalation(verdict: EntailmentVerdict, settings) -> bool:
     """Is this verdict one a stronger model should be asked about?
 
-    Two cases, both measured rather than guessed. An undecided verdict is the
+    Three cases, all measured rather than guessed. An undecided verdict is the
     judge saying it does not know. A split contradiction is the judge making the
     pipeline's most actionable accusation without agreeing with itself — the
     exact shape of the one live error the three-run default still lets through.
+    A split entailment (issue #17) is the same shape from the other direction:
+    a confident confirmation the judge did not actually agree with itself on.
+    mentions_only/no_evidence stay excluded even when split — those are already
+    non-committal findings, and nothing downstream acts on the difference.
     """
     if not verdict.judged:
         return False
@@ -799,6 +834,12 @@ def _needs_escalation(verdict: EntailmentVerdict, settings) -> bool:
     if (
         settings.get("escalate_split_contradictions")
         and verdict.verdict == VERDICT_CONTRADICTS
+        and not verdict.unanimous
+    ):
+        return True
+    if (
+        settings.get("escalate_split_entails")
+        and verdict.verdict == VERDICT_ENTAILS
         and not verdict.unanimous
     ):
         return True
@@ -1058,7 +1099,11 @@ def recheck_against_better_passages(
     )
     second = judge_entailment(
         reframed, chunks, llm_client, batch_size=batch_size, runs=runs,
-        settings={"escalate_undecided": False, "escalate_split_contradictions": False},
+        settings={
+            "escalate_undecided": False,
+            "escalate_split_contradictions": False,
+            "escalate_split_entails": False,
+        },
     )
 
     better = {v.requirement_id: v for v in second.verdicts if v.judged}
