@@ -66,6 +66,7 @@ import json
 import logging
 import re
 from dataclasses import dataclass, field
+from types import SimpleNamespace
 from typing import Any, Dict, List, Optional
 
 from phases.phase1_rag_indexer import CHUNK_SIZE
@@ -123,6 +124,41 @@ _ACCUSATION_ORDER = (
     VERDICT_CONTRADICTS,
 )
 
+# For per-clause re-verification of a compound claim that already reads
+# entails (issue #17) — deliberately separate from claim_retrieval.py's own
+# `_split_claim_into_clauses` (issue #3), which only fires on a comma/
+# semicolon before "and" and is scoped that conservatively because an
+# extra split there costs one free local search (see that function's own
+# docstring). An extra split here costs a real judge call, but only ever
+# on a claim that already scored entails — bounded, so this splitter can
+# afford to be looser: any plain " and ", no punctuation required. Not
+# reused from claim_retrieval.py because phases/ never imports from
+# claimvalidator/ — this stays in the layer both modules can reach.
+_VERIFICATION_AND_RE = re.compile(r"\s+and\s+")
+_VERIFICATION_PROTECTED_SPAN_RE = re.compile(r"`[^`]*`|\"[^\"]*\"")
+
+
+def _split_into_verification_clauses(claim_text: str) -> List[str]:
+    """Candidate sub-clauses for re-verification, or `[]` when the claim
+    doesn't look compound by this (loose) rule — never `[claim_text]`, so a
+    caller can tell "not compound" apart from "compound, one clause" (which
+    cannot happen) without a length check."""
+    protected = [m.span() for m in _VERIFICATION_PROTECTED_SPAN_RE.finditer(claim_text)]
+
+    def _inside_protected(pos: int) -> bool:
+        return any(start <= pos < end for start, end in protected)
+
+    pieces, cursor = [], 0
+    for m in _VERIFICATION_AND_RE.finditer(claim_text):
+        if _inside_protected(m.start()):
+            continue
+        pieces.append(claim_text[cursor:m.start()].strip())
+        cursor = m.end()
+    pieces.append(claim_text[cursor:].strip().rstrip(".!?"))
+    pieces = [p for p in pieces if p]
+    return pieces if len(pieces) > 1 else []
+
+
 # The process name these settings are stored under. Every value below is a
 # working default; the database only ever overrides. See settings_registry.
 SETTINGS_PROCESS = "entailment"
@@ -148,6 +184,16 @@ DEFAULT_SETTINGS: Dict[str, Any] = {
     # "did this actually fix the bug" rather than "is this claim true of a
     # spec."
     "escalate_split_entails": True,
+    # Re-check a compound claim clause by clause once it reads entails as a
+    # whole sentence — the second finding from issue #17. A true clause and
+    # a false clause sharing one sentence can both land on the correct
+    # per-word evidence and still produce a single, unanimous, wrong
+    # `entails` for the sentence as a whole (see docs/refactor-accuracy-
+    # demo/'s C1: "replaced jsonwebtoken with jose ... and better
+    # cryptographic defaults" — true swap, false "better defaults" claim,
+    # 3/3 entails regardless). Bounded cost: only ever runs on a claim
+    # already scored entails, and only when it actually looks compound.
+    "verify_entailed_clauses": True,
     # Which tier to escalate to. Tiers, never model ids: see phase1_model_config.
     "escalation_tier": "m",
     # The stronger model is judged by consensus too. A single pass would answer
@@ -218,6 +264,15 @@ class EntailmentVerdict:
     method: str = "majority_vote"
     confidence: Optional[float] = None
 
+    # Set when a compound claim that read `entails` as a whole sentence was
+    # re-checked clause by clause (issue #17's second finding) — one entry
+    # per clause: {"clause": ..., "verdict": ..., "reason": ...}. Empty for
+    # every claim this step didn't apply to (not compound, or not entails
+    # in the first place). Never collapsed away: a claim whose overall
+    # verdict changed because of this should show exactly which clause did
+    # it, the same transparency instinct as `verdicts_seen` above.
+    clause_verdicts: List[Dict[str, str]] = field(default_factory=list)
+
     @property
     def decided(self) -> bool:
         """Did a strict majority of the runs that answered agree?"""
@@ -253,6 +308,7 @@ class EntailmentVerdict:
             "better_chunks": self.better_chunks,
             "method": self.method,
             "confidence": self.confidence,
+            "clause_verdicts": self.clause_verdicts,
         }
 
 
@@ -924,6 +980,92 @@ def _escalate(
             )
 
 
+def _verify_entailed_clauses(
+    report: EntailmentReport,
+    requirements_by_id: Dict[str, Any],
+    chunks: List[str],
+    batch_size: int,
+    settings,
+    llm_client,
+) -> None:
+    """Re-check a compound claim clause by clause once it reads `entails` as
+    a whole sentence — issue #17's second finding. Never touches a claim
+    that reads contradicts/mentions_only/no_evidence, and never touches a
+    claim `_split_into_verification_clauses` doesn't consider compound.
+
+    Each clause is judged against the same cited chunks the whole claim
+    already had — no new retrieval, reusing `_judge_once` unchanged, a
+    clause is just another one-line claim to it. A clause's own batch
+    failing leaves the whole-claim verdict untouched rather than rolling up
+    on incomplete data (same caution `_escalate` above already takes: a
+    partial answer is not a mandate to overwrite a real one).
+    """
+    if not settings.get("verify_entailed_clauses"):
+        return
+
+    candidates = [v for v in report.verdicts if v.judged and v.verdict == VERDICT_ENTAILS]
+    if not candidates:
+        return
+
+    for verdict in candidates:
+        requirement = requirements_by_id.get(verdict.requirement_id)
+        if requirement is None:
+            continue
+        full_claim = _claim_of(requirement)
+        clauses = _split_into_verification_clauses(full_claim)
+        if not clauses:
+            continue
+
+        # The full original sentence rides along as context (via
+        # `expected_behavior`, which `_claim_of` already appends after the
+        # clause) rather than judging the bare fragment alone. Found live:
+        # splitting "the response contains the user's username and email
+        # matching the account" at "and" leaves "email matching the
+        # account..." with no subject of its own — a fragment that reads as
+        # unconfirmable standalone even though the full sentence made the
+        # shared subject obvious. The clause is still the thing being
+        # verified; the full sentence is only there to resolve what a bare
+        # fragment can't.
+        pseudo_requirements = [
+            SimpleNamespace(
+                id=f"{verdict.requirement_id}::clause{i}",
+                title=clause,
+                expected_behavior=f'Read as part of the full original claim: "{full_claim}"',
+                criteria=[],
+                source_chunks=requirement.source_chunks,
+            )
+            for i, clause in enumerate(clauses)
+        ]
+        clause_report = _judge_once(pseudo_requirements, chunks, llm_client, batch_size)
+        clause_by_id = {v.requirement_id: v for v in clause_report.verdicts if v.judged}
+        if len(clause_by_id) < len(pseudo_requirements):
+            continue  # a clause's own batch failed — leave the whole-claim verdict alone
+
+        clause_verdicts = [
+            {
+                "clause": pr.title,
+                "verdict": clause_by_id[pr.id].verdict,
+                "reason": clause_by_id[pr.id].reason,
+            }
+            for pr in pseudo_requirements
+        ]
+        verdict.clause_verdicts = clause_verdicts
+
+        results = [c["verdict"] for c in clause_verdicts]
+        if all(r == VERDICT_ENTAILS for r in results):
+            continue  # confirmed clause by clause — the whole-claim entails stands
+
+        was = verdict.verdict
+        verdict.verdict = VERDICT_CONTRADICTS if VERDICT_CONTRADICTS in results else VERDICT_MENTIONS_ONLY
+        verdict.reason = "Compound claim, verified clause by clause: " + "; ".join(
+            f"'{c['clause']}' -> {c['verdict']}" for c in clause_verdicts
+        )
+        logger.info(
+            f"[Entailment] {verdict.requirement_id}: {was} -> {verdict.verdict} "
+            f"on per-clause re-verification"
+        )
+
+
 def judge_entailment(
     requirements,
     chunks: List[str],
@@ -971,16 +1113,23 @@ def judge_entailment(
     report.settings = settings.provenance() if hasattr(settings, "provenance") else {}
     report.low_entailment = settings.get("low_entailment", LOW_ENTAILMENT)
 
+    requirements_by_id = {r.id: r for r in requirements}
+
     # Escalation reads the consensus, so it cannot run before it. Only ever
     # applied to verdicts the consensus left doubtful.
     _escalate(
         report,
-        {r.id: r for r in requirements},
+        requirements_by_id,
         chunks,
         batch_size,
         settings,
         escalation_client=escalation_client,
     )
+
+    # Reads whatever verdict escalation left in place — a claim escalation
+    # just confirmed as entails is exactly as eligible for per-clause
+    # re-verification as one that was always entails.
+    _verify_entailed_clauses(report, requirements_by_id, chunks, batch_size, settings, llm_client)
 
     rate = report.entailment_rate
     logger.info(
@@ -1103,6 +1252,7 @@ def recheck_against_better_passages(
             "escalate_undecided": False,
             "escalate_split_contradictions": False,
             "escalate_split_entails": False,
+            "verify_entailed_clauses": False,
         },
     )
 

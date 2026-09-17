@@ -18,6 +18,7 @@ from phases.run_tracker import RunTracker
 
 from claimvalidator import config
 from claimvalidator.claim_retrieval import retrieve_for_claim
+from claimvalidator.concurrency_claim_check import check_concurrency_consistency
 from claimvalidator.claim_shims import ResolvedClaim, _ClaimSet, _JudgeClaim, shape_profile
 from claimvalidator.document_identity import resolve_ontology_key
 from claimvalidator.gap_report import GapReport, build_gap_report
@@ -148,6 +149,20 @@ def _build_claim_result(
             verdict.verdict = override.verdict
             verdict.reason = override.explanation
 
+    # Deterministic concurrency-claim correction (issue #17) — see
+    # claimvalidator/concurrency_claim_check.py. Checked after the numeric
+    # correction above, against whatever verdict is current at this point,
+    # so the two compose cleanly rather than racing: this one only ever
+    # fires on a claim still reading entails, and only ever downgrades to
+    # mentions_only, never upgrades or contradicts.
+    if verdict and verdict.judged and verdict.verdict == VERDICT_ENTAILS:
+        concurrency_override = check_concurrency_consistency(claim.text, cited_passages)
+        if concurrency_override is not None:
+            structurally_overridden = True
+            structurally_overridden_from = verdict.verdict
+            verdict.verdict = concurrency_override.verdict
+            verdict.reason = concurrency_override.explanation
+
     verdict_ok = bool(verdict and verdict.judged)
     return ClaimResult(
         id=claim.id,
@@ -171,6 +186,7 @@ def _build_claim_result(
         structurally_overridden=structurally_overridden,
         structurally_overridden_from=structurally_overridden_from,
         retrieval_widened_for_clauses=claim.retrieval_widened_for_clauses,
+        clause_verdicts=(verdict.clause_verdicts if verdict else []),
     )
 
 
@@ -264,6 +280,13 @@ class ClaimResult:
     # there are more of them than a single probe would have found.
     retrieval_widened_for_clauses: bool = False
 
+    # Set when this claim read `entails` as a whole sentence but turned out
+    # to be compound, and one of its clauses didn't independently confirm
+    # (issue #17) — one entry per clause: {"clause", "verdict", "reason"}.
+    # Empty for every claim per-clause re-verification didn't apply to or
+    # didn't need to change anything for.
+    clause_verdicts: List[Dict[str, str]] = field(default_factory=list)
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "id": self.id,
@@ -286,6 +309,7 @@ class ClaimResult:
             "structurally_overridden": self.structurally_overridden,
             "structurally_overridden_from": self.structurally_overridden_from,
             "retrieval_widened_for_clauses": self.retrieval_widened_for_clauses,
+            "clause_verdicts": self.clause_verdicts,
         }
 
 
