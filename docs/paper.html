@@ -434,8 +434,32 @@
     <p>The judging core that does this — the part that reads a document, builds a structured map of what it's about, and decides whether a piece of text is actually backed by it — did not start as a validator at all. It began as a private, general-purpose research pipeline for discovering an <em>ontology</em> inside an arbitrary document: whatever concept types the document itself contains, extracted per-document rather than assumed in advance, then indexed for retrieval and checked with an LLM-as-judge entailment step. Claim Validator reuses that pipeline as a library rather than rewriting it, and everything genuinely new sits in a thin layer around it: an async job/API service, a set of shims that let a bare <code>id + text</code> claim satisfy contracts the underlying judge was never written to expect, and an Excel/JSON reporting layer.</p>
 
   </section>
-  <section id="mechanism">
+  <section id="claimexamples">
     <span class="section-no">02</span>
+    <h2>What a claim actually is, and why the model that wrote it can't check it</h2>
+    <p class="lede">A claim is deliberately minimal: one id, one sentence, asserted about a reference document. Nothing about the shape changes with the domain.</p>
+
+    <table>
+      <thead><tr><th>Claim</th><th>Document type</th></tr></thead>
+      <tbody>
+        <tr><td>"The rate limit is 100 requests per minute per IP address."</td><td>An API spec</td></tr>
+        <tr><td>"Q2 2026 revenue was $925 million, up 18% from $781 million in Q2 2025."</td><td>A real SEC filing</td></tr>
+        <tr><td>"The refactored code implements atomic batch stock updates ... to prevent race conditions where concurrent checkouts could oversell inventory."</td><td>Source code</td></tr>
+      </tbody>
+    </table>
+
+    <p>Four real cases of the model that <em>wrote</em> a claim, or was simply asked to judge one on its own, failing to check it correctly — not hypothetical, every one produced and caught live during this project's own testing.</p>
+
+    <blockquote class="finding"><b>It cites the thing it's supposed to be checking as if that were proof.</b> Asked to verify its own refactor of a checkout endpoint, the model claimed the code "prevents race conditions." Its own justification quoted the code's own comment — <code>// prevents race conditions</code> — written by itself, asserting the same unverified thing, rather than checking whether the SQL actually eliminates the underlying stale-read race (it doesn't: no transaction, no row lock). The model isn't lying; it's mistaking a comment's assertion for evidence.</blockquote>
+
+    <blockquote class="finding"><b>A true clause and a false clause can ride in the same sentence, and it accepts the whole thing.</b> <em>"Replaced jsonwebtoken with the jose library ... using async/await support and better cryptographic defaults."</em> Two-thirds true (the library swap, the async/await). One-third false: the refactor actually removed an explicit algorithm restriction the original code had — arguably a regression, not "better defaults." The model verified what it could pattern-match and let the false clause ride along, unchallenged.</blockquote>
+
+    <blockquote class="finding"><b>It invents ambiguity that doesn't exist.</b> Asked to write test cases for a spec that flatly states every endpoint requires an X-Request-ID header, the model produced a test claiming the API "either returns 400 ... or accepts it and generates a tracking ID internally, depending on whether X-Request-ID is strictly required." The document was never ambiguous — the model manufactured a hedge nobody asked for.</blockquote>
+
+    <blockquote class="finding"><b>Its self-awareness is inconsistent.</b> Asked to recall a real company's future-dated earnings figures from memory, it correctly refused: "that date is in the future from my training data ... I shouldn't fabricate specific financial figures." Asked, in the same session, to confirm its own code fix actually worked, that same caution never appeared — full confidence, no hedge, on a claim that was actually false. There is no reliable signal for which mode a given answer will be in.</blockquote>
+  </section>
+  <section id="mechanism">
+    <span class="section-no">03</span>
     <h2>What actually happens to a claim</h2>
     <p class="lede">One document, a bare list of claims, and two independent questions asked about them — never conflated into one score.</p>
 
@@ -509,7 +533,7 @@
     <p>Two things are worth naming about that diagram. First, the ontology is built once and reused — the same document resubmitted under a different name, or no name, is caught by content hash and never re-indexed. Second, claims never touch the judge directly: they're retrieved against first, so a verdict is always anchored to a specific cited passage a human can go back and re-read, not a bare model opinion.</p>
   </section>
   <section id="verdicts">
-    <span class="section-no">03</span>
+    <span class="section-no">04</span>
     <h2>Four verdicts, not a score</h2>
     <p class="lede">A single 1–5 groundedness number can't distinguish a fabrication from an unaddressed claim. This tool refuses to collapse them.</p>
 
@@ -538,7 +562,7 @@
     <p>Every claim is judged <strong>three separate times</strong>; the reported verdict is whichever the judge agreed with itself on most. Disagreement across those three runs is itself a signal, kept alongside the verdict rather than thrown away in an average.</p>
   </section>
   <section id="scope">
-    <span class="section-no">04</span>
+    <span class="section-no">05</span>
     <h2>What it needs to know, and what it deliberately doesn't ask</h2>
     <p class="lede">"Requirements" were the first use case, not a boundary. What the engine takes as input — and refuses to take — says as much about its design as the verdicts do.</p>
 
@@ -558,7 +582,7 @@
     <p>Nothing about a claim's declared purpose changes how it gets judged. That's not a missing feature — it's the same principle behind the missing provenance field, applied one level further: the entailment judge is supposed to be blind to who wrote a claim and why, so it can't be talked into trusting one more because it arrived framed as coming from a careful process. It reads the claim, reads the document, and answers the same question every time.</p>
   </section>
   <section id="coverage">
-    <span class="section-no">05</span>
+    <span class="section-no">06</span>
     <h2>Correct is not the same as complete</h2>
     <p class="lede">The gap report asks a document-shaped question no per-claim verdict can answer: what did nobody even try to check?</p>
 
@@ -584,7 +608,7 @@
     <p class="pull">Three of the four prose documents came back with <span class="accent">every concept fully addressed</span> and one <span class="accent">didn't</span> — a distinction the per-claim verdicts alone would never have surfaced.</p>
   </section>
   <section id="architecture">
-    <span class="section-no">06</span>
+    <span class="section-no">07</span>
     <h2>One tenant, one silo — sharing as little as possible</h2>
     <p class="lede">The judging mechanism in the last section runs the same way regardless of who's calling it. Who can reach whose data is a separate question, answered at the infrastructure level, not the application level.</p>
 
@@ -717,7 +741,7 @@
     <p>None of this is aspirational. Both tenants shown here are real, running deployments — <code>usera-claimval</code> is the one every live result in this paper came from — scoped from a written Azure-readiness assessment before a single resource existed, then provisioned by three Bicep templates deployed in order (a one-time admin identity, the shared environment, then a template per tenant). The full account is in the project's own <code>infra/README.md</code> — kept as a real deployment history, not a clean-room design document.</p>
   </section>
   <section id="quality">
-    <span class="section-no">07</span>
+    <span class="section-no">08</span>
     <h2>What gets checked besides "is it true"</h2>
     <p class="lede">Before the judge ever runs, and after every verdict is in, two more layers ask questions the entailment check alone can't.</p>
 
@@ -765,7 +789,7 @@
     <p style="font-size:14.5px;color:var(--muted);">Same discipline as the four verdicts themselves: every number on the report says what it means and what a good value looks like, rather than shipping as a bare count someone has to reverse-engineer.</p>
   </section>
   <section id="citedpassages">
-    <span class="section-no">08</span>
+    <span class="section-no">09</span>
     <span class="shipped-tag">Shipped — live-tested</span>
     <h2>Reading the passage, not just the reason</h2>
     <p class="lede">A verdict is only as checkable as what's next to it. Until this shipped, "next to it" was a paraphrase and a number that meant nothing on its own.</p>
@@ -793,7 +817,7 @@
     <p>Free, by construction: the passage text was already loaded in memory at the exact point a verdict gets built — retrieval had already pulled it to hand the judge something to read. Surfacing it added no LLM call, no latency, no new cost; it's the same data, just no longer thrown away after the judge finished with it. 225 tests passing (from 219), verified against a real downloaded report on the live tenant before shipping.</p>
   </section>
   <section id="multidoc">
-    <span class="section-no">09</span>
+    <span class="section-no">10</span>
     <span class="shipped-tag">Shipped — live-tested</span>
     <h2>More than one document, one ontology</h2>
     <p class="lede">A reference document was never actually limited to one file — a caller just had nowhere to see which of several it was reading from. Both halves are covered here: the combining, which already existed, and the attribution, which didn't.</p>
@@ -807,11 +831,11 @@
     <p>The same discipline as everywhere else in this section: the common case stays exactly as it was. A citation from a single-document ontology — every real result shown earlier in this paper — renders identically to before, no filename clutter on the normal case. The source only appears once a claim's own citations genuinely span more than one document, which is precisely the situation where knowing which one stops being optional. 229 tests passing (from 225), verified against a real downloaded report from the two-document run before shipping.</p>
   </section>
   <section id="futureshape">
-    <span class="section-no">10</span>
+    <span class="section-no">11</span>
     <span class="shipped-tag">Shipped — live-tested</span>
     <h2>The shape check learns the document</h2>
 
-    <p>The shape check (section 05) asks one deliberately narrow question by default: does a claim have enough text to be worth checking at all. The underlying engine it's built on can ask a sharper, domain-shaped question — does this claim name a real, specific thing, not just a topic — but that capability was inert for claim-validator's own bare claims, because nothing supplied the "subject" a domain-aware rule would check against.</p>
+    <p>The shape check (section 08) asks one deliberately narrow question by default: does a claim have enough text to be worth checking at all. The underlying engine it's built on can ask a sharper, domain-shaped question — does this claim name a real, specific thing, not just a topic — but that capability was inert for claim-validator's own bare claims, because nothing supplied the "subject" a domain-aware rule would check against.</p>
 
     <h3>How it actually works: the document teaches the rule, once</h3>
     <p>Rather than hand-writing a rule file per domain, an LLM proposes one — a single time per document, at the point the ontology is first built (or backfilled onto one that already exists). It reads the concept types Phase 1 already discovered and proposes a rule in the exact shape the shape-check engine expects: which fields a claim needs, and — where the domain has one — a pattern for what a real "subject" looks like there.</p>
@@ -854,7 +878,7 @@
     <p>Not a silent setting, on any of the eleven runs above: the applied rule and its source (<code>"default"</code> / <code>"llm"</code> / <code>"llm_failed"</code>) are logged next to <code>main_model</code>/<code>judge_model</code> on every report's Quality tab, exposed on <code>GET /api/ontologies/{key}</code>, and summarized on the shared ontology listing — confirmed present, with real explanatory text, not the generic "undocumented metric" fallback, on every Excel report downloaded during this test.</p>
   </section>
   <section id="structural">
-    <span class="section-no">11</span>
+    <span class="section-no">12</span>
     <span class="shipped-tag">Shipped — live-tested</span>
     <h2>Three structural corrections, layered on top of the judge</h2>
     <p class="lede">Three edge cases the judge's own reasoning didn't handle, each surfaced by running the tool against real documents rather than by design review — each now handled structurally, outside the judge entirely.</p>
@@ -883,7 +907,7 @@
     <p style="font-size:14.5px;color:var(--muted);">These three are the mechanisms with their own section here; they're not the whole list. Every specific defect and edge case found live and fixed — markdown parsing quirks, retry logic for a flaky provider, ontology-extraction edge cases, all of it — is inventoried in one place: <a href="https://github.com/QA-AU/claim-validator/blob/main/docs/known-fixes.md"><code>docs/known-fixes.md</code></a>.</p>
   </section>
   <section id="openspec">
-    <span class="section-no">12</span>
+    <span class="section-no">13</span>
     <span class="shipped-tag">Shipped — live-tested</span>
     <h2>Validating a spec generator's own output</h2>
     <p class="lede"><a href="https://github.com/Fission-AI/OpenSpec">OpenSpec</a> generates requirement specs from a brief — which makes its output exactly the kind of unowned claim this tool exists to check, not an exception to needing it.</p>
@@ -899,7 +923,7 @@
     <p>Two seeded example projects — an API-testing capability spec and a UI-testing capability spec, each with deliberately planted errors against its own source brief — exercise the adapter and the validator together end to end, and reviewing their own answer-key tables surfaced a second necessary correction before either was ever used to grade a run: the UI-testing example's README originally marked two out-of-scope items as expected <code>no_evidence</code>, when an explicit exclusion actively contradicts a claim asserting the item is in scope — corrected to <code>contradicts</code> before being trusted as a reference table. The same discipline this paper applies to the tool's own output — check the answer key as carefully as the answer — applied here to a fixture nobody had reason to doubt until it was run against something real.</p>
   </section>
   <section id="evidence">
-    <span class="section-no">13</span>
+    <span class="section-no">14</span>
     <h2>A slice of what it evaluates</h2>
     <p class="lede">Real documents, not a benchmark set built to flatter the tool — spanning API contracts, an RPC schema, a UI spec, a software license, an internet standard, public-health guidance, and a spec-driven-development capability spec, run against a live deployment. Most are model-generated claim sets, in the table below; one is a hand-authored accuracy check, at the end of this section.</p>
 
@@ -1018,7 +1042,7 @@
     </div>
   </section>
   <section id="modelswap">
-    <span class="section-no">14</span>
+    <span class="section-no">15</span>
     <h2>Changing the model — and why one anchored judge beats two compared ones</h2>
     <p class="lede">The model doing the work is a setting, not an identity. What matters more than which model you pick is what role it's playing, and what it's being checked against.</p>
 
@@ -1047,7 +1071,7 @@
     <p>The one place a second model does get involved is escalation: when three runs can't agree, or a contradiction only holds by a bare 2-of-3 majority, a stronger model re-judges — against the very same cited passage, not a fresh independent guess — and even that second opinion is checked for its own internal consensus rather than trusted on a single pass. It's a targeted appeal to a better judge on the rare cases actually worth the extra cost, not a standing panel of two models graded against each other on everything. And because every verdict, first-pass or escalated, ships with the exact passage it was based on, a disagreement is something a person can actually go read and resolve — not two bare scores with nothing behind them to compare.</p>
   </section>
   <section id="boundaries">
-    <span class="section-no">15</span>
+    <span class="section-no">16</span>
     <h2>What it doesn't do</h2>
     <p class="lede">Named plainly, because a tool that's vague about its own edges is harder to trust inside its actual ones.</p>
 
@@ -1067,7 +1091,7 @@
     </ul>
   </section>
   <section id="compared">
-    <span class="section-no">16</span>
+    <span class="section-no">17</span>
     <h2>Where it sits next to the alternatives</h2>
     <p class="lede">Not the only way to check whether text is grounded in a source — the differences are in what you bring to it and what the answer looks like.</p>
 
@@ -1230,7 +1254,7 @@
     <p style="font-size:14.5px;color:var(--muted);">Reach for Foundry when you're already governing a broad evaluation surface across many projects inside the Azure AI ecosystem. Reach for this tool when the job is narrower and concrete: a finished batch of claims about one document, needing an independent, auditable, four-way verdict — outside that ecosystem entirely, deployed into infrastructure you actually control.</p>
   </section>
   <section id="stakes">
-    <span class="section-no">17</span>
+    <span class="section-no">18</span>
     <h2>Why this matters where being wrong is expensive</h2>
     <p class="lede">The moment an LLM's output about a contract, a clinical protocol, a regulatory standard, or an incident report is trusted enough to act on, something other than the model that wrote it has to check it.</p>
 
@@ -1239,30 +1263,6 @@
     <p>That's also why the deployment model isn't incidental to the argument. A tool that only exists as someone else's shared cloud endpoint asks an organization handling sensitive documents to send them somewhere new. This one ships as infrastructure a tenant runs and controls entirely — its own Container App, its own database, its own Key Vault, its own audit log — reached with a token that tenant generated and can rotate on its own schedule. The independence that matters here isn't just "a different model did the judging." It's that the judging happens inside a boundary the document's owner drew themselves.</p>
 
     <p>None of this requires the caller to be a person. Every endpoint here is plain REST, callable by a human tester or an AI agent alike.</p>
-  </section>
-  <section id="claimexamples">
-    <span class="section-no">18</span>
-    <h2>What a claim actually is, and why the model that wrote it can't check it</h2>
-    <p class="lede">A claim is deliberately minimal: one id, one sentence, asserted about a reference document. Nothing about the shape changes with the domain.</p>
-
-    <table>
-      <thead><tr><th>Claim</th><th>Document type</th></tr></thead>
-      <tbody>
-        <tr><td>"The rate limit is 100 requests per minute per IP address."</td><td>An API spec</td></tr>
-        <tr><td>"Q2 2026 revenue was $925 million, up 18% from $781 million in Q2 2025."</td><td>A real SEC filing</td></tr>
-        <tr><td>"The refactored code implements atomic batch stock updates ... to prevent race conditions where concurrent checkouts could oversell inventory."</td><td>Source code</td></tr>
-      </tbody>
-    </table>
-
-    <p>Four real cases of the model that <em>wrote</em> a claim, or was simply asked to judge one on its own, failing to check it correctly — not hypothetical, every one produced and caught live during this project's own testing.</p>
-
-    <blockquote class="finding"><b>It cites the thing it's supposed to be checking as if that were proof.</b> Asked to verify its own refactor of a checkout endpoint, the model claimed the code "prevents race conditions." Its own justification quoted the code's own comment — <code>// prevents race conditions</code> — written by itself, asserting the same unverified thing, rather than checking whether the SQL actually eliminates the underlying stale-read race (it doesn't: no transaction, no row lock). The model isn't lying; it's mistaking a comment's assertion for evidence.</blockquote>
-
-    <blockquote class="finding"><b>A true clause and a false clause can ride in the same sentence, and it accepts the whole thing.</b> <em>"Replaced jsonwebtoken with the jose library ... using async/await support and better cryptographic defaults."</em> Two-thirds true (the library swap, the async/await). One-third false: the refactor actually removed an explicit algorithm restriction the original code had — arguably a regression, not "better defaults." The model verified what it could pattern-match and let the false clause ride along, unchallenged.</blockquote>
-
-    <blockquote class="finding"><b>It invents ambiguity that doesn't exist.</b> Asked to write test cases for a spec that flatly states every endpoint requires an X-Request-ID header, the model produced a test claiming the API "either returns 400 ... or accepts it and generates a tracking ID internally, depending on whether X-Request-ID is strictly required." The document was never ambiguous — the model manufactured a hedge nobody asked for.</blockquote>
-
-    <blockquote class="finding"><b>Its self-awareness is inconsistent.</b> Asked to recall a real company's future-dated earnings figures from memory, it correctly refused: "that date is in the future from my training data ... I shouldn't fabricate specific financial figures." Asked, in the same session, to confirm its own code fix actually worked, that same caution never appeared — full confidence, no hedge, on a claim that was actually false. There is no reliable signal for which mode a given answer will be in.</blockquote>
   </section>
   <section id="appendix">
     <span class="section-no">Appendix</span>
