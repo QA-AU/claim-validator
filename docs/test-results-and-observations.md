@@ -866,3 +866,66 @@ on `no_evidence` with a real reason, never the false `entails` again.
 The exact `judged=False` branch itself is covered directly by the new
 unit tests, constructed from the literal object shape captured from
 the live bug report rather than a hypothetical one.
+
+## 2026-09-17 — Issue #17: judge no longer trusts a code comment's own conclusion as evidence for itself
+
+**Why:** found live in `docs/refactor-accuracy-demo/`, checking
+whether an LLM's own account of a real code refactor ("Summary of
+Changes") matched the code it actually produced. A claim that a
+batched SQL update "prevents race conditions" landed `entails` at only
+`2/3` agreement — the majority's cited reasoning quoted the code's own
+comment (`// 5. ... (prevents race conditions)`, written by the same
+model that wrote the claim) as if that comment were evidence, rather
+than reasoning about whether the SQL actually eliminates the
+underlying stale-read race (it doesn't — no transaction, no row lock,
+no conditional decrement). The escalation mechanism built specifically
+to re-check a shaky verdict didn't apply: by design it only escalates
+a split `contradicts`, never a split `entails`.
+
+**Considered and rejected, discussed with the user first:** stripping
+code comments before retrieval/judging. Would remove the exact
+evidence text that misled the judge here, but the same failure shape
+isn't comment-specific (a function named `preventsRaceCondition()` or
+just the shape of a batched write can mislead the same way with zero
+comments present), and comments often carry real facts a claim
+legitimately needs — blanket-stripping would trade this failure for a
+different one (true claims going to false `no_evidence`). Also
+considered and rejected: a "does this claim need reasoning" classifier
+to route to a different judge — a new failure-prone judgment layer
+that doesn't reuse anything, for the same problem two narrower changes
+already fix.
+
+**Fix, two independent changes in `phases/entailment.py`:**
+1. `_needs_escalation()` now also escalates a split (non-unanimous)
+   `entails`, gated by a new `escalate_split_entails` setting
+   (default on) — `mentions_only`/`no_evidence` stay excluded on
+   split votes, unchanged; only the part of the original rationale
+   that lumped `entails` in with those two is revised.
+2. The judge prompt's "entails" rule now explicitly warns against
+   accepting a comment, docstring, or identifier that merely asserts
+   the same conclusion a claim makes, with a worked example using the
+   real miss's own language (a batched `UPDATE` next to a "prevents
+   race conditions" comment, with no lock/transaction/conditional
+   check shown, is `mentions_only`, not `entails`).
+
+327/327 tests pass (up from 316), 11 new — `_needs_escalation` had
+zero direct test coverage before this; now six cases across both
+verdict types, plus the existing prompt-content test file extended for
+the new guidance text.
+
+**Live-verified** by re-running the exact document and claims that
+found the bug through the fixed code (real Anthropic API, no
+redeploy first — same in-process pattern as issue #16's verification):
+`C3` flipped from the buggy `entails 2/3` to a correct, unanimous
+`mentions_only 3/3` — decisively enough that escalation wasn't even
+needed to fix this particular case, the prompt guidance alone did it.
+`C1` (a different failure shape — an unverified sub-clause riding
+inside a compound claim, not a self-referential comment) is confirmed
+unaffected, exactly as planned. Two unplanned bonus catches from the
+same generalized standard: `C4` also moved to a correctly-qualified
+`mentions_only` (unconfirmed transactional atomicity), and `C6` newly
+caught a real overclaim as `contradicts` (claimed "generic" error
+messages that actually leak `item.id`/`product.name` on two response
+paths). Zero regressions spot-checked against
+`docs/derived-test-cases-demo/`'s 15 claims — every verdict identical
+to the originally recorded result.

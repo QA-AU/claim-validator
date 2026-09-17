@@ -17,7 +17,8 @@ generation mistake, a **judge** limitation.
 | [`model-refactor-response.md`](model-refactor-response.md) | the exact refactor prompt, the model's full refactored code, and its own numbered "Summary of Changes" — unedited. |
 | [`refactored-checkout.js`](refactored-checkout.js) | the refactored code, extracted from the response above. **This is the reference document** — the claims are checked against what the new code actually does, not the old code. |
 | [`claims.json`](claims.json) | the model's own 6 summary points, turned into `{id, text}` claims verbatim. |
-| [`validation-result.json`](validation-result.json) | the full real API response (`job_ab967b4da7f2`, `usera-claimval`, fresh ontology `doc-70ee995a-d1a7` — code isn't reused from any earlier bundle). |
+| [`validation-result.json`](validation-result.json) | the full real API response (`job_ab967b4da7f2`, `usera-claimval`, fresh ontology `doc-70ee995a-d1a7` — code isn't reused from any earlier bundle). This is the result that found issue #17 — kept as-is, not overwritten. |
+| [`validation-result-after-fix.json`](validation-result-after-fix.json) | the same document and claims, re-run locally against the fixed code once #17 was fixed — see "Fixed — issue #17" below. |
 
 ## The task given to the model
 
@@ -90,6 +91,44 @@ real category of JWT vulnerability), not "better ... defaults." The
 judge verified the parts it could textually match (library name,
 `await` keyword) and let the unverifiable — arguably false — clause
 ride inside the same sentence, with full agreement.
+
+## Fixed — issue #17
+
+Two changes in `phases/entailment.py`: the judge prompt now explicitly
+warns against accepting a comment or identifier that merely asserts
+the same conclusion a claim makes, and escalation to a stronger model
+now also covers a split (non-unanimous) `entails`, not just a split
+`contradicts`, so a case like `C3` — which showed real internal
+disagreement (`2/3`) that the original design had no way to act on —
+gets a second opinion. Full plan and rationale, including why
+stripping code comments was considered and rejected, in issue #17's
+own thread.
+
+**Live-verified by re-running this exact document and claim set
+through the fixed code:**
+
+```
+C1  entails       3/3   (unaffected, as expected — different failure shape)
+C2  entails       3/3
+C3  mentions_only 3/3   (was: entails, 2/3 — the fix's direct target)
+C4  mentions_only 3/3   (was: entails, 2/3 — same overclaim pattern, unplanned bonus catch)
+C5  entails       3/3
+C6  contradicts   3/3   (was: entails, 3/3 — a genuine overclaim the new standard also caught)
+```
+
+`C3` flipped cleanly to the correct verdict — and decisively enough
+(unanimous `mentions_only`) that escalation wasn't even needed to
+correct it; the prompt guidance alone did it. `C1` is confirmed
+unaffected, exactly as planned — its problem (an unverified sub-clause
+in a compound claim) is a different shape this fix doesn't claim to
+solve. `C4` and `C6` are welcome, unplanned improvements: the same
+"trace the actual mechanism, don't accept a self-description" standard
+generalized to two nearby overclaims (unconfirmed transactional
+atomicity; "generic" error messages that actually leak
+`item.id`/`product.name` on two paths) that the original run had
+missed entirely. Zero regressions on
+[`../derived-test-cases-demo/`](../derived-test-cases-demo/)'s 15
+claims — every verdict identical to the originally recorded result.
 
 ## Why this is a judge finding, not a generator finding
 
