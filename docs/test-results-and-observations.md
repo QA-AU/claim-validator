@@ -817,3 +817,52 @@ number.
 
 Verification scripts: `verify_issue11.py`,
 `verify_issue11_isolated.py` in this session's scratchpad.
+
+## 2026-09-17 — Issue #16: a claim with nothing to judge against was reported as a false `entails`
+
+**Why:** found live, running `docs/postman-auth-api-defects/`'s
+seeded-defect variants plus the reference document against
+`usera-claimval` with the same 8-claim set. Claim `C7` ("Passwords
+must be at least 12 characters long") — a claim no version of the
+document discusses — came back as `verdict: "entails", judged: false,
+agreement: "1/1", reason: "", cited_chunks: []` on 2 of the 4 runs
+(the reference document and one seeded variant), where retrieval
+happened not to find any citation for it. On the other 2 runs
+retrieval found citations and it correctly returned `no_evidence`
+with real reasoning quoting the passages. Same claim, same complete
+absence of supporting text anywhere — a retrieval-dependent, wrong
+`verdict` whenever retrieval comes back empty.
+
+**Root cause, confirmed by reading the code:** `phases/entailment.py`
+correctly detects "nothing to judge this claim against" and constructs
+`EntailmentVerdict(requirement_id=..., judged=False)` — but doesn't
+set `verdict`, `reason`, `agreement`, or `runs_judged`, so they keep
+the dataclass's own defaults: `verdict="entails"`, `reason=""`,
+`agreement=1`, `runs_judged=1`. Three places in
+`claimvalidator/pipeline.py` then read this object with a bare `if
+verdict else <fallback>` — checking only whether the object is
+`None`, not whether it was ever actually judged — so the dangerous
+default leaked straight into the API response and the Excel report
+(both read the same `ClaimResult.verdict` field). The JSON
+`quality.entailed` aggregate count was never affected — it already
+filters on `judged`; only the per-claim fields were wrong.
+
+**Fix:** extended all three checks (`_agreement_label()`, and the
+`verdict=`/`reason=` fields) to `verdict and verdict.judged`, matching
+the guard already correctly used elsewhere in the same function. The
+~20-line per-claim-construction block was extracted into its own
+`_build_claim_result()` so the exact buggy shape — a real
+`EntailmentVerdict(judged=False)` object with production's literal
+field values — could be unit-tested directly, without standing up
+retrieval, an ontology, or an LLM client. 316/316 tests pass (up from
+309), 7 new.
+
+**Live-verified:** re-ran the fixed pipeline end-to-end (real
+Anthropic API, real retrieval, real judging) against the same
+document and claim set. All 8 claims produced correct verdicts,
+including `C7` — retrieval found citations for it this run (its own
+documented run-to-run variance, see issue #7) and it correctly landed
+on `no_evidence` with a real reason, never the false `entails` again.
+The exact `judged=False` branch itself is covered directly by the new
+unit tests, constructed from the literal object shape captured from
+the live bug report rather than a hypothetical one.

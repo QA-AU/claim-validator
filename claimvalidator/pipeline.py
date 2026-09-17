@@ -70,8 +70,13 @@ def _agreement_label(verdict) -> Optional[str]:
     logprob one — a bucketed vote count and a continuous probability are
     different kinds of number, so they get visibly different labels rather
     than forcing the logprob path's confidence through an N/N format that
-    would always read as a hollow 1/1."""
-    if verdict is None:
+    would always read as a hollow 1/1.
+
+    A `judged=False` verdict (nothing to judge against — issue #16) is the
+    same hollow-1/1 problem by another route: `agreement`/`runs_judged`
+    keep their dataclass defaults of 1, so without this check every
+    unjudged claim would misreport a confident "1/1" it never earned."""
+    if verdict is None or not verdict.judged:
         return None
     if verdict.method == "logprob":
         if verdict.confidence is None:
@@ -98,6 +103,75 @@ def _resolve_cited_sources(indices: List[int], searcher) -> List[str]:
     — this just calls it for each cited index, in the same order as
     cited_chunks/cited_passages."""
     return [searcher.source_of(i) for i in indices if isinstance(i, int)]
+
+
+def _build_claim_result(
+    claim,
+    verdict,
+    chunks: List[str],
+    violations_by_id: Dict[str, str],
+    searcher,
+) -> "ClaimResult":
+    """One claim's judged verdict plus its citations, turned into the shape
+    the API and Excel report both read. Extracted from run_validation's
+    per-claim loop (issue #16) so the `verdict is None` vs. `judged=False`
+    distinction below can be unit-tested directly, without standing up
+    retrieval, an ontology, or an LLM client just to reach this branch.
+
+    `verdict` is `None` when the claim was never sent to the judge at all
+    (e.g. a shape violation); it exists but has `judged=False` when
+    retrieval found nothing to judge it against (phases/entailment.py).
+    Both cases mean "no real verdict was reached" and must fall back
+    identically — `verdict and verdict.judged` is the one check that
+    covers both, unlike a bare `if verdict`, which only covers the first
+    and lets the second leak `EntailmentVerdict`'s dataclass defaults
+    (verdict="entails", reason="") straight into the API response.
+    """
+    cited_passages = _resolve_cited_passages(claim.source_chunks, chunks)
+
+    # Deterministic numeric-threshold correction (issue #4) — see
+    # claimvalidator/numeric_threshold_check.py for exactly what this
+    # does and does not touch. Scoped to entails/contradicts only:
+    # mentions_only/no_evidence mean something a regex match on its own
+    # shouldn't unilaterally reclassify. Mutates the EntailmentVerdict in
+    # place (mirroring how _escalate() already does this for model
+    # escalation) so the quality dict's aggregate counts, built from this
+    # same entailment_report, stay consistent with what this function
+    # returns — not a second, divergent source of truth.
+    structurally_overridden = False
+    structurally_overridden_from = ""
+    if verdict and verdict.judged and verdict.verdict in (VERDICT_ENTAILS, VERDICT_CONTRADICTS):
+        override = check_numeric_consistency(claim.text, cited_passages)
+        if override is not None and override.verdict != verdict.verdict:
+            structurally_overridden = True
+            structurally_overridden_from = verdict.verdict
+            verdict.verdict = override.verdict
+            verdict.reason = override.explanation
+
+    verdict_ok = bool(verdict and verdict.judged)
+    return ClaimResult(
+        id=claim.id,
+        text=claim.text,
+        shape_ok=claim.id not in violations_by_id,
+        shape_reason=violations_by_id.get(claim.id),
+        verdict=verdict.verdict if verdict_ok else "unjudged",
+        judged=verdict_ok,
+        agreement=_agreement_label(verdict),
+        cited_chunks=claim.source_chunks,
+        cited_passages=cited_passages,
+        cited_sources=_resolve_cited_sources(claim.source_chunks, searcher),
+        reason=(verdict.reason if verdict_ok else "no citation found by retrieval"),
+        escalated=bool(verdict and verdict.escalated),
+        escalated_from=(verdict.escalated_from if verdict else ""),
+        escalation_model=(verdict.escalation_model if verdict else ""),
+        judge_method=(verdict.method if verdict else "majority_vote"),
+        confidence=(verdict.confidence if verdict else None),
+        decided=(verdict.decided if verdict else True),
+        source_ref=claim.source_ref,
+        structurally_overridden=structurally_overridden,
+        structurally_overridden_from=structurally_overridden_from,
+        retrieval_widened_for_clauses=claim.retrieval_widened_for_clauses,
+    )
 
 
 def _usage_delta(before: Dict[str, int], after: Dict[str, int], rates) -> Dict[str, Any]:
@@ -454,53 +528,10 @@ def run_validation(
         cost_cents=phase_usage["entailment"]["cost_cents"] if rates is not None else None,
     )
 
-    per_claim: List[ClaimResult] = []
-    for claim in claims:
-        verdict = verdicts_by_id.get(claim.id)
-        cited_passages = _resolve_cited_passages(claim.source_chunks, chunks)
-
-        # Deterministic numeric-threshold correction (issue #4) — see
-        # claimvalidator/numeric_threshold_check.py for exactly what this
-        # does and does not touch. Scoped to entails/contradicts only:
-        # mentions_only/no_evidence mean something a regex match on its own
-        # shouldn't unilaterally reclassify. Mutates the EntailmentVerdict
-        # in place (mirroring how _escalate() already does this for model
-        # escalation) so the quality dict's aggregate counts, built later
-        # from this same entailment_report, stay consistent with what
-        # per_claim reports below — not a second, divergent source of truth.
-        structurally_overridden = False
-        structurally_overridden_from = ""
-        if verdict and verdict.judged and verdict.verdict in (VERDICT_ENTAILS, VERDICT_CONTRADICTS):
-            override = check_numeric_consistency(claim.text, cited_passages)
-            if override is not None and override.verdict != verdict.verdict:
-                structurally_overridden = True
-                structurally_overridden_from = verdict.verdict
-                verdict.verdict = override.verdict
-                verdict.reason = override.explanation
-
-        per_claim.append(ClaimResult(
-            id=claim.id,
-            text=claim.text,
-            shape_ok=claim.id not in violations_by_id,
-            shape_reason=violations_by_id.get(claim.id),
-            verdict=verdict.verdict if verdict else "unjudged",
-            judged=bool(verdict and verdict.judged),
-            agreement=_agreement_label(verdict),
-            cited_chunks=claim.source_chunks,
-            cited_passages=cited_passages,
-            cited_sources=_resolve_cited_sources(claim.source_chunks, searcher),
-            reason=(verdict.reason if verdict else "no citation found by retrieval"),
-            escalated=bool(verdict and verdict.escalated),
-            escalated_from=(verdict.escalated_from if verdict else ""),
-            escalation_model=(verdict.escalation_model if verdict else ""),
-            judge_method=(verdict.method if verdict else "majority_vote"),
-            confidence=(verdict.confidence if verdict else None),
-            decided=(verdict.decided if verdict else True),
-            source_ref=claim.source_ref,
-            structurally_overridden=structurally_overridden,
-            structurally_overridden_from=structurally_overridden_from,
-            retrieval_widened_for_clauses=claim.retrieval_widened_for_clauses,
-        ))
+    per_claim: List[ClaimResult] = [
+        _build_claim_result(claim, verdicts_by_id.get(claim.id), chunks, violations_by_id, searcher)
+        for claim in claims
+    ]
 
     completeness_tracker = RunTracker(db_session, workflow_id, name=document_id or "validation",
                                        phase_name="claim_completeness")
