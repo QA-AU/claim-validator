@@ -1,0 +1,1445 @@
+{
+  "job_id": "job_7404b791fbac",
+  "status": "done",
+  "ontology_key": "doc-833b4220-430d",
+  "ontology_reused": true,
+  "per_claim": [
+    {
+      "id": "C1",
+      "text": "Q2 2026 revenue was $925 million, up 18% from $781 million in Q2 2025.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "entails",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        1,
+        4,
+        21,
+        23,
+        27
+      ],
+      "cited_passages": [
+        "hat revenue for the quarter ended June 30, 2026 was $925 million, up 18% over revenue of $781 million for the quarter ended June 30, 2025. Net new bookings were $69 million, up 3% from Q1 2026. Net income was $55 million and earnings per diluted share was $0.14 for the second quarter of 2026, compared with net income of $6 million, and earnings per diluted share of $0.01, in the prior year period. Adjusted Net Income rose to $128 million in the second quarter, up 73% year-over-year. Adjusted EPS was $0.32 in the second quarter, up 88% year-over-year. EBITDA was $157 million, up 441% year-over-year. Adjusted EBITDA was $184 million in the second quarter of 2026, an increase of 116% from the prior year. \u201cThe second quarter marked a profitability inflection point for CoStar Group as Adjusted EBITDA more than doubled year-over-year to $184 million. We held operating cost growth to just 2%, and we delivered our 61st consecutive quarter of double-digit revenue growth,\" said Andy Florance, Fo",
+        "20 414 404 EBITDA $(1) $29 $13 $129 $81 $157 Adjusted EBITDA $66 $85 $114 $177 $132 $184 Adjusted Net Income $63 $74 $96 $131 $94 $128 Adjusted EPS $0.15 $0.17 $0.23 $0.31 $0.23 $0.32 2026 Outlook The Company is affirming its Adjusted EBITDA guidance for the full year of 2026 in a range of $780 million to $820 million, which represents an increase of $30 million at the midpoint of the range from its guidance in February 2026. For the third quarter of 2026, the Company expects Adjusted EBITDA in the range of $190 million to $210 million, representing a margin of 21% at the midpoint of the range. The Company is revising its revenue guidance for 2026 to a range of $3.715 billion to $3.755 billion, representing revenue growth of approximately 15% year-over-year at the midpoint of the range. The Company expects revenue for the third quarter of 2026 in the range of $935 million to $945 million, representing revenue growth of approximately 13% year-over-year at the midpoint of the range. The",
+        "ory federal and state corporate tax rate for the applicable period. (3) Includes the effect of potential common shares, such as the Company's stock options, restricted stock units, and deferred stock units, to the extent the effect is dilutive. In periods with a net loss available to common stockholders, the anti-dilutive effect of these potential common shares is excluded and earnings per share - diluted is equal to earnings per share - basic. Adjusted weighted average shares have been adjusted for these periods to include the dilutive impact.\n\n## Reconciliation of Non-GAAP Measures \u2014 Net Income to EBITDA and Adjusted EBITDA (Quarterly)\n\nCoStar Group, Inc. Reconciliation of Non-GAAP Financial Measures - Unaudited (in millions) Reconciliation of Net Income (Loss) to EBITDA and Adjusted EBITDA Three Months Ended June 30, Six Months Ended June 30, 2026 2025 2026 2025 Net income (loss) $ 55 $ 6 $ 58 $ (9) Amortization of acquired intangible assets in cost of revenues 27 17 54 28 Amortizat",
+        "2026 and 2025, respectively. CoStar Group, Inc. Results of Segments - Unaudited(1) (in millions) Three Months Ended June 30, Six Months Ended June 30, 2026 2025 2026 2025 EBITDA Commercial Real Estate $ 162 $ 118 $ 289 $ 221 Residential Real Estate (5) (89) (51) (193) Total EBITDA $ 157 $ 29 $ 238 $ 28 Adjusted EBITDA Commercial Real Estate $ 172 $ 161 $ 333 $ 312 Residential Real Estate 12 (76) (17) (161) Total Adjusted EBITDA $ 184 $ 85 $ 316 $ 151 __________________________ (1) During the fourth quarter of 2025, we changed the composition of our segments from geography-based to product portfolio-based. We have recast certain prior period disclosures to align with new segments.\n\n## Reconciliation of Non-GAAP Measures \u2014 Six-Quarter Trend, Net Income to Adjusted Net Income/EPS\n\nReconciliation of Net Income (Loss) to Adjusted Net Income and Adjusted EPS 2025 2026 Q1 Q2 Q3 Q4 Q1 Q2 Net income (loss) $ (15) $ 6 $ (31) $ 47 $ 3 $ 55 Income tax expense (benefit) 8 16 (15) 14 9 19 Income (lo",
+        "71 41 42 38 Acquisition and integration related costs 22 4 30 7 7 5 Restructuring and related costs 7 (1) \u2014 \u2014 2 2 Settlements and impairments 8 1 \u2014 \u2014 \u2014 (18) Adjusted EBITDA $ 66 $ 85 $ 114 $ 177 $ 132 $ 184 __________________________ (1) Includes $7 million, $9 million, $4 million, $4 million, $5 million, and $3 million of depreciation and amortization expense, including above-market lease amortization, associated with lessor activities, for the three months ending March 31, 2025, June 30, 2025, September 30, 2025, December 31, 2025, March 31, 2026, and June 30, 2026, respectively. CoStar Group, Inc. Results of Segments - Unaudited(1) (in millions) 2025 2026 Q1 Q2 Q3 Q4 Q1 Q2 EBITDA Commercial Real Estate $ 103 $ 118 $ 114 $ 145 $ 127 $ 162 Residential Real Estate (104) (89) (101) (16) (46) (5) Total EBITDA $ (1) $ 29 $ 13 $ 129 $ 81 $ 157 Adjusted EBITDA Commercial Real Estate $ 151 $ 161 $ 183 $ 177 $ 161 $ 172 Residential Real Estate (85) (76) (69) \u2014 (29) 12 Total Adjusted EBITDA $"
+      ],
+      "cited_sources": [
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt"
+      ],
+      "reason": "Passages state: 'revenue for the quarter ended June 30, 2026 was $925 million, up 18% over revenue of $781 million for the quarter ended June 30, 2025'",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    },
+    {
+      "id": "C2",
+      "text": "Q2 2026 net income was $55 million compared to $6 million in Q2 2025, an increase of 817%.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "entails",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        1,
+        7,
+        21,
+        23,
+        27
+      ],
+      "cited_passages": [
+        "hat revenue for the quarter ended June 30, 2026 was $925 million, up 18% over revenue of $781 million for the quarter ended June 30, 2025. Net new bookings were $69 million, up 3% from Q1 2026. Net income was $55 million and earnings per diluted share was $0.14 for the second quarter of 2026, compared with net income of $6 million, and earnings per diluted share of $0.01, in the prior year period. Adjusted Net Income rose to $128 million in the second quarter, up 73% year-over-year. Adjusted EPS was $0.32 in the second quarter, up 88% year-over-year. EBITDA was $157 million, up 441% year-over-year. Adjusted EBITDA was $184 million in the second quarter of 2026, an increase of 116% from the prior year. \u201cThe second quarter marked a profitability inflection point for CoStar Group as Adjusted EBITDA more than doubled year-over-year to $184 million. We held operating cost growth to just 2%, and we delivered our 61st consecutive quarter of double-digit revenue growth,\" said Andy Florance, Fo",
+        "efer to the Company\u2019s latest periodic report. EBITDA is our net income (loss) before interest income or expense, net, other income or expense, net, income taxes, depreciation, and amortization. We typically disclose EBITDA on a consolidated and on an operating segment basis in our earnings releases, investor conference calls, and filings with the SEC. Adjusted EBITDA is different from EBITDA because we further adjust EBITDA for stock-based compensation expense, acquisition- and integration-related costs, restructuring and related costs, including certain advisory fees; and settlements and impairments incurred outside our ordinary course of business, including judgments. Adjusted EBITDA margin represents Adjusted EBITDA divided by revenues for the period. Adjusted Net Income represents our net income (loss) adjusted for stock-based compensation expense, acquisition- and integration-related costs, including gains or losses on equity investments acquired in prospective targets and related",
+        "ory federal and state corporate tax rate for the applicable period. (3) Includes the effect of potential common shares, such as the Company's stock options, restricted stock units, and deferred stock units, to the extent the effect is dilutive. In periods with a net loss available to common stockholders, the anti-dilutive effect of these potential common shares is excluded and earnings per share - diluted is equal to earnings per share - basic. Adjusted weighted average shares have been adjusted for these periods to include the dilutive impact.\n\n## Reconciliation of Non-GAAP Measures \u2014 Net Income to EBITDA and Adjusted EBITDA (Quarterly)\n\nCoStar Group, Inc. Reconciliation of Non-GAAP Financial Measures - Unaudited (in millions) Reconciliation of Net Income (Loss) to EBITDA and Adjusted EBITDA Three Months Ended June 30, Six Months Ended June 30, 2026 2025 2026 2025 Net income (loss) $ 55 $ 6 $ 58 $ (9) Amortization of acquired intangible assets in cost of revenues 27 17 54 28 Amortizat",
+        "2026 and 2025, respectively. CoStar Group, Inc. Results of Segments - Unaudited(1) (in millions) Three Months Ended June 30, Six Months Ended June 30, 2026 2025 2026 2025 EBITDA Commercial Real Estate $ 162 $ 118 $ 289 $ 221 Residential Real Estate (5) (89) (51) (193) Total EBITDA $ 157 $ 29 $ 238 $ 28 Adjusted EBITDA Commercial Real Estate $ 172 $ 161 $ 333 $ 312 Residential Real Estate 12 (76) (17) (161) Total Adjusted EBITDA $ 184 $ 85 $ 316 $ 151 __________________________ (1) During the fourth quarter of 2025, we changed the composition of our segments from geography-based to product portfolio-based. We have recast certain prior period disclosures to align with new segments.\n\n## Reconciliation of Non-GAAP Measures \u2014 Six-Quarter Trend, Net Income to Adjusted Net Income/EPS\n\nReconciliation of Net Income (Loss) to Adjusted Net Income and Adjusted EPS 2025 2026 Q1 Q2 Q3 Q4 Q1 Q2 Net income (loss) $ (15) $ 6 $ (31) $ 47 $ 3 $ 55 Income tax expense (benefit) 8 16 (15) 14 9 19 Income (lo",
+        "71 41 42 38 Acquisition and integration related costs 22 4 30 7 7 5 Restructuring and related costs 7 (1) \u2014 \u2014 2 2 Settlements and impairments 8 1 \u2014 \u2014 \u2014 (18) Adjusted EBITDA $ 66 $ 85 $ 114 $ 177 $ 132 $ 184 __________________________ (1) Includes $7 million, $9 million, $4 million, $4 million, $5 million, and $3 million of depreciation and amortization expense, including above-market lease amortization, associated with lessor activities, for the three months ending March 31, 2025, June 30, 2025, September 30, 2025, December 31, 2025, March 31, 2026, and June 30, 2026, respectively. CoStar Group, Inc. Results of Segments - Unaudited(1) (in millions) 2025 2026 Q1 Q2 Q3 Q4 Q1 Q2 EBITDA Commercial Real Estate $ 103 $ 118 $ 114 $ 145 $ 127 $ 162 Residential Real Estate (104) (89) (101) (16) (46) (5) Total EBITDA $ (1) $ 29 $ 13 $ 129 $ 81 $ 157 Adjusted EBITDA Commercial Real Estate $ 151 $ 161 $ 183 $ 177 $ 161 $ 172 Residential Real Estate (85) (76) (69) \u2014 (29) 12 Total Adjusted EBITDA $"
+      ],
+      "cited_sources": [
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt"
+      ],
+      "reason": "Net income $55 vs $6, matches 817% increase calculation",
+      "escalated": true,
+      "escalated_from": "contradicts",
+      "escalation_model": "claude-sonnet-5",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    },
+    {
+      "id": "C3",
+      "text": "Q2 2026 diluted earnings per share was $0.14 compared to $0.01 in Q2 2025.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "entails",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        1,
+        3,
+        7,
+        21,
+        23
+      ],
+      "cited_passages": [
+        "hat revenue for the quarter ended June 30, 2026 was $925 million, up 18% over revenue of $781 million for the quarter ended June 30, 2025. Net new bookings were $69 million, up 3% from Q1 2026. Net income was $55 million and earnings per diluted share was $0.14 for the second quarter of 2026, compared with net income of $6 million, and earnings per diluted share of $0.01, in the prior year period. Adjusted Net Income rose to $128 million in the second quarter, up 73% year-over-year. Adjusted EPS was $0.32 in the second quarter, up 88% year-over-year. EBITDA was $157 million, up 441% year-over-year. Adjusted EBITDA was $184 million in the second quarter of 2026, an increase of 116% from the prior year. \u201cThe second quarter marked a profitability inflection point for CoStar Group as Adjusted EBITDA more than doubled year-over-year to $184 million. We held operating cost growth to just 2%, and we delivered our 61st consecutive quarter of double-digit revenue growth,\" said Andy Florance, Fo",
+        "t roadmap extends these AI capabilities across CoStar, LoopNet, and our international businesses. This quarter we also delivered four major launches on our core CoStar platform \u2014 including CoStar Rent Benchmark, built from four million AI-abstracted lease agreements, and CoStar\u2019s market entry into France. We accomplished all of this while reducing our projected expense base by roughly $100 million versus our original guidance, giving us a head start on our 2028 and 2030 Adjusted EBITDA targets.\" Exhibit 99.1\n\n## Quarterly Results Summary Table (2025-2026) and 2026 Outlook\n\nYear 2025-2026 Quarterly Results - Unaudited (in millions, except per share data) 2025 2026 Q1 Q2 Q3 Q4 Q1 Q2 Revenue $732 $781 $834 $900 $897 $925 Net income (loss) $(15) $6 $(31) $47 $3 $55 Earnings per share - diluted $(0.04) $0.01 $(0.07) $0.11 $0.01 $0.14 Weighted-average outstanding shares - diluted 411 424 420 420 414 404 EBITDA $(1) $29 $13 $129 $81 $157 Adjusted EBITDA $66 $85 $114 $177 $132 $184 Adjusted Ne",
+        "efer to the Company\u2019s latest periodic report. EBITDA is our net income (loss) before interest income or expense, net, other income or expense, net, income taxes, depreciation, and amortization. We typically disclose EBITDA on a consolidated and on an operating segment basis in our earnings releases, investor conference calls, and filings with the SEC. Adjusted EBITDA is different from EBITDA because we further adjust EBITDA for stock-based compensation expense, acquisition- and integration-related costs, restructuring and related costs, including certain advisory fees; and settlements and impairments incurred outside our ordinary course of business, including judgments. Adjusted EBITDA margin represents Adjusted EBITDA divided by revenues for the period. Adjusted Net Income represents our net income (loss) adjusted for stock-based compensation expense, acquisition- and integration-related costs, including gains or losses on equity investments acquired in prospective targets and related",
+        "ory federal and state corporate tax rate for the applicable period. (3) Includes the effect of potential common shares, such as the Company's stock options, restricted stock units, and deferred stock units, to the extent the effect is dilutive. In periods with a net loss available to common stockholders, the anti-dilutive effect of these potential common shares is excluded and earnings per share - diluted is equal to earnings per share - basic. Adjusted weighted average shares have been adjusted for these periods to include the dilutive impact.\n\n## Reconciliation of Non-GAAP Measures \u2014 Net Income to EBITDA and Adjusted EBITDA (Quarterly)\n\nCoStar Group, Inc. Reconciliation of Non-GAAP Financial Measures - Unaudited (in millions) Reconciliation of Net Income (Loss) to EBITDA and Adjusted EBITDA Three Months Ended June 30, Six Months Ended June 30, 2026 2025 2026 2025 Net income (loss) $ 55 $ 6 $ 58 $ (9) Amortization of acquired intangible assets in cost of revenues 27 17 54 28 Amortizat",
+        "2026 and 2025, respectively. CoStar Group, Inc. Results of Segments - Unaudited(1) (in millions) Three Months Ended June 30, Six Months Ended June 30, 2026 2025 2026 2025 EBITDA Commercial Real Estate $ 162 $ 118 $ 289 $ 221 Residential Real Estate (5) (89) (51) (193) Total EBITDA $ 157 $ 29 $ 238 $ 28 Adjusted EBITDA Commercial Real Estate $ 172 $ 161 $ 333 $ 312 Residential Real Estate 12 (76) (17) (161) Total Adjusted EBITDA $ 184 $ 85 $ 316 $ 151 __________________________ (1) During the fourth quarter of 2025, we changed the composition of our segments from geography-based to product portfolio-based. We have recast certain prior period disclosures to align with new segments.\n\n## Reconciliation of Non-GAAP Measures \u2014 Six-Quarter Trend, Net Income to Adjusted Net Income/EPS\n\nReconciliation of Net Income (Loss) to Adjusted Net Income and Adjusted EPS 2025 2026 Q1 Q2 Q3 Q4 Q1 Q2 Net income (loss) $ (15) $ 6 $ (31) $ 47 $ 3 $ 55 Income tax expense (benefit) 8 16 (15) 14 9 19 Income (lo"
+      ],
+      "cited_sources": [
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt"
+      ],
+      "reason": "Passages state: 'earnings per diluted share was $0.14 for the second quarter of 2026, compared with... earnings per diluted share of $0.01, in the prior year period'",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    },
+    {
+      "id": "C4",
+      "text": "Q2 2026 adjusted net income was $128 million, up 73% year-over-year from $74 million.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "entails",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        1,
+        4,
+        21,
+        23,
+        27
+      ],
+      "cited_passages": [
+        "hat revenue for the quarter ended June 30, 2026 was $925 million, up 18% over revenue of $781 million for the quarter ended June 30, 2025. Net new bookings were $69 million, up 3% from Q1 2026. Net income was $55 million and earnings per diluted share was $0.14 for the second quarter of 2026, compared with net income of $6 million, and earnings per diluted share of $0.01, in the prior year period. Adjusted Net Income rose to $128 million in the second quarter, up 73% year-over-year. Adjusted EPS was $0.32 in the second quarter, up 88% year-over-year. EBITDA was $157 million, up 441% year-over-year. Adjusted EBITDA was $184 million in the second quarter of 2026, an increase of 116% from the prior year. \u201cThe second quarter marked a profitability inflection point for CoStar Group as Adjusted EBITDA more than doubled year-over-year to $184 million. We held operating cost growth to just 2%, and we delivered our 61st consecutive quarter of double-digit revenue growth,\" said Andy Florance, Fo",
+        "20 414 404 EBITDA $(1) $29 $13 $129 $81 $157 Adjusted EBITDA $66 $85 $114 $177 $132 $184 Adjusted Net Income $63 $74 $96 $131 $94 $128 Adjusted EPS $0.15 $0.17 $0.23 $0.31 $0.23 $0.32 2026 Outlook The Company is affirming its Adjusted EBITDA guidance for the full year of 2026 in a range of $780 million to $820 million, which represents an increase of $30 million at the midpoint of the range from its guidance in February 2026. For the third quarter of 2026, the Company expects Adjusted EBITDA in the range of $190 million to $210 million, representing a margin of 21% at the midpoint of the range. The Company is revising its revenue guidance for 2026 to a range of $3.715 billion to $3.755 billion, representing revenue growth of approximately 15% year-over-year at the midpoint of the range. The Company expects revenue for the third quarter of 2026 in the range of $935 million to $945 million, representing revenue growth of approximately 13% year-over-year at the midpoint of the range. The",
+        "ory federal and state corporate tax rate for the applicable period. (3) Includes the effect of potential common shares, such as the Company's stock options, restricted stock units, and deferred stock units, to the extent the effect is dilutive. In periods with a net loss available to common stockholders, the anti-dilutive effect of these potential common shares is excluded and earnings per share - diluted is equal to earnings per share - basic. Adjusted weighted average shares have been adjusted for these periods to include the dilutive impact.\n\n## Reconciliation of Non-GAAP Measures \u2014 Net Income to EBITDA and Adjusted EBITDA (Quarterly)\n\nCoStar Group, Inc. Reconciliation of Non-GAAP Financial Measures - Unaudited (in millions) Reconciliation of Net Income (Loss) to EBITDA and Adjusted EBITDA Three Months Ended June 30, Six Months Ended June 30, 2026 2025 2026 2025 Net income (loss) $ 55 $ 6 $ 58 $ (9) Amortization of acquired intangible assets in cost of revenues 27 17 54 28 Amortizat",
+        "2026 and 2025, respectively. CoStar Group, Inc. Results of Segments - Unaudited(1) (in millions) Three Months Ended June 30, Six Months Ended June 30, 2026 2025 2026 2025 EBITDA Commercial Real Estate $ 162 $ 118 $ 289 $ 221 Residential Real Estate (5) (89) (51) (193) Total EBITDA $ 157 $ 29 $ 238 $ 28 Adjusted EBITDA Commercial Real Estate $ 172 $ 161 $ 333 $ 312 Residential Real Estate 12 (76) (17) (161) Total Adjusted EBITDA $ 184 $ 85 $ 316 $ 151 __________________________ (1) During the fourth quarter of 2025, we changed the composition of our segments from geography-based to product portfolio-based. We have recast certain prior period disclosures to align with new segments.\n\n## Reconciliation of Non-GAAP Measures \u2014 Six-Quarter Trend, Net Income to Adjusted Net Income/EPS\n\nReconciliation of Net Income (Loss) to Adjusted Net Income and Adjusted EPS 2025 2026 Q1 Q2 Q3 Q4 Q1 Q2 Net income (loss) $ (15) $ 6 $ (31) $ 47 $ 3 $ 55 Income tax expense (benefit) 8 16 (15) 14 9 19 Income (lo",
+        "71 41 42 38 Acquisition and integration related costs 22 4 30 7 7 5 Restructuring and related costs 7 (1) \u2014 \u2014 2 2 Settlements and impairments 8 1 \u2014 \u2014 \u2014 (18) Adjusted EBITDA $ 66 $ 85 $ 114 $ 177 $ 132 $ 184 __________________________ (1) Includes $7 million, $9 million, $4 million, $4 million, $5 million, and $3 million of depreciation and amortization expense, including above-market lease amortization, associated with lessor activities, for the three months ending March 31, 2025, June 30, 2025, September 30, 2025, December 31, 2025, March 31, 2026, and June 30, 2026, respectively. CoStar Group, Inc. Results of Segments - Unaudited(1) (in millions) 2025 2026 Q1 Q2 Q3 Q4 Q1 Q2 EBITDA Commercial Real Estate $ 103 $ 118 $ 114 $ 145 $ 127 $ 162 Residential Real Estate (104) (89) (101) (16) (46) (5) Total EBITDA $ (1) $ 29 $ 13 $ 129 $ 81 $ 157 Adjusted EBITDA Commercial Real Estate $ 151 $ 161 $ 183 $ 177 $ 161 $ 172 Residential Real Estate (85) (76) (69) \u2014 (29) 12 Total Adjusted EBITDA $"
+      ],
+      "cited_sources": [
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt"
+      ],
+      "reason": "Passages state 'Adjusted Net Income rose to $128 million in the second quarter, up 73% year-over-year' and the table shows Q2 2025 Adjusted Net Income of $74 million, confirming the claim.",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    },
+    {
+      "id": "C5",
+      "text": "Q2 2026 adjusted EPS was $0.32, up 88% year-over-year from $0.17.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "entails",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        0,
+        1,
+        4,
+        20,
+        23
+      ],
+      "cited_passages": [
+        "# CoStar Group, Inc. (NASDAQ: CSGP) \u2014 Second Quarter 2026 Earnings Press Release\n\nSource: SEC EDGAR, Exhibit 99.1 to Form 8-K filed July 28, 2026\nhttps://www.sec.gov/Archives/edgar/data/1057352/000105735226000061/q2fy262026earningspressr.htm\nReproduced verbatim (whitespace/table-layout normalized for plain text; no wording or figures altered).\n\n## Press Release\n\nCoStar Group Q2 2026 Results Mark a Profitability Inflection with Revenue Up 18%, Net Income Increasing 817%, and Adjusted EBITDA More Than Doubling Year-over-Year EBITDA rises 441%, Adjusted EBITDA reaches second-highest quarterly level in company history while CoStar Group continues investing in long-term growth ARLINGTON, VA \u2013 July 28, 2026 - CoStar Group, Inc. (NASDAQ: CSGP), a leading provider of online real estate marketplaces, information, analytics, and 3D digital twin technology in the property markets, announced today that revenue for the quarter ended June 30, 2026 was $925 million, up 18% over revenue of $781 millio",
+        "hat revenue for the quarter ended June 30, 2026 was $925 million, up 18% over revenue of $781 million for the quarter ended June 30, 2025. Net new bookings were $69 million, up 3% from Q1 2026. Net income was $55 million and earnings per diluted share was $0.14 for the second quarter of 2026, compared with net income of $6 million, and earnings per diluted share of $0.01, in the prior year period. Adjusted Net Income rose to $128 million in the second quarter, up 73% year-over-year. Adjusted EPS was $0.32 in the second quarter, up 88% year-over-year. EBITDA was $157 million, up 441% year-over-year. Adjusted EBITDA was $184 million in the second quarter of 2026, an increase of 116% from the prior year. \u201cThe second quarter marked a profitability inflection point for CoStar Group as Adjusted EBITDA more than doubled year-over-year to $184 million. We held operating cost growth to just 2%, and we delivered our 61st consecutive quarter of double-digit revenue growth,\" said Andy Florance, Fo",
+        "20 414 404 EBITDA $(1) $29 $13 $129 $81 $157 Adjusted EBITDA $66 $85 $114 $177 $132 $184 Adjusted Net Income $63 $74 $96 $131 $94 $128 Adjusted EPS $0.15 $0.17 $0.23 $0.31 $0.23 $0.32 2026 Outlook The Company is affirming its Adjusted EBITDA guidance for the full year of 2026 in a range of $780 million to $820 million, which represents an increase of $30 million at the midpoint of the range from its guidance in February 2026. For the third quarter of 2026, the Company expects Adjusted EBITDA in the range of $190 million to $210 million, representing a margin of 21% at the midpoint of the range. The Company is revising its revenue guidance for 2026 to a range of $3.715 billion to $3.755 billion, representing revenue growth of approximately 15% year-over-year at the midpoint of the range. The Company expects revenue for the third quarter of 2026 in the range of $935 million to $945 million, representing revenue growth of approximately 13% year-over-year at the midpoint of the range. The",
+        "n investments and deal-contingent foreign currency forward contracts related to an expected acquisition(1) \u2014 (22) \u2014 (25) Interest related to settlements 9 \u2014 9 \u2014 Restructuring and related costs 2 (1) 4 6 Settlements and impairments (18) 1 (18) 9 Adjusted income before income taxes 173 100 300 185 Assumed rate for income tax expense(2) 26 % 26 % 26 % 26 % Assumed provision for income tax expense (45) (26) (78) (48) Adjusted Net Income $ 128 $ 74 $ 222 $ 137 Earnings per share - diluted $ 0.14 $ 0.01 $ 0.14 $ (0.02) Adjusted EPS $ 0.32 $ 0.17 $ 0.54 $ 0.32 Weighted-average outstanding shares - diluted 404.4 424.3 409.1 415.1 Adjusted dilutive shares(3) \u2014 \u2014 \u2014 4.8 Adjusted weighted average shares, diluted 404.4 424.3 409.1 419.9 __________________________ (1) Recorded in other expense, net in the condensed consolidated statements of operations. (2) The assumed tax rate approximates our statutory federal and state corporate tax rate for the applicable period. (3) Includes the effect of poten",
+        "2026 and 2025, respectively. CoStar Group, Inc. Results of Segments - Unaudited(1) (in millions) Three Months Ended June 30, Six Months Ended June 30, 2026 2025 2026 2025 EBITDA Commercial Real Estate $ 162 $ 118 $ 289 $ 221 Residential Real Estate (5) (89) (51) (193) Total EBITDA $ 157 $ 29 $ 238 $ 28 Adjusted EBITDA Commercial Real Estate $ 172 $ 161 $ 333 $ 312 Residential Real Estate 12 (76) (17) (161) Total Adjusted EBITDA $ 184 $ 85 $ 316 $ 151 __________________________ (1) During the fourth quarter of 2025, we changed the composition of our segments from geography-based to product portfolio-based. We have recast certain prior period disclosures to align with new segments.\n\n## Reconciliation of Non-GAAP Measures \u2014 Six-Quarter Trend, Net Income to Adjusted Net Income/EPS\n\nReconciliation of Net Income (Loss) to Adjusted Net Income and Adjusted EPS 2025 2026 Q1 Q2 Q3 Q4 Q1 Q2 Net income (loss) $ (15) $ 6 $ (31) $ 47 $ 3 $ 55 Income tax expense (benefit) 8 16 (15) 14 9 19 Income (lo"
+      ],
+      "cited_sources": [
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt"
+      ],
+      "reason": "Passages state 'Adjusted EPS was $0.32 in the second quarter, up 88% year-over-year' and the table shows Q2 2025 Adjusted EPS of $0.17, confirming the claim.",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    },
+    {
+      "id": "C6",
+      "text": "Q2 2026 EBITDA was $157 million, up 441% year-over-year from $29 million.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "entails",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        1,
+        4,
+        21,
+        23,
+        27
+      ],
+      "cited_passages": [
+        "hat revenue for the quarter ended June 30, 2026 was $925 million, up 18% over revenue of $781 million for the quarter ended June 30, 2025. Net new bookings were $69 million, up 3% from Q1 2026. Net income was $55 million and earnings per diluted share was $0.14 for the second quarter of 2026, compared with net income of $6 million, and earnings per diluted share of $0.01, in the prior year period. Adjusted Net Income rose to $128 million in the second quarter, up 73% year-over-year. Adjusted EPS was $0.32 in the second quarter, up 88% year-over-year. EBITDA was $157 million, up 441% year-over-year. Adjusted EBITDA was $184 million in the second quarter of 2026, an increase of 116% from the prior year. \u201cThe second quarter marked a profitability inflection point for CoStar Group as Adjusted EBITDA more than doubled year-over-year to $184 million. We held operating cost growth to just 2%, and we delivered our 61st consecutive quarter of double-digit revenue growth,\" said Andy Florance, Fo",
+        "20 414 404 EBITDA $(1) $29 $13 $129 $81 $157 Adjusted EBITDA $66 $85 $114 $177 $132 $184 Adjusted Net Income $63 $74 $96 $131 $94 $128 Adjusted EPS $0.15 $0.17 $0.23 $0.31 $0.23 $0.32 2026 Outlook The Company is affirming its Adjusted EBITDA guidance for the full year of 2026 in a range of $780 million to $820 million, which represents an increase of $30 million at the midpoint of the range from its guidance in February 2026. For the third quarter of 2026, the Company expects Adjusted EBITDA in the range of $190 million to $210 million, representing a margin of 21% at the midpoint of the range. The Company is revising its revenue guidance for 2026 to a range of $3.715 billion to $3.755 billion, representing revenue growth of approximately 15% year-over-year at the midpoint of the range. The Company expects revenue for the third quarter of 2026 in the range of $935 million to $945 million, representing revenue growth of approximately 13% year-over-year at the midpoint of the range. The",
+        "ory federal and state corporate tax rate for the applicable period. (3) Includes the effect of potential common shares, such as the Company's stock options, restricted stock units, and deferred stock units, to the extent the effect is dilutive. In periods with a net loss available to common stockholders, the anti-dilutive effect of these potential common shares is excluded and earnings per share - diluted is equal to earnings per share - basic. Adjusted weighted average shares have been adjusted for these periods to include the dilutive impact.\n\n## Reconciliation of Non-GAAP Measures \u2014 Net Income to EBITDA and Adjusted EBITDA (Quarterly)\n\nCoStar Group, Inc. Reconciliation of Non-GAAP Financial Measures - Unaudited (in millions) Reconciliation of Net Income (Loss) to EBITDA and Adjusted EBITDA Three Months Ended June 30, Six Months Ended June 30, 2026 2025 2026 2025 Net income (loss) $ 55 $ 6 $ 58 $ (9) Amortization of acquired intangible assets in cost of revenues 27 17 54 28 Amortizat",
+        "2026 and 2025, respectively. CoStar Group, Inc. Results of Segments - Unaudited(1) (in millions) Three Months Ended June 30, Six Months Ended June 30, 2026 2025 2026 2025 EBITDA Commercial Real Estate $ 162 $ 118 $ 289 $ 221 Residential Real Estate (5) (89) (51) (193) Total EBITDA $ 157 $ 29 $ 238 $ 28 Adjusted EBITDA Commercial Real Estate $ 172 $ 161 $ 333 $ 312 Residential Real Estate 12 (76) (17) (161) Total Adjusted EBITDA $ 184 $ 85 $ 316 $ 151 __________________________ (1) During the fourth quarter of 2025, we changed the composition of our segments from geography-based to product portfolio-based. We have recast certain prior period disclosures to align with new segments.\n\n## Reconciliation of Non-GAAP Measures \u2014 Six-Quarter Trend, Net Income to Adjusted Net Income/EPS\n\nReconciliation of Net Income (Loss) to Adjusted Net Income and Adjusted EPS 2025 2026 Q1 Q2 Q3 Q4 Q1 Q2 Net income (loss) $ (15) $ 6 $ (31) $ 47 $ 3 $ 55 Income tax expense (benefit) 8 16 (15) 14 9 19 Income (lo",
+        "71 41 42 38 Acquisition and integration related costs 22 4 30 7 7 5 Restructuring and related costs 7 (1) \u2014 \u2014 2 2 Settlements and impairments 8 1 \u2014 \u2014 \u2014 (18) Adjusted EBITDA $ 66 $ 85 $ 114 $ 177 $ 132 $ 184 __________________________ (1) Includes $7 million, $9 million, $4 million, $4 million, $5 million, and $3 million of depreciation and amortization expense, including above-market lease amortization, associated with lessor activities, for the three months ending March 31, 2025, June 30, 2025, September 30, 2025, December 31, 2025, March 31, 2026, and June 30, 2026, respectively. CoStar Group, Inc. Results of Segments - Unaudited(1) (in millions) 2025 2026 Q1 Q2 Q3 Q4 Q1 Q2 EBITDA Commercial Real Estate $ 103 $ 118 $ 114 $ 145 $ 127 $ 162 Residential Real Estate (104) (89) (101) (16) (46) (5) Total EBITDA $ (1) $ 29 $ 13 $ 129 $ 81 $ 157 Adjusted EBITDA Commercial Real Estate $ 151 $ 161 $ 183 $ 177 $ 161 $ 172 Residential Real Estate (85) (76) (69) \u2014 (29) 12 Total Adjusted EBITDA $"
+      ],
+      "cited_sources": [
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt"
+      ],
+      "reason": "Passages state 'EBITDA was $157 million, up 441% year-over-year' and the table shows Q2 2025 EBITDA of $29 million, confirming the claim.",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    },
+    {
+      "id": "C7",
+      "text": "Q2 2026 adjusted EBITDA was $184 million, up 116% year-over-year from $85 million.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "entails",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        1,
+        4,
+        21,
+        23,
+        27
+      ],
+      "cited_passages": [
+        "hat revenue for the quarter ended June 30, 2026 was $925 million, up 18% over revenue of $781 million for the quarter ended June 30, 2025. Net new bookings were $69 million, up 3% from Q1 2026. Net income was $55 million and earnings per diluted share was $0.14 for the second quarter of 2026, compared with net income of $6 million, and earnings per diluted share of $0.01, in the prior year period. Adjusted Net Income rose to $128 million in the second quarter, up 73% year-over-year. Adjusted EPS was $0.32 in the second quarter, up 88% year-over-year. EBITDA was $157 million, up 441% year-over-year. Adjusted EBITDA was $184 million in the second quarter of 2026, an increase of 116% from the prior year. \u201cThe second quarter marked a profitability inflection point for CoStar Group as Adjusted EBITDA more than doubled year-over-year to $184 million. We held operating cost growth to just 2%, and we delivered our 61st consecutive quarter of double-digit revenue growth,\" said Andy Florance, Fo",
+        "20 414 404 EBITDA $(1) $29 $13 $129 $81 $157 Adjusted EBITDA $66 $85 $114 $177 $132 $184 Adjusted Net Income $63 $74 $96 $131 $94 $128 Adjusted EPS $0.15 $0.17 $0.23 $0.31 $0.23 $0.32 2026 Outlook The Company is affirming its Adjusted EBITDA guidance for the full year of 2026 in a range of $780 million to $820 million, which represents an increase of $30 million at the midpoint of the range from its guidance in February 2026. For the third quarter of 2026, the Company expects Adjusted EBITDA in the range of $190 million to $210 million, representing a margin of 21% at the midpoint of the range. The Company is revising its revenue guidance for 2026 to a range of $3.715 billion to $3.755 billion, representing revenue growth of approximately 15% year-over-year at the midpoint of the range. The Company expects revenue for the third quarter of 2026 in the range of $935 million to $945 million, representing revenue growth of approximately 13% year-over-year at the midpoint of the range. The",
+        "ory federal and state corporate tax rate for the applicable period. (3) Includes the effect of potential common shares, such as the Company's stock options, restricted stock units, and deferred stock units, to the extent the effect is dilutive. In periods with a net loss available to common stockholders, the anti-dilutive effect of these potential common shares is excluded and earnings per share - diluted is equal to earnings per share - basic. Adjusted weighted average shares have been adjusted for these periods to include the dilutive impact.\n\n## Reconciliation of Non-GAAP Measures \u2014 Net Income to EBITDA and Adjusted EBITDA (Quarterly)\n\nCoStar Group, Inc. Reconciliation of Non-GAAP Financial Measures - Unaudited (in millions) Reconciliation of Net Income (Loss) to EBITDA and Adjusted EBITDA Three Months Ended June 30, Six Months Ended June 30, 2026 2025 2026 2025 Net income (loss) $ 55 $ 6 $ 58 $ (9) Amortization of acquired intangible assets in cost of revenues 27 17 54 28 Amortizat",
+        "2026 and 2025, respectively. CoStar Group, Inc. Results of Segments - Unaudited(1) (in millions) Three Months Ended June 30, Six Months Ended June 30, 2026 2025 2026 2025 EBITDA Commercial Real Estate $ 162 $ 118 $ 289 $ 221 Residential Real Estate (5) (89) (51) (193) Total EBITDA $ 157 $ 29 $ 238 $ 28 Adjusted EBITDA Commercial Real Estate $ 172 $ 161 $ 333 $ 312 Residential Real Estate 12 (76) (17) (161) Total Adjusted EBITDA $ 184 $ 85 $ 316 $ 151 __________________________ (1) During the fourth quarter of 2025, we changed the composition of our segments from geography-based to product portfolio-based. We have recast certain prior period disclosures to align with new segments.\n\n## Reconciliation of Non-GAAP Measures \u2014 Six-Quarter Trend, Net Income to Adjusted Net Income/EPS\n\nReconciliation of Net Income (Loss) to Adjusted Net Income and Adjusted EPS 2025 2026 Q1 Q2 Q3 Q4 Q1 Q2 Net income (loss) $ (15) $ 6 $ (31) $ 47 $ 3 $ 55 Income tax expense (benefit) 8 16 (15) 14 9 19 Income (lo",
+        "71 41 42 38 Acquisition and integration related costs 22 4 30 7 7 5 Restructuring and related costs 7 (1) \u2014 \u2014 2 2 Settlements and impairments 8 1 \u2014 \u2014 \u2014 (18) Adjusted EBITDA $ 66 $ 85 $ 114 $ 177 $ 132 $ 184 __________________________ (1) Includes $7 million, $9 million, $4 million, $4 million, $5 million, and $3 million of depreciation and amortization expense, including above-market lease amortization, associated with lessor activities, for the three months ending March 31, 2025, June 30, 2025, September 30, 2025, December 31, 2025, March 31, 2026, and June 30, 2026, respectively. CoStar Group, Inc. Results of Segments - Unaudited(1) (in millions) 2025 2026 Q1 Q2 Q3 Q4 Q1 Q2 EBITDA Commercial Real Estate $ 103 $ 118 $ 114 $ 145 $ 127 $ 162 Residential Real Estate (104) (89) (101) (16) (46) (5) Total EBITDA $ (1) $ 29 $ 13 $ 129 $ 81 $ 157 Adjusted EBITDA Commercial Real Estate $ 151 $ 161 $ 183 $ 177 $ 161 $ 172 Residential Real Estate (85) (76) (69) \u2014 (29) 12 Total Adjusted EBITDA $"
+      ],
+      "cited_sources": [
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt"
+      ],
+      "reason": "Passage states: 'Adjusted EBITDA was $184 million in the second quarter of 2026, an increase of 116% from the prior year' and table shows Q2 2025 Adjusted EBITDA of $85 million",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    },
+    {
+      "id": "C8",
+      "text": "Net new bookings in Q2 2026 were $69 million, up 3% from Q1 2026.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "entails",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        1,
+        9,
+        21,
+        23,
+        27
+      ],
+      "cited_passages": [
+        "hat revenue for the quarter ended June 30, 2026 was $925 million, up 18% over revenue of $781 million for the quarter ended June 30, 2025. Net new bookings were $69 million, up 3% from Q1 2026. Net income was $55 million and earnings per diluted share was $0.14 for the second quarter of 2026, compared with net income of $6 million, and earnings per diluted share of $0.01, in the prior year period. Adjusted Net Income rose to $128 million in the second quarter, up 73% year-over-year. Adjusted EPS was $0.32 in the second quarter, up 88% year-over-year. EBITDA was $157 million, up 441% year-over-year. Adjusted EBITDA was $184 million in the second quarter of 2026, an increase of 116% from the prior year. \u201cThe second quarter marked a profitability inflection point for CoStar Group as Adjusted EBITDA more than doubled year-over-year to $184 million. We held operating cost growth to just 2%, and we delivered our 61st consecutive quarter of double-digit revenue growth,\" said Andy Florance, Fo",
+        "hted average outstanding shares used to calculate Adjusted EPS includes potentially dilutive securities that were excluded from the calculation of GAAP earnings per share as the effect was anti-dilutive. Operating Metrics Net new bookings is calculated based on the annualized amount of change in the Company's sales bookings resulting from new subscription-based contracts, changes to existing subscription-based contracts, and cancellations of subscription-based contracts for the period reported. Information regarding net new bookings is not comparable to, nor should it be substituted for, an analysis of the Company's revenues over time. Earnings Conference Call Management will conduct a conference call to discuss the second quarter 2026 results and the Company\u2019s outlook at 5:00 PM ET on July 28, 2026. A live audio webcast of the conference will be available in listen-only mode through the Investors section of the CoStar Group website: https://investors.costargroup.com. A replay of the w",
+        "ory federal and state corporate tax rate for the applicable period. (3) Includes the effect of potential common shares, such as the Company's stock options, restricted stock units, and deferred stock units, to the extent the effect is dilutive. In periods with a net loss available to common stockholders, the anti-dilutive effect of these potential common shares is excluded and earnings per share - diluted is equal to earnings per share - basic. Adjusted weighted average shares have been adjusted for these periods to include the dilutive impact.\n\n## Reconciliation of Non-GAAP Measures \u2014 Net Income to EBITDA and Adjusted EBITDA (Quarterly)\n\nCoStar Group, Inc. Reconciliation of Non-GAAP Financial Measures - Unaudited (in millions) Reconciliation of Net Income (Loss) to EBITDA and Adjusted EBITDA Three Months Ended June 30, Six Months Ended June 30, 2026 2025 2026 2025 Net income (loss) $ 55 $ 6 $ 58 $ (9) Amortization of acquired intangible assets in cost of revenues 27 17 54 28 Amortizat",
+        "2026 and 2025, respectively. CoStar Group, Inc. Results of Segments - Unaudited(1) (in millions) Three Months Ended June 30, Six Months Ended June 30, 2026 2025 2026 2025 EBITDA Commercial Real Estate $ 162 $ 118 $ 289 $ 221 Residential Real Estate (5) (89) (51) (193) Total EBITDA $ 157 $ 29 $ 238 $ 28 Adjusted EBITDA Commercial Real Estate $ 172 $ 161 $ 333 $ 312 Residential Real Estate 12 (76) (17) (161) Total Adjusted EBITDA $ 184 $ 85 $ 316 $ 151 __________________________ (1) During the fourth quarter of 2025, we changed the composition of our segments from geography-based to product portfolio-based. We have recast certain prior period disclosures to align with new segments.\n\n## Reconciliation of Non-GAAP Measures \u2014 Six-Quarter Trend, Net Income to Adjusted Net Income/EPS\n\nReconciliation of Net Income (Loss) to Adjusted Net Income and Adjusted EPS 2025 2026 Q1 Q2 Q3 Q4 Q1 Q2 Net income (loss) $ (15) $ 6 $ (31) $ 47 $ 3 $ 55 Income tax expense (benefit) 8 16 (15) 14 9 19 Income (lo",
+        "71 41 42 38 Acquisition and integration related costs 22 4 30 7 7 5 Restructuring and related costs 7 (1) \u2014 \u2014 2 2 Settlements and impairments 8 1 \u2014 \u2014 \u2014 (18) Adjusted EBITDA $ 66 $ 85 $ 114 $ 177 $ 132 $ 184 __________________________ (1) Includes $7 million, $9 million, $4 million, $4 million, $5 million, and $3 million of depreciation and amortization expense, including above-market lease amortization, associated with lessor activities, for the three months ending March 31, 2025, June 30, 2025, September 30, 2025, December 31, 2025, March 31, 2026, and June 30, 2026, respectively. CoStar Group, Inc. Results of Segments - Unaudited(1) (in millions) 2025 2026 Q1 Q2 Q3 Q4 Q1 Q2 EBITDA Commercial Real Estate $ 103 $ 118 $ 114 $ 145 $ 127 $ 162 Residential Real Estate (104) (89) (101) (16) (46) (5) Total EBITDA $ (1) $ 29 $ 13 $ 129 $ 81 $ 157 Adjusted EBITDA Commercial Real Estate $ 151 $ 161 $ 183 $ 177 $ 161 $ 172 Residential Real Estate (85) (76) (69) \u2014 (29) 12 Total Adjusted EBITDA $"
+      ],
+      "cited_sources": [
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt"
+      ],
+      "reason": "Passage states: 'Net new bookings were $69 million, up 3% from Q1 2026'",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    },
+    {
+      "id": "C9",
+      "text": "CoStar delivered its 61st consecutive quarter of double-digit revenue growth in Q2 2026.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "entails",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        0,
+        1,
+        2,
+        4,
+        23
+      ],
+      "cited_passages": [
+        "# CoStar Group, Inc. (NASDAQ: CSGP) \u2014 Second Quarter 2026 Earnings Press Release\n\nSource: SEC EDGAR, Exhibit 99.1 to Form 8-K filed July 28, 2026\nhttps://www.sec.gov/Archives/edgar/data/1057352/000105735226000061/q2fy262026earningspressr.htm\nReproduced verbatim (whitespace/table-layout normalized for plain text; no wording or figures altered).\n\n## Press Release\n\nCoStar Group Q2 2026 Results Mark a Profitability Inflection with Revenue Up 18%, Net Income Increasing 817%, and Adjusted EBITDA More Than Doubling Year-over-Year EBITDA rises 441%, Adjusted EBITDA reaches second-highest quarterly level in company history while CoStar Group continues investing in long-term growth ARLINGTON, VA \u2013 July 28, 2026 - CoStar Group, Inc. (NASDAQ: CSGP), a leading provider of online real estate marketplaces, information, analytics, and 3D digital twin technology in the property markets, announced today that revenue for the quarter ended June 30, 2026 was $925 million, up 18% over revenue of $781 millio",
+        "hat revenue for the quarter ended June 30, 2026 was $925 million, up 18% over revenue of $781 million for the quarter ended June 30, 2025. Net new bookings were $69 million, up 3% from Q1 2026. Net income was $55 million and earnings per diluted share was $0.14 for the second quarter of 2026, compared with net income of $6 million, and earnings per diluted share of $0.01, in the prior year period. Adjusted Net Income rose to $128 million in the second quarter, up 73% year-over-year. Adjusted EPS was $0.32 in the second quarter, up 88% year-over-year. EBITDA was $157 million, up 441% year-over-year. Adjusted EBITDA was $184 million in the second quarter of 2026, an increase of 116% from the prior year. \u201cThe second quarter marked a profitability inflection point for CoStar Group as Adjusted EBITDA more than doubled year-over-year to $184 million. We held operating cost growth to just 2%, and we delivered our 61st consecutive quarter of double-digit revenue growth,\" said Andy Florance, Fo",
+        "nd we delivered our 61st consecutive quarter of double-digit revenue growth,\" said Andy Florance, Founder and Chief Executive Officer of CoStar Group. \"For the first time, our residential segment turned Adjusted EBITDA positive \u2014 a $41 million improvement over the first quarter \u2014 and we expect to deliver the highest full-year Adjusted EBITDA in our company's history.\" Florance continued, \"We continue to capture more of CoStar Group's $100 billion total addressable market through new product launches and geographic expansion. Building on February's transformative launch of Homes.com Ai, we introduced Apartments.com Ai in June. Within weeks, Apartments.com Ai users completed more than half a million AI sessions \u2014 averaging 20 minutes per session, 2.8 times longer than non-AI users, viewing twice as many listings, with 3D tour usage up 224% and traffic-to-lead conversion up 256%. Our product roadmap extends these AI capabilities across CoStar, LoopNet, and our international businesses. Th",
+        "20 414 404 EBITDA $(1) $29 $13 $129 $81 $157 Adjusted EBITDA $66 $85 $114 $177 $132 $184 Adjusted Net Income $63 $74 $96 $131 $94 $128 Adjusted EPS $0.15 $0.17 $0.23 $0.31 $0.23 $0.32 2026 Outlook The Company is affirming its Adjusted EBITDA guidance for the full year of 2026 in a range of $780 million to $820 million, which represents an increase of $30 million at the midpoint of the range from its guidance in February 2026. For the third quarter of 2026, the Company expects Adjusted EBITDA in the range of $190 million to $210 million, representing a margin of 21% at the midpoint of the range. The Company is revising its revenue guidance for 2026 to a range of $3.715 billion to $3.755 billion, representing revenue growth of approximately 15% year-over-year at the midpoint of the range. The Company expects revenue for the third quarter of 2026 in the range of $935 million to $945 million, representing revenue growth of approximately 13% year-over-year at the midpoint of the range. The",
+        "2026 and 2025, respectively. CoStar Group, Inc. Results of Segments - Unaudited(1) (in millions) Three Months Ended June 30, Six Months Ended June 30, 2026 2025 2026 2025 EBITDA Commercial Real Estate $ 162 $ 118 $ 289 $ 221 Residential Real Estate (5) (89) (51) (193) Total EBITDA $ 157 $ 29 $ 238 $ 28 Adjusted EBITDA Commercial Real Estate $ 172 $ 161 $ 333 $ 312 Residential Real Estate 12 (76) (17) (161) Total Adjusted EBITDA $ 184 $ 85 $ 316 $ 151 __________________________ (1) During the fourth quarter of 2025, we changed the composition of our segments from geography-based to product portfolio-based. We have recast certain prior period disclosures to align with new segments.\n\n## Reconciliation of Non-GAAP Measures \u2014 Six-Quarter Trend, Net Income to Adjusted Net Income/EPS\n\nReconciliation of Net Income (Loss) to Adjusted Net Income and Adjusted EPS 2025 2026 Q1 Q2 Q3 Q4 Q1 Q2 Net income (loss) $ (15) $ 6 $ (31) $ 47 $ 3 $ 55 Income tax expense (benefit) 8 16 (15) 14 9 19 Income (lo"
+      ],
+      "cited_sources": [
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt"
+      ],
+      "reason": "Passage states: 'we delivered our 61st consecutive quarter of double-digit revenue growth'",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    },
+    {
+      "id": "C10",
+      "text": "Operating cost growth was held to 2% in Q2 2026.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "entails",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        0,
+        1,
+        5,
+        21,
+        23
+      ],
+      "cited_passages": [
+        "# CoStar Group, Inc. (NASDAQ: CSGP) \u2014 Second Quarter 2026 Earnings Press Release\n\nSource: SEC EDGAR, Exhibit 99.1 to Form 8-K filed July 28, 2026\nhttps://www.sec.gov/Archives/edgar/data/1057352/000105735226000061/q2fy262026earningspressr.htm\nReproduced verbatim (whitespace/table-layout normalized for plain text; no wording or figures altered).\n\n## Press Release\n\nCoStar Group Q2 2026 Results Mark a Profitability Inflection with Revenue Up 18%, Net Income Increasing 817%, and Adjusted EBITDA More Than Doubling Year-over-Year EBITDA rises 441%, Adjusted EBITDA reaches second-highest quarterly level in company history while CoStar Group continues investing in long-term growth ARLINGTON, VA \u2013 July 28, 2026 - CoStar Group, Inc. (NASDAQ: CSGP), a leading provider of online real estate marketplaces, information, analytics, and 3D digital twin technology in the property markets, announced today that revenue for the quarter ended June 30, 2026 was $925 million, up 18% over revenue of $781 millio",
+        "hat revenue for the quarter ended June 30, 2026 was $925 million, up 18% over revenue of $781 million for the quarter ended June 30, 2025. Net new bookings were $69 million, up 3% from Q1 2026. Net income was $55 million and earnings per diluted share was $0.14 for the second quarter of 2026, compared with net income of $6 million, and earnings per diluted share of $0.01, in the prior year period. Adjusted Net Income rose to $128 million in the second quarter, up 73% year-over-year. Adjusted EPS was $0.32 in the second quarter, up 88% year-over-year. EBITDA was $157 million, up 441% year-over-year. Adjusted EBITDA was $184 million in the second quarter of 2026, an increase of 116% from the prior year. \u201cThe second quarter marked a profitability inflection point for CoStar Group as Adjusted EBITDA more than doubled year-over-year to $184 million. We held operating cost growth to just 2%, and we delivered our 61st consecutive quarter of double-digit revenue growth,\" said Andy Florance, Fo",
+        ", representing revenue growth of approximately 13% year-over-year at the midpoint of the range. The Company reaffirms its full year 2026 Adjusted EPS in a range of $1.32 to $1.39 based on 405 million shares. For the third quarter of 2026, the Company expects Adjusted EPS in a range of $0.31 to $0.34 based on 403 million shares. These ranges include an estimated non-GAAP tax rate of 26% for the full year and the third quarter of 2026. The preceding forward-looking statements reflect CoStar Group\u2019s expectations as of July 28, 2026, including forward-looking non-GAAP financial measures on a consolidated basis, based on current estimates, expectations, observations, and trends. Given the risk factors, rapidly evolving economic environment, and uncertainties and assumptions discussed in this release and in our quarterly reports on Form 10-Q and annual reports on Form 10-K, actual results may differ materially. Other than in publicly available statements, the Company does not intend to updat",
+        "ory federal and state corporate tax rate for the applicable period. (3) Includes the effect of potential common shares, such as the Company's stock options, restricted stock units, and deferred stock units, to the extent the effect is dilutive. In periods with a net loss available to common stockholders, the anti-dilutive effect of these potential common shares is excluded and earnings per share - diluted is equal to earnings per share - basic. Adjusted weighted average shares have been adjusted for these periods to include the dilutive impact.\n\n## Reconciliation of Non-GAAP Measures \u2014 Net Income to EBITDA and Adjusted EBITDA (Quarterly)\n\nCoStar Group, Inc. Reconciliation of Non-GAAP Financial Measures - Unaudited (in millions) Reconciliation of Net Income (Loss) to EBITDA and Adjusted EBITDA Three Months Ended June 30, Six Months Ended June 30, 2026 2025 2026 2025 Net income (loss) $ 55 $ 6 $ 58 $ (9) Amortization of acquired intangible assets in cost of revenues 27 17 54 28 Amortizat",
+        "2026 and 2025, respectively. CoStar Group, Inc. Results of Segments - Unaudited(1) (in millions) Three Months Ended June 30, Six Months Ended June 30, 2026 2025 2026 2025 EBITDA Commercial Real Estate $ 162 $ 118 $ 289 $ 221 Residential Real Estate (5) (89) (51) (193) Total EBITDA $ 157 $ 29 $ 238 $ 28 Adjusted EBITDA Commercial Real Estate $ 172 $ 161 $ 333 $ 312 Residential Real Estate 12 (76) (17) (161) Total Adjusted EBITDA $ 184 $ 85 $ 316 $ 151 __________________________ (1) During the fourth quarter of 2025, we changed the composition of our segments from geography-based to product portfolio-based. We have recast certain prior period disclosures to align with new segments.\n\n## Reconciliation of Non-GAAP Measures \u2014 Six-Quarter Trend, Net Income to Adjusted Net Income/EPS\n\nReconciliation of Net Income (Loss) to Adjusted Net Income and Adjusted EPS 2025 2026 Q1 Q2 Q3 Q4 Q1 Q2 Net income (loss) $ (15) $ 6 $ (31) $ 47 $ 3 $ 55 Income tax expense (benefit) 8 16 (15) 14 9 19 Income (lo"
+      ],
+      "cited_sources": [
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt"
+      ],
+      "reason": "Chunk 1 explicitly states: 'We held operating cost growth to just 2%'",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    },
+    {
+      "id": "C11",
+      "text": "The residential segment turned adjusted EBITDA positive in Q2 2026 with a $41 million improvement from Q1 2026.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "entails",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        0,
+        1,
+        2,
+        7,
+        27
+      ],
+      "cited_passages": [
+        "# CoStar Group, Inc. (NASDAQ: CSGP) \u2014 Second Quarter 2026 Earnings Press Release\n\nSource: SEC EDGAR, Exhibit 99.1 to Form 8-K filed July 28, 2026\nhttps://www.sec.gov/Archives/edgar/data/1057352/000105735226000061/q2fy262026earningspressr.htm\nReproduced verbatim (whitespace/table-layout normalized for plain text; no wording or figures altered).\n\n## Press Release\n\nCoStar Group Q2 2026 Results Mark a Profitability Inflection with Revenue Up 18%, Net Income Increasing 817%, and Adjusted EBITDA More Than Doubling Year-over-Year EBITDA rises 441%, Adjusted EBITDA reaches second-highest quarterly level in company history while CoStar Group continues investing in long-term growth ARLINGTON, VA \u2013 July 28, 2026 - CoStar Group, Inc. (NASDAQ: CSGP), a leading provider of online real estate marketplaces, information, analytics, and 3D digital twin technology in the property markets, announced today that revenue for the quarter ended June 30, 2026 was $925 million, up 18% over revenue of $781 millio",
+        "hat revenue for the quarter ended June 30, 2026 was $925 million, up 18% over revenue of $781 million for the quarter ended June 30, 2025. Net new bookings were $69 million, up 3% from Q1 2026. Net income was $55 million and earnings per diluted share was $0.14 for the second quarter of 2026, compared with net income of $6 million, and earnings per diluted share of $0.01, in the prior year period. Adjusted Net Income rose to $128 million in the second quarter, up 73% year-over-year. Adjusted EPS was $0.32 in the second quarter, up 88% year-over-year. EBITDA was $157 million, up 441% year-over-year. Adjusted EBITDA was $184 million in the second quarter of 2026, an increase of 116% from the prior year. \u201cThe second quarter marked a profitability inflection point for CoStar Group as Adjusted EBITDA more than doubled year-over-year to $184 million. We held operating cost growth to just 2%, and we delivered our 61st consecutive quarter of double-digit revenue growth,\" said Andy Florance, Fo",
+        "nd we delivered our 61st consecutive quarter of double-digit revenue growth,\" said Andy Florance, Founder and Chief Executive Officer of CoStar Group. \"For the first time, our residential segment turned Adjusted EBITDA positive \u2014 a $41 million improvement over the first quarter \u2014 and we expect to deliver the highest full-year Adjusted EBITDA in our company's history.\" Florance continued, \"We continue to capture more of CoStar Group's $100 billion total addressable market through new product launches and geographic expansion. Building on February's transformative launch of Homes.com Ai, we introduced Apartments.com Ai in June. Within weeks, Apartments.com Ai users completed more than half a million AI sessions \u2014 averaging 20 minutes per session, 2.8 times longer than non-AI users, viewing twice as many listings, with 3D tour usage up 224% and traffic-to-lead conversion up 256%. Our product roadmap extends these AI capabilities across CoStar, LoopNet, and our international businesses. Th",
+        "efer to the Company\u2019s latest periodic report. EBITDA is our net income (loss) before interest income or expense, net, other income or expense, net, income taxes, depreciation, and amortization. We typically disclose EBITDA on a consolidated and on an operating segment basis in our earnings releases, investor conference calls, and filings with the SEC. Adjusted EBITDA is different from EBITDA because we further adjust EBITDA for stock-based compensation expense, acquisition- and integration-related costs, restructuring and related costs, including certain advisory fees; and settlements and impairments incurred outside our ordinary course of business, including judgments. Adjusted EBITDA margin represents Adjusted EBITDA divided by revenues for the period. Adjusted Net Income represents our net income (loss) adjusted for stock-based compensation expense, acquisition- and integration-related costs, including gains or losses on equity investments acquired in prospective targets and related",
+        "71 41 42 38 Acquisition and integration related costs 22 4 30 7 7 5 Restructuring and related costs 7 (1) \u2014 \u2014 2 2 Settlements and impairments 8 1 \u2014 \u2014 \u2014 (18) Adjusted EBITDA $ 66 $ 85 $ 114 $ 177 $ 132 $ 184 __________________________ (1) Includes $7 million, $9 million, $4 million, $4 million, $5 million, and $3 million of depreciation and amortization expense, including above-market lease amortization, associated with lessor activities, for the three months ending March 31, 2025, June 30, 2025, September 30, 2025, December 31, 2025, March 31, 2026, and June 30, 2026, respectively. CoStar Group, Inc. Results of Segments - Unaudited(1) (in millions) 2025 2026 Q1 Q2 Q3 Q4 Q1 Q2 EBITDA Commercial Real Estate $ 103 $ 118 $ 114 $ 145 $ 127 $ 162 Residential Real Estate (104) (89) (101) (16) (46) (5) Total EBITDA $ (1) $ 29 $ 13 $ 129 $ 81 $ 157 Adjusted EBITDA Commercial Real Estate $ 151 $ 161 $ 183 $ 177 $ 161 $ 172 Residential Real Estate (85) (76) (69) \u2014 (29) 12 Total Adjusted EBITDA $"
+      ],
+      "cited_sources": [
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt"
+      ],
+      "reason": "Chunk 2 states: 'For the first time, our residential segment turned Adjusted EBITDA positive \u2014 a $41 million improvement over the first quarter' and Chunk 27 confirms Q1 2026 was -$29 million and Q2 2026 was $12 million, a $41 million improvement",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    },
+    {
+      "id": "C12",
+      "text": "Homes.com Ai was launched in February 2026.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "entails",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        0,
+        2,
+        28,
+        29,
+        31
+      ],
+      "cited_passages": [
+        "# CoStar Group, Inc. (NASDAQ: CSGP) \u2014 Second Quarter 2026 Earnings Press Release\n\nSource: SEC EDGAR, Exhibit 99.1 to Form 8-K filed July 28, 2026\nhttps://www.sec.gov/Archives/edgar/data/1057352/000105735226000061/q2fy262026earningspressr.htm\nReproduced verbatim (whitespace/table-layout normalized for plain text; no wording or figures altered).\n\n## Press Release\n\nCoStar Group Q2 2026 Results Mark a Profitability Inflection with Revenue Up 18%, Net Income Increasing 817%, and Adjusted EBITDA More Than Doubling Year-over-Year EBITDA rises 441%, Adjusted EBITDA reaches second-highest quarterly level in company history while CoStar Group continues investing in long-term growth ARLINGTON, VA \u2013 July 28, 2026 - CoStar Group, Inc. (NASDAQ: CSGP), a leading provider of online real estate marketplaces, information, analytics, and 3D digital twin technology in the property markets, announced today that revenue for the quarter ended June 30, 2026 was $925 million, up 18% over revenue of $781 millio",
+        "nd we delivered our 61st consecutive quarter of double-digit revenue growth,\" said Andy Florance, Founder and Chief Executive Officer of CoStar Group. \"For the first time, our residential segment turned Adjusted EBITDA positive \u2014 a $41 million improvement over the first quarter \u2014 and we expect to deliver the highest full-year Adjusted EBITDA in our company's history.\" Florance continued, \"We continue to capture more of CoStar Group's $100 billion total addressable market through new product launches and geographic expansion. Building on February's transformative launch of Homes.com Ai, we introduced Apartments.com Ai in June. Within weeks, Apartments.com Ai users completed more than half a million AI sessions \u2014 averaging 20 minutes per session, 2.8 times longer than non-AI users, viewing twice as many listings, with 3D tour usage up 224% and traffic-to-lead conversion up 256%. Our product roadmap extends these AI capabilities across CoStar, LoopNet, and our international businesses. Th",
+        "161 $ 183 $ 177 $ 161 $ 172 Residential Real Estate (85) (76) (69) \u2014 (29) 12 Total Adjusted EBITDA $ 66 $ 85 $ 114 $ 177 $ 132 $ 184 __________________________ (1) During the fourth quarter of 2025, we changed the composition of our segments from geography-based to product portfolio-based. We have recast certain prior period disclosures to align with new segments.\n\n## Investor Contacts, Company Description, and Forward-Looking Statements\n\nInvestor Relations: Rich Simonelli Head of Investor Relations CoStar Group Investor Relations (973) 896-8184 getrich@costar.com News Media: Matthew Blocher Vice President CoStar Group Corporate Marketing & Communications (202) 346-6775 mblocher@costar.com About CoStar Group CoStar Group (NASDAQ: CSGP) is a global leader in commercial real estate information, analytics, online marketplaces, and 3D digital twin technology. Founded in 1986, CoStar Group is dedicated to digitizing the world\u2019s real estate, empowering all people to discover properties, insi",
+        "dedicated to digitizing the world\u2019s real estate, empowering all people to discover properties, insights, and connections that improve their businesses and lives. CoStar Group\u2019s major brands include CoStar, a leading global provider of commercial real estate data, analytics, and news; LoopNet, the most trafficked commercial real estate marketplace; Apartments.com, the leading platform for apartment rentals; Homes.com, the fastest-growing residential real estate marketplace; and Domain, one of Australia\u2019s leading property marketplaces. CoStar Group\u2019s industry-leading brands also include Matterport, a leading spatial data company whose platform turns buildings into data to make every space more valuable and accessible; STR, a global leader in hospitality data and benchmarking; Ten-X, an online platform for commercial real estate auctions and negotiated bids; and OnTheMarket, a leading residential property portal in the United Kingdom. CoStar Group\u2019s websites attracted 118 million average",
+        "icipate,\u201d \u201cmay,\u201d \u201clikely,\u201d \u201cmight,\u201d \u201cbelieve,\u201d \u201cexpect,\u201d \u201cobserve,\u201d \u201cconsider,\u201d \u201cthink,\u201d \u201cintend,\u201d \u201cenvision,\u201d \u201cwill,\u201d \u201cshould,\u201d \u201ccould,\u201d \u201cwould,\u201d \u201cplan,\u201d \u201ctarget,\u201d \u201cgoal,\u201d \u201cestimate,\u201d \u201cpredict,\u201d \u201ccontinue,\u201d \u201ccommit,\u201d and \u201cpotential\u201d or the negative of these terms or other comparable terminology. Such statements are based upon the current beliefs and expectations of management of CoStar Group and are subject to many risks and uncertainties. Actual results may differ materially from the results anticipated in the forward-looking statements and the assumptions and estimates used as a basis for the forward-looking statements. The following factors, among others, could cause or contribute to such differences: our inability to attract and retain new clients; our inability to successfully develop and introduce new or updated real estate information, analytics, and online marketplaces; the risks related to AI technologies, such as Homes Ai and Apartments Ai; our inability to compete successfu"
+      ],
+      "cited_sources": [
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt"
+      ],
+      "reason": "Chunk 2 states: 'Building on February's transformative launch of Homes.com Ai'",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    },
+    {
+      "id": "C13",
+      "text": "Apartments.com Ai was introduced in June 2026 and generated more than half a million AI sessions within weeks.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "entails",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        0,
+        1,
+        2,
+        28,
+        29
+      ],
+      "cited_passages": [
+        "# CoStar Group, Inc. (NASDAQ: CSGP) \u2014 Second Quarter 2026 Earnings Press Release\n\nSource: SEC EDGAR, Exhibit 99.1 to Form 8-K filed July 28, 2026\nhttps://www.sec.gov/Archives/edgar/data/1057352/000105735226000061/q2fy262026earningspressr.htm\nReproduced verbatim (whitespace/table-layout normalized for plain text; no wording or figures altered).\n\n## Press Release\n\nCoStar Group Q2 2026 Results Mark a Profitability Inflection with Revenue Up 18%, Net Income Increasing 817%, and Adjusted EBITDA More Than Doubling Year-over-Year EBITDA rises 441%, Adjusted EBITDA reaches second-highest quarterly level in company history while CoStar Group continues investing in long-term growth ARLINGTON, VA \u2013 July 28, 2026 - CoStar Group, Inc. (NASDAQ: CSGP), a leading provider of online real estate marketplaces, information, analytics, and 3D digital twin technology in the property markets, announced today that revenue for the quarter ended June 30, 2026 was $925 million, up 18% over revenue of $781 millio",
+        "hat revenue for the quarter ended June 30, 2026 was $925 million, up 18% over revenue of $781 million for the quarter ended June 30, 2025. Net new bookings were $69 million, up 3% from Q1 2026. Net income was $55 million and earnings per diluted share was $0.14 for the second quarter of 2026, compared with net income of $6 million, and earnings per diluted share of $0.01, in the prior year period. Adjusted Net Income rose to $128 million in the second quarter, up 73% year-over-year. Adjusted EPS was $0.32 in the second quarter, up 88% year-over-year. EBITDA was $157 million, up 441% year-over-year. Adjusted EBITDA was $184 million in the second quarter of 2026, an increase of 116% from the prior year. \u201cThe second quarter marked a profitability inflection point for CoStar Group as Adjusted EBITDA more than doubled year-over-year to $184 million. We held operating cost growth to just 2%, and we delivered our 61st consecutive quarter of double-digit revenue growth,\" said Andy Florance, Fo",
+        "nd we delivered our 61st consecutive quarter of double-digit revenue growth,\" said Andy Florance, Founder and Chief Executive Officer of CoStar Group. \"For the first time, our residential segment turned Adjusted EBITDA positive \u2014 a $41 million improvement over the first quarter \u2014 and we expect to deliver the highest full-year Adjusted EBITDA in our company's history.\" Florance continued, \"We continue to capture more of CoStar Group's $100 billion total addressable market through new product launches and geographic expansion. Building on February's transformative launch of Homes.com Ai, we introduced Apartments.com Ai in June. Within weeks, Apartments.com Ai users completed more than half a million AI sessions \u2014 averaging 20 minutes per session, 2.8 times longer than non-AI users, viewing twice as many listings, with 3D tour usage up 224% and traffic-to-lead conversion up 256%. Our product roadmap extends these AI capabilities across CoStar, LoopNet, and our international businesses. Th",
+        "161 $ 183 $ 177 $ 161 $ 172 Residential Real Estate (85) (76) (69) \u2014 (29) 12 Total Adjusted EBITDA $ 66 $ 85 $ 114 $ 177 $ 132 $ 184 __________________________ (1) During the fourth quarter of 2025, we changed the composition of our segments from geography-based to product portfolio-based. We have recast certain prior period disclosures to align with new segments.\n\n## Investor Contacts, Company Description, and Forward-Looking Statements\n\nInvestor Relations: Rich Simonelli Head of Investor Relations CoStar Group Investor Relations (973) 896-8184 getrich@costar.com News Media: Matthew Blocher Vice President CoStar Group Corporate Marketing & Communications (202) 346-6775 mblocher@costar.com About CoStar Group CoStar Group (NASDAQ: CSGP) is a global leader in commercial real estate information, analytics, online marketplaces, and 3D digital twin technology. Founded in 1986, CoStar Group is dedicated to digitizing the world\u2019s real estate, empowering all people to discover properties, insi",
+        "dedicated to digitizing the world\u2019s real estate, empowering all people to discover properties, insights, and connections that improve their businesses and lives. CoStar Group\u2019s major brands include CoStar, a leading global provider of commercial real estate data, analytics, and news; LoopNet, the most trafficked commercial real estate marketplace; Apartments.com, the leading platform for apartment rentals; Homes.com, the fastest-growing residential real estate marketplace; and Domain, one of Australia\u2019s leading property marketplaces. CoStar Group\u2019s industry-leading brands also include Matterport, a leading spatial data company whose platform turns buildings into data to make every space more valuable and accessible; STR, a global leader in hospitality data and benchmarking; Ten-X, an online platform for commercial real estate auctions and negotiated bids; and OnTheMarket, a leading residential property portal in the United Kingdom. CoStar Group\u2019s websites attracted 118 million average"
+      ],
+      "cited_sources": [
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt"
+      ],
+      "reason": "Passages state: 'we introduced Apartments.com Ai in June. Within weeks, Apartments.com Ai users completed more than half a million AI sessions'",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    },
+    {
+      "id": "C14",
+      "text": "Apartments.com Ai users averaged 20-minute sessions, 2.8 times longer than non-AI users.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "entails",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        0,
+        2,
+        3,
+        28,
+        29
+      ],
+      "cited_passages": [
+        "# CoStar Group, Inc. (NASDAQ: CSGP) \u2014 Second Quarter 2026 Earnings Press Release\n\nSource: SEC EDGAR, Exhibit 99.1 to Form 8-K filed July 28, 2026\nhttps://www.sec.gov/Archives/edgar/data/1057352/000105735226000061/q2fy262026earningspressr.htm\nReproduced verbatim (whitespace/table-layout normalized for plain text; no wording or figures altered).\n\n## Press Release\n\nCoStar Group Q2 2026 Results Mark a Profitability Inflection with Revenue Up 18%, Net Income Increasing 817%, and Adjusted EBITDA More Than Doubling Year-over-Year EBITDA rises 441%, Adjusted EBITDA reaches second-highest quarterly level in company history while CoStar Group continues investing in long-term growth ARLINGTON, VA \u2013 July 28, 2026 - CoStar Group, Inc. (NASDAQ: CSGP), a leading provider of online real estate marketplaces, information, analytics, and 3D digital twin technology in the property markets, announced today that revenue for the quarter ended June 30, 2026 was $925 million, up 18% over revenue of $781 millio",
+        "nd we delivered our 61st consecutive quarter of double-digit revenue growth,\" said Andy Florance, Founder and Chief Executive Officer of CoStar Group. \"For the first time, our residential segment turned Adjusted EBITDA positive \u2014 a $41 million improvement over the first quarter \u2014 and we expect to deliver the highest full-year Adjusted EBITDA in our company's history.\" Florance continued, \"We continue to capture more of CoStar Group's $100 billion total addressable market through new product launches and geographic expansion. Building on February's transformative launch of Homes.com Ai, we introduced Apartments.com Ai in June. Within weeks, Apartments.com Ai users completed more than half a million AI sessions \u2014 averaging 20 minutes per session, 2.8 times longer than non-AI users, viewing twice as many listings, with 3D tour usage up 224% and traffic-to-lead conversion up 256%. Our product roadmap extends these AI capabilities across CoStar, LoopNet, and our international businesses. Th",
+        "t roadmap extends these AI capabilities across CoStar, LoopNet, and our international businesses. This quarter we also delivered four major launches on our core CoStar platform \u2014 including CoStar Rent Benchmark, built from four million AI-abstracted lease agreements, and CoStar\u2019s market entry into France. We accomplished all of this while reducing our projected expense base by roughly $100 million versus our original guidance, giving us a head start on our 2028 and 2030 Adjusted EBITDA targets.\" Exhibit 99.1\n\n## Quarterly Results Summary Table (2025-2026) and 2026 Outlook\n\nYear 2025-2026 Quarterly Results - Unaudited (in millions, except per share data) 2025 2026 Q1 Q2 Q3 Q4 Q1 Q2 Revenue $732 $781 $834 $900 $897 $925 Net income (loss) $(15) $6 $(31) $47 $3 $55 Earnings per share - diluted $(0.04) $0.01 $(0.07) $0.11 $0.01 $0.14 Weighted-average outstanding shares - diluted 411 424 420 420 414 404 EBITDA $(1) $29 $13 $129 $81 $157 Adjusted EBITDA $66 $85 $114 $177 $132 $184 Adjusted Ne",
+        "161 $ 183 $ 177 $ 161 $ 172 Residential Real Estate (85) (76) (69) \u2014 (29) 12 Total Adjusted EBITDA $ 66 $ 85 $ 114 $ 177 $ 132 $ 184 __________________________ (1) During the fourth quarter of 2025, we changed the composition of our segments from geography-based to product portfolio-based. We have recast certain prior period disclosures to align with new segments.\n\n## Investor Contacts, Company Description, and Forward-Looking Statements\n\nInvestor Relations: Rich Simonelli Head of Investor Relations CoStar Group Investor Relations (973) 896-8184 getrich@costar.com News Media: Matthew Blocher Vice President CoStar Group Corporate Marketing & Communications (202) 346-6775 mblocher@costar.com About CoStar Group CoStar Group (NASDAQ: CSGP) is a global leader in commercial real estate information, analytics, online marketplaces, and 3D digital twin technology. Founded in 1986, CoStar Group is dedicated to digitizing the world\u2019s real estate, empowering all people to discover properties, insi",
+        "dedicated to digitizing the world\u2019s real estate, empowering all people to discover properties, insights, and connections that improve their businesses and lives. CoStar Group\u2019s major brands include CoStar, a leading global provider of commercial real estate data, analytics, and news; LoopNet, the most trafficked commercial real estate marketplace; Apartments.com, the leading platform for apartment rentals; Homes.com, the fastest-growing residential real estate marketplace; and Domain, one of Australia\u2019s leading property marketplaces. CoStar Group\u2019s industry-leading brands also include Matterport, a leading spatial data company whose platform turns buildings into data to make every space more valuable and accessible; STR, a global leader in hospitality data and benchmarking; Ten-X, an online platform for commercial real estate auctions and negotiated bids; and OnTheMarket, a leading residential property portal in the United Kingdom. CoStar Group\u2019s websites attracted 118 million average"
+      ],
+      "cited_sources": [
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt"
+      ],
+      "reason": "Passages state: 'averaging 20 minutes per session, 2.8 times longer than non-AI users'",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    },
+    {
+      "id": "C15",
+      "text": "Apartments.com Ai users viewed twice as many listings as non-AI users.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "entails",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        0,
+        2,
+        3,
+        28,
+        29
+      ],
+      "cited_passages": [
+        "# CoStar Group, Inc. (NASDAQ: CSGP) \u2014 Second Quarter 2026 Earnings Press Release\n\nSource: SEC EDGAR, Exhibit 99.1 to Form 8-K filed July 28, 2026\nhttps://www.sec.gov/Archives/edgar/data/1057352/000105735226000061/q2fy262026earningspressr.htm\nReproduced verbatim (whitespace/table-layout normalized for plain text; no wording or figures altered).\n\n## Press Release\n\nCoStar Group Q2 2026 Results Mark a Profitability Inflection with Revenue Up 18%, Net Income Increasing 817%, and Adjusted EBITDA More Than Doubling Year-over-Year EBITDA rises 441%, Adjusted EBITDA reaches second-highest quarterly level in company history while CoStar Group continues investing in long-term growth ARLINGTON, VA \u2013 July 28, 2026 - CoStar Group, Inc. (NASDAQ: CSGP), a leading provider of online real estate marketplaces, information, analytics, and 3D digital twin technology in the property markets, announced today that revenue for the quarter ended June 30, 2026 was $925 million, up 18% over revenue of $781 millio",
+        "nd we delivered our 61st consecutive quarter of double-digit revenue growth,\" said Andy Florance, Founder and Chief Executive Officer of CoStar Group. \"For the first time, our residential segment turned Adjusted EBITDA positive \u2014 a $41 million improvement over the first quarter \u2014 and we expect to deliver the highest full-year Adjusted EBITDA in our company's history.\" Florance continued, \"We continue to capture more of CoStar Group's $100 billion total addressable market through new product launches and geographic expansion. Building on February's transformative launch of Homes.com Ai, we introduced Apartments.com Ai in June. Within weeks, Apartments.com Ai users completed more than half a million AI sessions \u2014 averaging 20 minutes per session, 2.8 times longer than non-AI users, viewing twice as many listings, with 3D tour usage up 224% and traffic-to-lead conversion up 256%. Our product roadmap extends these AI capabilities across CoStar, LoopNet, and our international businesses. Th",
+        "t roadmap extends these AI capabilities across CoStar, LoopNet, and our international businesses. This quarter we also delivered four major launches on our core CoStar platform \u2014 including CoStar Rent Benchmark, built from four million AI-abstracted lease agreements, and CoStar\u2019s market entry into France. We accomplished all of this while reducing our projected expense base by roughly $100 million versus our original guidance, giving us a head start on our 2028 and 2030 Adjusted EBITDA targets.\" Exhibit 99.1\n\n## Quarterly Results Summary Table (2025-2026) and 2026 Outlook\n\nYear 2025-2026 Quarterly Results - Unaudited (in millions, except per share data) 2025 2026 Q1 Q2 Q3 Q4 Q1 Q2 Revenue $732 $781 $834 $900 $897 $925 Net income (loss) $(15) $6 $(31) $47 $3 $55 Earnings per share - diluted $(0.04) $0.01 $(0.07) $0.11 $0.01 $0.14 Weighted-average outstanding shares - diluted 411 424 420 420 414 404 EBITDA $(1) $29 $13 $129 $81 $157 Adjusted EBITDA $66 $85 $114 $177 $132 $184 Adjusted Ne",
+        "161 $ 183 $ 177 $ 161 $ 172 Residential Real Estate (85) (76) (69) \u2014 (29) 12 Total Adjusted EBITDA $ 66 $ 85 $ 114 $ 177 $ 132 $ 184 __________________________ (1) During the fourth quarter of 2025, we changed the composition of our segments from geography-based to product portfolio-based. We have recast certain prior period disclosures to align with new segments.\n\n## Investor Contacts, Company Description, and Forward-Looking Statements\n\nInvestor Relations: Rich Simonelli Head of Investor Relations CoStar Group Investor Relations (973) 896-8184 getrich@costar.com News Media: Matthew Blocher Vice President CoStar Group Corporate Marketing & Communications (202) 346-6775 mblocher@costar.com About CoStar Group CoStar Group (NASDAQ: CSGP) is a global leader in commercial real estate information, analytics, online marketplaces, and 3D digital twin technology. Founded in 1986, CoStar Group is dedicated to digitizing the world\u2019s real estate, empowering all people to discover properties, insi",
+        "dedicated to digitizing the world\u2019s real estate, empowering all people to discover properties, insights, and connections that improve their businesses and lives. CoStar Group\u2019s major brands include CoStar, a leading global provider of commercial real estate data, analytics, and news; LoopNet, the most trafficked commercial real estate marketplace; Apartments.com, the leading platform for apartment rentals; Homes.com, the fastest-growing residential real estate marketplace; and Domain, one of Australia\u2019s leading property marketplaces. CoStar Group\u2019s industry-leading brands also include Matterport, a leading spatial data company whose platform turns buildings into data to make every space more valuable and accessible; STR, a global leader in hospitality data and benchmarking; Ten-X, an online platform for commercial real estate auctions and negotiated bids; and OnTheMarket, a leading residential property portal in the United Kingdom. CoStar Group\u2019s websites attracted 118 million average"
+      ],
+      "cited_sources": [
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt"
+      ],
+      "reason": "Passages state: 'viewing twice as many listings'",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    },
+    {
+      "id": "C16",
+      "text": "3D tour usage increased 224% among Apartments.com Ai users.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "entails",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        0,
+        2,
+        3,
+        28,
+        29
+      ],
+      "cited_passages": [
+        "# CoStar Group, Inc. (NASDAQ: CSGP) \u2014 Second Quarter 2026 Earnings Press Release\n\nSource: SEC EDGAR, Exhibit 99.1 to Form 8-K filed July 28, 2026\nhttps://www.sec.gov/Archives/edgar/data/1057352/000105735226000061/q2fy262026earningspressr.htm\nReproduced verbatim (whitespace/table-layout normalized for plain text; no wording or figures altered).\n\n## Press Release\n\nCoStar Group Q2 2026 Results Mark a Profitability Inflection with Revenue Up 18%, Net Income Increasing 817%, and Adjusted EBITDA More Than Doubling Year-over-Year EBITDA rises 441%, Adjusted EBITDA reaches second-highest quarterly level in company history while CoStar Group continues investing in long-term growth ARLINGTON, VA \u2013 July 28, 2026 - CoStar Group, Inc. (NASDAQ: CSGP), a leading provider of online real estate marketplaces, information, analytics, and 3D digital twin technology in the property markets, announced today that revenue for the quarter ended June 30, 2026 was $925 million, up 18% over revenue of $781 millio",
+        "nd we delivered our 61st consecutive quarter of double-digit revenue growth,\" said Andy Florance, Founder and Chief Executive Officer of CoStar Group. \"For the first time, our residential segment turned Adjusted EBITDA positive \u2014 a $41 million improvement over the first quarter \u2014 and we expect to deliver the highest full-year Adjusted EBITDA in our company's history.\" Florance continued, \"We continue to capture more of CoStar Group's $100 billion total addressable market through new product launches and geographic expansion. Building on February's transformative launch of Homes.com Ai, we introduced Apartments.com Ai in June. Within weeks, Apartments.com Ai users completed more than half a million AI sessions \u2014 averaging 20 minutes per session, 2.8 times longer than non-AI users, viewing twice as many listings, with 3D tour usage up 224% and traffic-to-lead conversion up 256%. Our product roadmap extends these AI capabilities across CoStar, LoopNet, and our international businesses. Th",
+        "t roadmap extends these AI capabilities across CoStar, LoopNet, and our international businesses. This quarter we also delivered four major launches on our core CoStar platform \u2014 including CoStar Rent Benchmark, built from four million AI-abstracted lease agreements, and CoStar\u2019s market entry into France. We accomplished all of this while reducing our projected expense base by roughly $100 million versus our original guidance, giving us a head start on our 2028 and 2030 Adjusted EBITDA targets.\" Exhibit 99.1\n\n## Quarterly Results Summary Table (2025-2026) and 2026 Outlook\n\nYear 2025-2026 Quarterly Results - Unaudited (in millions, except per share data) 2025 2026 Q1 Q2 Q3 Q4 Q1 Q2 Revenue $732 $781 $834 $900 $897 $925 Net income (loss) $(15) $6 $(31) $47 $3 $55 Earnings per share - diluted $(0.04) $0.01 $(0.07) $0.11 $0.01 $0.14 Weighted-average outstanding shares - diluted 411 424 420 420 414 404 EBITDA $(1) $29 $13 $129 $81 $157 Adjusted EBITDA $66 $85 $114 $177 $132 $184 Adjusted Ne",
+        "161 $ 183 $ 177 $ 161 $ 172 Residential Real Estate (85) (76) (69) \u2014 (29) 12 Total Adjusted EBITDA $ 66 $ 85 $ 114 $ 177 $ 132 $ 184 __________________________ (1) During the fourth quarter of 2025, we changed the composition of our segments from geography-based to product portfolio-based. We have recast certain prior period disclosures to align with new segments.\n\n## Investor Contacts, Company Description, and Forward-Looking Statements\n\nInvestor Relations: Rich Simonelli Head of Investor Relations CoStar Group Investor Relations (973) 896-8184 getrich@costar.com News Media: Matthew Blocher Vice President CoStar Group Corporate Marketing & Communications (202) 346-6775 mblocher@costar.com About CoStar Group CoStar Group (NASDAQ: CSGP) is a global leader in commercial real estate information, analytics, online marketplaces, and 3D digital twin technology. Founded in 1986, CoStar Group is dedicated to digitizing the world\u2019s real estate, empowering all people to discover properties, insi",
+        "dedicated to digitizing the world\u2019s real estate, empowering all people to discover properties, insights, and connections that improve their businesses and lives. CoStar Group\u2019s major brands include CoStar, a leading global provider of commercial real estate data, analytics, and news; LoopNet, the most trafficked commercial real estate marketplace; Apartments.com, the leading platform for apartment rentals; Homes.com, the fastest-growing residential real estate marketplace; and Domain, one of Australia\u2019s leading property marketplaces. CoStar Group\u2019s industry-leading brands also include Matterport, a leading spatial data company whose platform turns buildings into data to make every space more valuable and accessible; STR, a global leader in hospitality data and benchmarking; Ten-X, an online platform for commercial real estate auctions and negotiated bids; and OnTheMarket, a leading residential property portal in the United Kingdom. CoStar Group\u2019s websites attracted 118 million average"
+      ],
+      "cited_sources": [
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt"
+      ],
+      "reason": "The passage states: 'with 3D tour usage up 224%' in the context of Apartments.com AI users",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    },
+    {
+      "id": "C17",
+      "text": "Traffic-to-lead conversion increased 256% among Apartments.com Ai users.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "entails",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        0,
+        2,
+        3,
+        28,
+        29
+      ],
+      "cited_passages": [
+        "# CoStar Group, Inc. (NASDAQ: CSGP) \u2014 Second Quarter 2026 Earnings Press Release\n\nSource: SEC EDGAR, Exhibit 99.1 to Form 8-K filed July 28, 2026\nhttps://www.sec.gov/Archives/edgar/data/1057352/000105735226000061/q2fy262026earningspressr.htm\nReproduced verbatim (whitespace/table-layout normalized for plain text; no wording or figures altered).\n\n## Press Release\n\nCoStar Group Q2 2026 Results Mark a Profitability Inflection with Revenue Up 18%, Net Income Increasing 817%, and Adjusted EBITDA More Than Doubling Year-over-Year EBITDA rises 441%, Adjusted EBITDA reaches second-highest quarterly level in company history while CoStar Group continues investing in long-term growth ARLINGTON, VA \u2013 July 28, 2026 - CoStar Group, Inc. (NASDAQ: CSGP), a leading provider of online real estate marketplaces, information, analytics, and 3D digital twin technology in the property markets, announced today that revenue for the quarter ended June 30, 2026 was $925 million, up 18% over revenue of $781 millio",
+        "nd we delivered our 61st consecutive quarter of double-digit revenue growth,\" said Andy Florance, Founder and Chief Executive Officer of CoStar Group. \"For the first time, our residential segment turned Adjusted EBITDA positive \u2014 a $41 million improvement over the first quarter \u2014 and we expect to deliver the highest full-year Adjusted EBITDA in our company's history.\" Florance continued, \"We continue to capture more of CoStar Group's $100 billion total addressable market through new product launches and geographic expansion. Building on February's transformative launch of Homes.com Ai, we introduced Apartments.com Ai in June. Within weeks, Apartments.com Ai users completed more than half a million AI sessions \u2014 averaging 20 minutes per session, 2.8 times longer than non-AI users, viewing twice as many listings, with 3D tour usage up 224% and traffic-to-lead conversion up 256%. Our product roadmap extends these AI capabilities across CoStar, LoopNet, and our international businesses. Th",
+        "t roadmap extends these AI capabilities across CoStar, LoopNet, and our international businesses. This quarter we also delivered four major launches on our core CoStar platform \u2014 including CoStar Rent Benchmark, built from four million AI-abstracted lease agreements, and CoStar\u2019s market entry into France. We accomplished all of this while reducing our projected expense base by roughly $100 million versus our original guidance, giving us a head start on our 2028 and 2030 Adjusted EBITDA targets.\" Exhibit 99.1\n\n## Quarterly Results Summary Table (2025-2026) and 2026 Outlook\n\nYear 2025-2026 Quarterly Results - Unaudited (in millions, except per share data) 2025 2026 Q1 Q2 Q3 Q4 Q1 Q2 Revenue $732 $781 $834 $900 $897 $925 Net income (loss) $(15) $6 $(31) $47 $3 $55 Earnings per share - diluted $(0.04) $0.01 $(0.07) $0.11 $0.01 $0.14 Weighted-average outstanding shares - diluted 411 424 420 420 414 404 EBITDA $(1) $29 $13 $129 $81 $157 Adjusted EBITDA $66 $85 $114 $177 $132 $184 Adjusted Ne",
+        "161 $ 183 $ 177 $ 161 $ 172 Residential Real Estate (85) (76) (69) \u2014 (29) 12 Total Adjusted EBITDA $ 66 $ 85 $ 114 $ 177 $ 132 $ 184 __________________________ (1) During the fourth quarter of 2025, we changed the composition of our segments from geography-based to product portfolio-based. We have recast certain prior period disclosures to align with new segments.\n\n## Investor Contacts, Company Description, and Forward-Looking Statements\n\nInvestor Relations: Rich Simonelli Head of Investor Relations CoStar Group Investor Relations (973) 896-8184 getrich@costar.com News Media: Matthew Blocher Vice President CoStar Group Corporate Marketing & Communications (202) 346-6775 mblocher@costar.com About CoStar Group CoStar Group (NASDAQ: CSGP) is a global leader in commercial real estate information, analytics, online marketplaces, and 3D digital twin technology. Founded in 1986, CoStar Group is dedicated to digitizing the world\u2019s real estate, empowering all people to discover properties, insi",
+        "dedicated to digitizing the world\u2019s real estate, empowering all people to discover properties, insights, and connections that improve their businesses and lives. CoStar Group\u2019s major brands include CoStar, a leading global provider of commercial real estate data, analytics, and news; LoopNet, the most trafficked commercial real estate marketplace; Apartments.com, the leading platform for apartment rentals; Homes.com, the fastest-growing residential real estate marketplace; and Domain, one of Australia\u2019s leading property marketplaces. CoStar Group\u2019s industry-leading brands also include Matterport, a leading spatial data company whose platform turns buildings into data to make every space more valuable and accessible; STR, a global leader in hospitality data and benchmarking; Ten-X, an online platform for commercial real estate auctions and negotiated bids; and OnTheMarket, a leading residential property portal in the United Kingdom. CoStar Group\u2019s websites attracted 118 million average"
+      ],
+      "cited_sources": [
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt"
+      ],
+      "reason": "The passage states: 'traffic-to-lead conversion up 256%' in the context of Apartments.com AI users",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    },
+    {
+      "id": "C18",
+      "text": "CoStar Rent Benchmark was launched, built from four million AI-abstracted lease agreements.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "entails",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        0,
+        2,
+        3,
+        28,
+        31
+      ],
+      "cited_passages": [
+        "# CoStar Group, Inc. (NASDAQ: CSGP) \u2014 Second Quarter 2026 Earnings Press Release\n\nSource: SEC EDGAR, Exhibit 99.1 to Form 8-K filed July 28, 2026\nhttps://www.sec.gov/Archives/edgar/data/1057352/000105735226000061/q2fy262026earningspressr.htm\nReproduced verbatim (whitespace/table-layout normalized for plain text; no wording or figures altered).\n\n## Press Release\n\nCoStar Group Q2 2026 Results Mark a Profitability Inflection with Revenue Up 18%, Net Income Increasing 817%, and Adjusted EBITDA More Than Doubling Year-over-Year EBITDA rises 441%, Adjusted EBITDA reaches second-highest quarterly level in company history while CoStar Group continues investing in long-term growth ARLINGTON, VA \u2013 July 28, 2026 - CoStar Group, Inc. (NASDAQ: CSGP), a leading provider of online real estate marketplaces, information, analytics, and 3D digital twin technology in the property markets, announced today that revenue for the quarter ended June 30, 2026 was $925 million, up 18% over revenue of $781 millio",
+        "nd we delivered our 61st consecutive quarter of double-digit revenue growth,\" said Andy Florance, Founder and Chief Executive Officer of CoStar Group. \"For the first time, our residential segment turned Adjusted EBITDA positive \u2014 a $41 million improvement over the first quarter \u2014 and we expect to deliver the highest full-year Adjusted EBITDA in our company's history.\" Florance continued, \"We continue to capture more of CoStar Group's $100 billion total addressable market through new product launches and geographic expansion. Building on February's transformative launch of Homes.com Ai, we introduced Apartments.com Ai in June. Within weeks, Apartments.com Ai users completed more than half a million AI sessions \u2014 averaging 20 minutes per session, 2.8 times longer than non-AI users, viewing twice as many listings, with 3D tour usage up 224% and traffic-to-lead conversion up 256%. Our product roadmap extends these AI capabilities across CoStar, LoopNet, and our international businesses. Th",
+        "t roadmap extends these AI capabilities across CoStar, LoopNet, and our international businesses. This quarter we also delivered four major launches on our core CoStar platform \u2014 including CoStar Rent Benchmark, built from four million AI-abstracted lease agreements, and CoStar\u2019s market entry into France. We accomplished all of this while reducing our projected expense base by roughly $100 million versus our original guidance, giving us a head start on our 2028 and 2030 Adjusted EBITDA targets.\" Exhibit 99.1\n\n## Quarterly Results Summary Table (2025-2026) and 2026 Outlook\n\nYear 2025-2026 Quarterly Results - Unaudited (in millions, except per share data) 2025 2026 Q1 Q2 Q3 Q4 Q1 Q2 Revenue $732 $781 $834 $900 $897 $925 Net income (loss) $(15) $6 $(31) $47 $3 $55 Earnings per share - diluted $(0.04) $0.01 $(0.07) $0.11 $0.01 $0.14 Weighted-average outstanding shares - diluted 411 424 420 420 414 404 EBITDA $(1) $29 $13 $129 $81 $157 Adjusted EBITDA $66 $85 $114 $177 $132 $184 Adjusted Ne",
+        "161 $ 183 $ 177 $ 161 $ 172 Residential Real Estate (85) (76) (69) \u2014 (29) 12 Total Adjusted EBITDA $ 66 $ 85 $ 114 $ 177 $ 132 $ 184 __________________________ (1) During the fourth quarter of 2025, we changed the composition of our segments from geography-based to product portfolio-based. We have recast certain prior period disclosures to align with new segments.\n\n## Investor Contacts, Company Description, and Forward-Looking Statements\n\nInvestor Relations: Rich Simonelli Head of Investor Relations CoStar Group Investor Relations (973) 896-8184 getrich@costar.com News Media: Matthew Blocher Vice President CoStar Group Corporate Marketing & Communications (202) 346-6775 mblocher@costar.com About CoStar Group CoStar Group (NASDAQ: CSGP) is a global leader in commercial real estate information, analytics, online marketplaces, and 3D digital twin technology. Founded in 1986, CoStar Group is dedicated to digitizing the world\u2019s real estate, empowering all people to discover properties, insi",
+        "icipate,\u201d \u201cmay,\u201d \u201clikely,\u201d \u201cmight,\u201d \u201cbelieve,\u201d \u201cexpect,\u201d \u201cobserve,\u201d \u201cconsider,\u201d \u201cthink,\u201d \u201cintend,\u201d \u201cenvision,\u201d \u201cwill,\u201d \u201cshould,\u201d \u201ccould,\u201d \u201cwould,\u201d \u201cplan,\u201d \u201ctarget,\u201d \u201cgoal,\u201d \u201cestimate,\u201d \u201cpredict,\u201d \u201ccontinue,\u201d \u201ccommit,\u201d and \u201cpotential\u201d or the negative of these terms or other comparable terminology. Such statements are based upon the current beliefs and expectations of management of CoStar Group and are subject to many risks and uncertainties. Actual results may differ materially from the results anticipated in the forward-looking statements and the assumptions and estimates used as a basis for the forward-looking statements. The following factors, among others, could cause or contribute to such differences: our inability to attract and retain new clients; our inability to successfully develop and introduce new or updated real estate information, analytics, and online marketplaces; the risks related to AI technologies, such as Homes Ai and Apartments Ai; our inability to compete successfu"
+      ],
+      "cited_sources": [
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt"
+      ],
+      "reason": "The passage states: 'CoStar Rent Benchmark, built from four million AI-abstracted lease agreements'",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    },
+    {
+      "id": "C19",
+      "text": "CoStar entered the France market in Q2 2026.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "entails",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        0,
+        1,
+        3,
+        5,
+        23
+      ],
+      "cited_passages": [
+        "# CoStar Group, Inc. (NASDAQ: CSGP) \u2014 Second Quarter 2026 Earnings Press Release\n\nSource: SEC EDGAR, Exhibit 99.1 to Form 8-K filed July 28, 2026\nhttps://www.sec.gov/Archives/edgar/data/1057352/000105735226000061/q2fy262026earningspressr.htm\nReproduced verbatim (whitespace/table-layout normalized for plain text; no wording or figures altered).\n\n## Press Release\n\nCoStar Group Q2 2026 Results Mark a Profitability Inflection with Revenue Up 18%, Net Income Increasing 817%, and Adjusted EBITDA More Than Doubling Year-over-Year EBITDA rises 441%, Adjusted EBITDA reaches second-highest quarterly level in company history while CoStar Group continues investing in long-term growth ARLINGTON, VA \u2013 July 28, 2026 - CoStar Group, Inc. (NASDAQ: CSGP), a leading provider of online real estate marketplaces, information, analytics, and 3D digital twin technology in the property markets, announced today that revenue for the quarter ended June 30, 2026 was $925 million, up 18% over revenue of $781 millio",
+        "hat revenue for the quarter ended June 30, 2026 was $925 million, up 18% over revenue of $781 million for the quarter ended June 30, 2025. Net new bookings were $69 million, up 3% from Q1 2026. Net income was $55 million and earnings per diluted share was $0.14 for the second quarter of 2026, compared with net income of $6 million, and earnings per diluted share of $0.01, in the prior year period. Adjusted Net Income rose to $128 million in the second quarter, up 73% year-over-year. Adjusted EPS was $0.32 in the second quarter, up 88% year-over-year. EBITDA was $157 million, up 441% year-over-year. Adjusted EBITDA was $184 million in the second quarter of 2026, an increase of 116% from the prior year. \u201cThe second quarter marked a profitability inflection point for CoStar Group as Adjusted EBITDA more than doubled year-over-year to $184 million. We held operating cost growth to just 2%, and we delivered our 61st consecutive quarter of double-digit revenue growth,\" said Andy Florance, Fo",
+        "t roadmap extends these AI capabilities across CoStar, LoopNet, and our international businesses. This quarter we also delivered four major launches on our core CoStar platform \u2014 including CoStar Rent Benchmark, built from four million AI-abstracted lease agreements, and CoStar\u2019s market entry into France. We accomplished all of this while reducing our projected expense base by roughly $100 million versus our original guidance, giving us a head start on our 2028 and 2030 Adjusted EBITDA targets.\" Exhibit 99.1\n\n## Quarterly Results Summary Table (2025-2026) and 2026 Outlook\n\nYear 2025-2026 Quarterly Results - Unaudited (in millions, except per share data) 2025 2026 Q1 Q2 Q3 Q4 Q1 Q2 Revenue $732 $781 $834 $900 $897 $925 Net income (loss) $(15) $6 $(31) $47 $3 $55 Earnings per share - diluted $(0.04) $0.01 $(0.07) $0.11 $0.01 $0.14 Weighted-average outstanding shares - diluted 411 424 420 420 414 404 EBITDA $(1) $29 $13 $129 $81 $157 Adjusted EBITDA $66 $85 $114 $177 $132 $184 Adjusted Ne",
+        ", representing revenue growth of approximately 13% year-over-year at the midpoint of the range. The Company reaffirms its full year 2026 Adjusted EPS in a range of $1.32 to $1.39 based on 405 million shares. For the third quarter of 2026, the Company expects Adjusted EPS in a range of $0.31 to $0.34 based on 403 million shares. These ranges include an estimated non-GAAP tax rate of 26% for the full year and the third quarter of 2026. The preceding forward-looking statements reflect CoStar Group\u2019s expectations as of July 28, 2026, including forward-looking non-GAAP financial measures on a consolidated basis, based on current estimates, expectations, observations, and trends. Given the risk factors, rapidly evolving economic environment, and uncertainties and assumptions discussed in this release and in our quarterly reports on Form 10-Q and annual reports on Form 10-K, actual results may differ materially. Other than in publicly available statements, the Company does not intend to updat",
+        "2026 and 2025, respectively. CoStar Group, Inc. Results of Segments - Unaudited(1) (in millions) Three Months Ended June 30, Six Months Ended June 30, 2026 2025 2026 2025 EBITDA Commercial Real Estate $ 162 $ 118 $ 289 $ 221 Residential Real Estate (5) (89) (51) (193) Total EBITDA $ 157 $ 29 $ 238 $ 28 Adjusted EBITDA Commercial Real Estate $ 172 $ 161 $ 333 $ 312 Residential Real Estate 12 (76) (17) (161) Total Adjusted EBITDA $ 184 $ 85 $ 316 $ 151 __________________________ (1) During the fourth quarter of 2025, we changed the composition of our segments from geography-based to product portfolio-based. We have recast certain prior period disclosures to align with new segments.\n\n## Reconciliation of Non-GAAP Measures \u2014 Six-Quarter Trend, Net Income to Adjusted Net Income/EPS\n\nReconciliation of Net Income (Loss) to Adjusted Net Income and Adjusted EPS 2025 2026 Q1 Q2 Q3 Q4 Q1 Q2 Net income (loss) $ (15) $ 6 $ (31) $ 47 $ 3 $ 55 Income tax expense (benefit) 8 16 (15) 14 9 19 Income (lo"
+      ],
+      "cited_sources": [
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt"
+      ],
+      "reason": "Passages state 'CoStar's market entry into France' occurred in Q2 2026, as stated in chunk 3 discussing Q2 2026 results",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    },
+    {
+      "id": "C20",
+      "text": "The company reduced its projected expense base by roughly $100 million versus original guidance.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "entails",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        1,
+        3,
+        4,
+        16,
+        22
+      ],
+      "cited_passages": [
+        "hat revenue for the quarter ended June 30, 2026 was $925 million, up 18% over revenue of $781 million for the quarter ended June 30, 2025. Net new bookings were $69 million, up 3% from Q1 2026. Net income was $55 million and earnings per diluted share was $0.14 for the second quarter of 2026, compared with net income of $6 million, and earnings per diluted share of $0.01, in the prior year period. Adjusted Net Income rose to $128 million in the second quarter, up 73% year-over-year. Adjusted EPS was $0.32 in the second quarter, up 88% year-over-year. EBITDA was $157 million, up 441% year-over-year. Adjusted EBITDA was $184 million in the second quarter of 2026, an increase of 116% from the prior year. \u201cThe second quarter marked a profitability inflection point for CoStar Group as Adjusted EBITDA more than doubled year-over-year to $184 million. We held operating cost growth to just 2%, and we delivered our 61st consecutive quarter of double-digit revenue growth,\" said Andy Florance, Fo",
+        "t roadmap extends these AI capabilities across CoStar, LoopNet, and our international businesses. This quarter we also delivered four major launches on our core CoStar platform \u2014 including CoStar Rent Benchmark, built from four million AI-abstracted lease agreements, and CoStar\u2019s market entry into France. We accomplished all of this while reducing our projected expense base by roughly $100 million versus our original guidance, giving us a head start on our 2028 and 2030 Adjusted EBITDA targets.\" Exhibit 99.1\n\n## Quarterly Results Summary Table (2025-2026) and 2026 Outlook\n\nYear 2025-2026 Quarterly Results - Unaudited (in millions, except per share data) 2025 2026 Q1 Q2 Q3 Q4 Q1 Q2 Revenue $732 $781 $834 $900 $897 $925 Net income (loss) $(15) $6 $(31) $47 $3 $55 Earnings per share - diluted $(0.04) $0.01 $(0.07) $0.11 $0.01 $0.14 Weighted-average outstanding shares - diluted 411 424 420 420 414 404 EBITDA $(1) $29 $13 $129 $81 $157 Adjusted EBITDA $66 $85 $114 $177 $132 $184 Adjusted Ne",
+        "20 414 404 EBITDA $(1) $29 $13 $129 $81 $157 Adjusted EBITDA $66 $85 $114 $177 $132 $184 Adjusted Net Income $63 $74 $96 $131 $94 $128 Adjusted EPS $0.15 $0.17 $0.23 $0.31 $0.23 $0.32 2026 Outlook The Company is affirming its Adjusted EBITDA guidance for the full year of 2026 in a range of $780 million to $820 million, which represents an increase of $30 million at the midpoint of the range from its guidance in February 2026. For the third quarter of 2026, the Company expects Adjusted EBITDA in the range of $190 million to $210 million, representing a margin of 21% at the midpoint of the range. The Company is revising its revenue guidance for 2026 to a range of $3.715 billion to $3.755 billion, representing revenue growth of approximately 15% year-over-year at the midpoint of the range. The Company expects revenue for the third quarter of 2026 in the range of $935 million to $945 million, representing revenue growth of approximately 13% year-over-year at the midpoint of the range. The",
+        "7 Other Commercial Real Estate 31 60 64 62 56 57 Total Commercial Real Estate 409 446 461 471 472 481 Residential Real Estate 323 335 373 429 425 444 Total revenue $ 732 $ 781 $ 834 $ 900 $ 897 $ 925\n\n## Reconciliation of Forward-Looking Guidance \u2014 Net Income to Adjusted Net Income and Adjusted EPS\n\nCoStar Group, Inc. Reconciliation of Forward-Looking Guidance - Unaudited (in millions, except per share data) Reconciliation of Forward-Looking Guidance, Net Income to Adjusted Net Income and Adjusted EPS Guidance Range Guidance Range For the Three Months For the Year Ending Ending September 30, 2026 December 31, 2026 Low High Low High Net income $ 51 $ 65 $ 218 $ 247 Income tax expense 19 25 87 98 Income before income taxes 70 90 305 345 Amortization of acquired intangible assets 62 62 251 251 Stock-based compensation expense 34 34 156 156 Acquisition and integration related costs 2 2 15 15 Interest related to settlements \u2014 \u2014 9 9 Restructuring and related costs \u2014 \u2014 4 4 Settlements and imp",
+        "$ 6 $ 58 $ (9) Amortization of acquired intangible assets in cost of revenues 27 17 54 28 Amortization of acquired intangible assets in operating expenses 36 27 73 44 Depreciation and other amortization 18 12 32 26 Interest income (expense), net 2 (33) (8) (71) Other income (expense), net (1) \u2014 (16) 1 (14) Income tax expense, net 19 16 28 24 EBITDA 157 29 238 28 Stock-based compensation expense 38 52 80 82 Acquisition and integration related costs 5 4 12 26 Restructuring and related costs 2 (1) 4 6 Settlements and impairments (18) 1 (18) 9 Adjusted EBITDA $ 184 $ 85 $ 316 $ 151 __________________________ (1) Includes $3 million and $9 million of depreciation and amortization expense, including above-market lease amortization associated with lessor activities for the three months ended June 30, 2026 and 2025, respectively, and $8 million and $14 million for the six months ended June 30, 2026 and 2025, respectively. CoStar Group, Inc. Results of Segments - Unaudited(1) (in millions) Thr"
+      ],
+      "cited_sources": [
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt"
+      ],
+      "reason": "Passages state 'reducing our projected expense base by roughly $100 million versus our original guidance' in chunk 3",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    },
+    {
+      "id": "C21",
+      "text": "Full-year 2026 adjusted EBITDA guidance is affirmed at $780 million to $820 million.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "entails",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        1,
+        4,
+        7,
+        21,
+        27
+      ],
+      "cited_passages": [
+        "hat revenue for the quarter ended June 30, 2026 was $925 million, up 18% over revenue of $781 million for the quarter ended June 30, 2025. Net new bookings were $69 million, up 3% from Q1 2026. Net income was $55 million and earnings per diluted share was $0.14 for the second quarter of 2026, compared with net income of $6 million, and earnings per diluted share of $0.01, in the prior year period. Adjusted Net Income rose to $128 million in the second quarter, up 73% year-over-year. Adjusted EPS was $0.32 in the second quarter, up 88% year-over-year. EBITDA was $157 million, up 441% year-over-year. Adjusted EBITDA was $184 million in the second quarter of 2026, an increase of 116% from the prior year. \u201cThe second quarter marked a profitability inflection point for CoStar Group as Adjusted EBITDA more than doubled year-over-year to $184 million. We held operating cost growth to just 2%, and we delivered our 61st consecutive quarter of double-digit revenue growth,\" said Andy Florance, Fo",
+        "20 414 404 EBITDA $(1) $29 $13 $129 $81 $157 Adjusted EBITDA $66 $85 $114 $177 $132 $184 Adjusted Net Income $63 $74 $96 $131 $94 $128 Adjusted EPS $0.15 $0.17 $0.23 $0.31 $0.23 $0.32 2026 Outlook The Company is affirming its Adjusted EBITDA guidance for the full year of 2026 in a range of $780 million to $820 million, which represents an increase of $30 million at the midpoint of the range from its guidance in February 2026. For the third quarter of 2026, the Company expects Adjusted EBITDA in the range of $190 million to $210 million, representing a margin of 21% at the midpoint of the range. The Company is revising its revenue guidance for 2026 to a range of $3.715 billion to $3.755 billion, representing revenue growth of approximately 15% year-over-year at the midpoint of the range. The Company expects revenue for the third quarter of 2026 in the range of $935 million to $945 million, representing revenue growth of approximately 13% year-over-year at the midpoint of the range. The",
+        "efer to the Company\u2019s latest periodic report. EBITDA is our net income (loss) before interest income or expense, net, other income or expense, net, income taxes, depreciation, and amortization. We typically disclose EBITDA on a consolidated and on an operating segment basis in our earnings releases, investor conference calls, and filings with the SEC. Adjusted EBITDA is different from EBITDA because we further adjust EBITDA for stock-based compensation expense, acquisition- and integration-related costs, restructuring and related costs, including certain advisory fees; and settlements and impairments incurred outside our ordinary course of business, including judgments. Adjusted EBITDA margin represents Adjusted EBITDA divided by revenues for the period. Adjusted Net Income represents our net income (loss) adjusted for stock-based compensation expense, acquisition- and integration-related costs, including gains or losses on equity investments acquired in prospective targets and related",
+        "ory federal and state corporate tax rate for the applicable period. (3) Includes the effect of potential common shares, such as the Company's stock options, restricted stock units, and deferred stock units, to the extent the effect is dilutive. In periods with a net loss available to common stockholders, the anti-dilutive effect of these potential common shares is excluded and earnings per share - diluted is equal to earnings per share - basic. Adjusted weighted average shares have been adjusted for these periods to include the dilutive impact.\n\n## Reconciliation of Non-GAAP Measures \u2014 Net Income to EBITDA and Adjusted EBITDA (Quarterly)\n\nCoStar Group, Inc. Reconciliation of Non-GAAP Financial Measures - Unaudited (in millions) Reconciliation of Net Income (Loss) to EBITDA and Adjusted EBITDA Three Months Ended June 30, Six Months Ended June 30, 2026 2025 2026 2025 Net income (loss) $ 55 $ 6 $ 58 $ (9) Amortization of acquired intangible assets in cost of revenues 27 17 54 28 Amortizat",
+        "71 41 42 38 Acquisition and integration related costs 22 4 30 7 7 5 Restructuring and related costs 7 (1) \u2014 \u2014 2 2 Settlements and impairments 8 1 \u2014 \u2014 \u2014 (18) Adjusted EBITDA $ 66 $ 85 $ 114 $ 177 $ 132 $ 184 __________________________ (1) Includes $7 million, $9 million, $4 million, $4 million, $5 million, and $3 million of depreciation and amortization expense, including above-market lease amortization, associated with lessor activities, for the three months ending March 31, 2025, June 30, 2025, September 30, 2025, December 31, 2025, March 31, 2026, and June 30, 2026, respectively. CoStar Group, Inc. Results of Segments - Unaudited(1) (in millions) 2025 2026 Q1 Q2 Q3 Q4 Q1 Q2 EBITDA Commercial Real Estate $ 103 $ 118 $ 114 $ 145 $ 127 $ 162 Residential Real Estate (104) (89) (101) (16) (46) (5) Total EBITDA $ (1) $ 29 $ 13 $ 129 $ 81 $ 157 Adjusted EBITDA Commercial Real Estate $ 151 $ 161 $ 183 $ 177 $ 161 $ 172 Residential Real Estate (85) (76) (69) \u2014 (29) 12 Total Adjusted EBITDA $"
+      ],
+      "cited_sources": [
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt"
+      ],
+      "reason": "Passages state 'The Company is affirming its Adjusted EBITDA guidance for the full year of 2026 in a range of $780 million to $820 million' in chunk 4",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    },
+    {
+      "id": "C22",
+      "text": "Q3 2026 adjusted EBITDA guidance is $190 million to $210 million, representing 21% margin at midpoint.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "entails",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        1,
+        4,
+        7,
+        21,
+        26
+      ],
+      "cited_passages": [
+        "hat revenue for the quarter ended June 30, 2026 was $925 million, up 18% over revenue of $781 million for the quarter ended June 30, 2025. Net new bookings were $69 million, up 3% from Q1 2026. Net income was $55 million and earnings per diluted share was $0.14 for the second quarter of 2026, compared with net income of $6 million, and earnings per diluted share of $0.01, in the prior year period. Adjusted Net Income rose to $128 million in the second quarter, up 73% year-over-year. Adjusted EPS was $0.32 in the second quarter, up 88% year-over-year. EBITDA was $157 million, up 441% year-over-year. Adjusted EBITDA was $184 million in the second quarter of 2026, an increase of 116% from the prior year. \u201cThe second quarter marked a profitability inflection point for CoStar Group as Adjusted EBITDA more than doubled year-over-year to $184 million. We held operating cost growth to just 2%, and we delivered our 61st consecutive quarter of double-digit revenue growth,\" said Andy Florance, Fo",
+        "20 414 404 EBITDA $(1) $29 $13 $129 $81 $157 Adjusted EBITDA $66 $85 $114 $177 $132 $184 Adjusted Net Income $63 $74 $96 $131 $94 $128 Adjusted EPS $0.15 $0.17 $0.23 $0.31 $0.23 $0.32 2026 Outlook The Company is affirming its Adjusted EBITDA guidance for the full year of 2026 in a range of $780 million to $820 million, which represents an increase of $30 million at the midpoint of the range from its guidance in February 2026. For the third quarter of 2026, the Company expects Adjusted EBITDA in the range of $190 million to $210 million, representing a margin of 21% at the midpoint of the range. The Company is revising its revenue guidance for 2026 to a range of $3.715 billion to $3.755 billion, representing revenue growth of approximately 15% year-over-year at the midpoint of the range. The Company expects revenue for the third quarter of 2026 in the range of $935 million to $945 million, representing revenue growth of approximately 13% year-over-year at the midpoint of the range. The",
+        "efer to the Company\u2019s latest periodic report. EBITDA is our net income (loss) before interest income or expense, net, other income or expense, net, income taxes, depreciation, and amortization. We typically disclose EBITDA on a consolidated and on an operating segment basis in our earnings releases, investor conference calls, and filings with the SEC. Adjusted EBITDA is different from EBITDA because we further adjust EBITDA for stock-based compensation expense, acquisition- and integration-related costs, restructuring and related costs, including certain advisory fees; and settlements and impairments incurred outside our ordinary course of business, including judgments. Adjusted EBITDA margin represents Adjusted EBITDA divided by revenues for the period. Adjusted Net Income represents our net income (loss) adjusted for stock-based compensation expense, acquisition- and integration-related costs, including gains or losses on equity investments acquired in prospective targets and related",
+        "ory federal and state corporate tax rate for the applicable period. (3) Includes the effect of potential common shares, such as the Company's stock options, restricted stock units, and deferred stock units, to the extent the effect is dilutive. In periods with a net loss available to common stockholders, the anti-dilutive effect of these potential common shares is excluded and earnings per share - diluted is equal to earnings per share - basic. Adjusted weighted average shares have been adjusted for these periods to include the dilutive impact.\n\n## Reconciliation of Non-GAAP Measures \u2014 Net Income to EBITDA and Adjusted EBITDA (Quarterly)\n\nCoStar Group, Inc. Reconciliation of Non-GAAP Financial Measures - Unaudited (in millions) Reconciliation of Net Income (Loss) to EBITDA and Adjusted EBITDA Three Months Ended June 30, Six Months Ended June 30, 2026 2025 2026 2025 Net income (loss) $ 55 $ 6 $ 58 $ (9) Amortization of acquired intangible assets in cost of revenues 27 17 54 28 Amortizat",
+        "ding have been adjusted to include the dilutive impact on Adjusted EPS. CoStar Group, Inc. Reconciliation of Non-GAAP Financial Measures with Quarterly Results - Unaudited (in millions, except per share data)\n\n## Reconciliation of Non-GAAP Measures \u2014 Six-Quarter Trend, Net Income to EBITDA/Adjusted EBITDA\n\nCoStar Group, Inc. Reconciliation of Non-GAAP Financial Measures with Quarterly Results - Unaudited (in millions) Reconciliation of Net Income (Loss) to EBITDA and Adjusted EBITDA 2025 2026 Q1 Q2 Q3 Q4 Q1 Q2 Net income (loss) $ (15) $ 6 $ (31) $ 47 $ 3 $ 55 Amortization of acquired intangible assets 28 44 51 69 64 63 Depreciation and other amortization 14 12 13 11 14 18 Interest income (expense), net (38) (33) (26) (13) (10) 2 Other income (expense), net (1) 2 (16) 21 1 1 \u2014 Income tax expense (benefit) 8 16 (15) 14 9 19 EBITDA (1) 29 13 129 81 157 Stock-based compensation expense 30 52 71 41 42 38 Acquisition and integration related costs 22 4 30 7 7 5 Restructuring and related costs"
+      ],
+      "cited_sources": [
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt"
+      ],
+      "reason": "Passage chunk 4 directly states: 'For the third quarter of 2026, the Company expects Adjusted EBITDA in the range of $190 million to $210 million, representing a margin of 21% at the midpoint of the range.'",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    },
+    {
+      "id": "C23",
+      "text": "Full-year 2026 revenue guidance was revised to $3.715 billion to $3.755 billion, representing approximately 15% year-over-year growth at midpoint.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "entails",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        1,
+        4,
+        7,
+        21,
+        23
+      ],
+      "cited_passages": [
+        "hat revenue for the quarter ended June 30, 2026 was $925 million, up 18% over revenue of $781 million for the quarter ended June 30, 2025. Net new bookings were $69 million, up 3% from Q1 2026. Net income was $55 million and earnings per diluted share was $0.14 for the second quarter of 2026, compared with net income of $6 million, and earnings per diluted share of $0.01, in the prior year period. Adjusted Net Income rose to $128 million in the second quarter, up 73% year-over-year. Adjusted EPS was $0.32 in the second quarter, up 88% year-over-year. EBITDA was $157 million, up 441% year-over-year. Adjusted EBITDA was $184 million in the second quarter of 2026, an increase of 116% from the prior year. \u201cThe second quarter marked a profitability inflection point for CoStar Group as Adjusted EBITDA more than doubled year-over-year to $184 million. We held operating cost growth to just 2%, and we delivered our 61st consecutive quarter of double-digit revenue growth,\" said Andy Florance, Fo",
+        "20 414 404 EBITDA $(1) $29 $13 $129 $81 $157 Adjusted EBITDA $66 $85 $114 $177 $132 $184 Adjusted Net Income $63 $74 $96 $131 $94 $128 Adjusted EPS $0.15 $0.17 $0.23 $0.31 $0.23 $0.32 2026 Outlook The Company is affirming its Adjusted EBITDA guidance for the full year of 2026 in a range of $780 million to $820 million, which represents an increase of $30 million at the midpoint of the range from its guidance in February 2026. For the third quarter of 2026, the Company expects Adjusted EBITDA in the range of $190 million to $210 million, representing a margin of 21% at the midpoint of the range. The Company is revising its revenue guidance for 2026 to a range of $3.715 billion to $3.755 billion, representing revenue growth of approximately 15% year-over-year at the midpoint of the range. The Company expects revenue for the third quarter of 2026 in the range of $935 million to $945 million, representing revenue growth of approximately 13% year-over-year at the midpoint of the range. The",
+        "efer to the Company\u2019s latest periodic report. EBITDA is our net income (loss) before interest income or expense, net, other income or expense, net, income taxes, depreciation, and amortization. We typically disclose EBITDA on a consolidated and on an operating segment basis in our earnings releases, investor conference calls, and filings with the SEC. Adjusted EBITDA is different from EBITDA because we further adjust EBITDA for stock-based compensation expense, acquisition- and integration-related costs, restructuring and related costs, including certain advisory fees; and settlements and impairments incurred outside our ordinary course of business, including judgments. Adjusted EBITDA margin represents Adjusted EBITDA divided by revenues for the period. Adjusted Net Income represents our net income (loss) adjusted for stock-based compensation expense, acquisition- and integration-related costs, including gains or losses on equity investments acquired in prospective targets and related",
+        "ory federal and state corporate tax rate for the applicable period. (3) Includes the effect of potential common shares, such as the Company's stock options, restricted stock units, and deferred stock units, to the extent the effect is dilutive. In periods with a net loss available to common stockholders, the anti-dilutive effect of these potential common shares is excluded and earnings per share - diluted is equal to earnings per share - basic. Adjusted weighted average shares have been adjusted for these periods to include the dilutive impact.\n\n## Reconciliation of Non-GAAP Measures \u2014 Net Income to EBITDA and Adjusted EBITDA (Quarterly)\n\nCoStar Group, Inc. Reconciliation of Non-GAAP Financial Measures - Unaudited (in millions) Reconciliation of Net Income (Loss) to EBITDA and Adjusted EBITDA Three Months Ended June 30, Six Months Ended June 30, 2026 2025 2026 2025 Net income (loss) $ 55 $ 6 $ 58 $ (9) Amortization of acquired intangible assets in cost of revenues 27 17 54 28 Amortizat",
+        "2026 and 2025, respectively. CoStar Group, Inc. Results of Segments - Unaudited(1) (in millions) Three Months Ended June 30, Six Months Ended June 30, 2026 2025 2026 2025 EBITDA Commercial Real Estate $ 162 $ 118 $ 289 $ 221 Residential Real Estate (5) (89) (51) (193) Total EBITDA $ 157 $ 29 $ 238 $ 28 Adjusted EBITDA Commercial Real Estate $ 172 $ 161 $ 333 $ 312 Residential Real Estate 12 (76) (17) (161) Total Adjusted EBITDA $ 184 $ 85 $ 316 $ 151 __________________________ (1) During the fourth quarter of 2025, we changed the composition of our segments from geography-based to product portfolio-based. We have recast certain prior period disclosures to align with new segments.\n\n## Reconciliation of Non-GAAP Measures \u2014 Six-Quarter Trend, Net Income to Adjusted Net Income/EPS\n\nReconciliation of Net Income (Loss) to Adjusted Net Income and Adjusted EPS 2025 2026 Q1 Q2 Q3 Q4 Q1 Q2 Net income (loss) $ (15) $ 6 $ (31) $ 47 $ 3 $ 55 Income tax expense (benefit) 8 16 (15) 14 9 19 Income (lo"
+      ],
+      "cited_sources": [
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt"
+      ],
+      "reason": "Passage chunk 4 directly states: 'The Company is revising its revenue guidance for 2026 to a range of $3.715 billion to $3.755 billion, representing revenue growth of approximately 15% year-over-year at the midpoint of the range.'",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    },
+    {
+      "id": "C24",
+      "text": "Q3 2026 revenue guidance is $935 million to $945 million, representing approximately 13% year-over-year growth at midpoint.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "entails",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        1,
+        4,
+        5,
+        21,
+        23
+      ],
+      "cited_passages": [
+        "hat revenue for the quarter ended June 30, 2026 was $925 million, up 18% over revenue of $781 million for the quarter ended June 30, 2025. Net new bookings were $69 million, up 3% from Q1 2026. Net income was $55 million and earnings per diluted share was $0.14 for the second quarter of 2026, compared with net income of $6 million, and earnings per diluted share of $0.01, in the prior year period. Adjusted Net Income rose to $128 million in the second quarter, up 73% year-over-year. Adjusted EPS was $0.32 in the second quarter, up 88% year-over-year. EBITDA was $157 million, up 441% year-over-year. Adjusted EBITDA was $184 million in the second quarter of 2026, an increase of 116% from the prior year. \u201cThe second quarter marked a profitability inflection point for CoStar Group as Adjusted EBITDA more than doubled year-over-year to $184 million. We held operating cost growth to just 2%, and we delivered our 61st consecutive quarter of double-digit revenue growth,\" said Andy Florance, Fo",
+        "20 414 404 EBITDA $(1) $29 $13 $129 $81 $157 Adjusted EBITDA $66 $85 $114 $177 $132 $184 Adjusted Net Income $63 $74 $96 $131 $94 $128 Adjusted EPS $0.15 $0.17 $0.23 $0.31 $0.23 $0.32 2026 Outlook The Company is affirming its Adjusted EBITDA guidance for the full year of 2026 in a range of $780 million to $820 million, which represents an increase of $30 million at the midpoint of the range from its guidance in February 2026. For the third quarter of 2026, the Company expects Adjusted EBITDA in the range of $190 million to $210 million, representing a margin of 21% at the midpoint of the range. The Company is revising its revenue guidance for 2026 to a range of $3.715 billion to $3.755 billion, representing revenue growth of approximately 15% year-over-year at the midpoint of the range. The Company expects revenue for the third quarter of 2026 in the range of $935 million to $945 million, representing revenue growth of approximately 13% year-over-year at the midpoint of the range. The",
+        ", representing revenue growth of approximately 13% year-over-year at the midpoint of the range. The Company reaffirms its full year 2026 Adjusted EPS in a range of $1.32 to $1.39 based on 405 million shares. For the third quarter of 2026, the Company expects Adjusted EPS in a range of $0.31 to $0.34 based on 403 million shares. These ranges include an estimated non-GAAP tax rate of 26% for the full year and the third quarter of 2026. The preceding forward-looking statements reflect CoStar Group\u2019s expectations as of July 28, 2026, including forward-looking non-GAAP financial measures on a consolidated basis, based on current estimates, expectations, observations, and trends. Given the risk factors, rapidly evolving economic environment, and uncertainties and assumptions discussed in this release and in our quarterly reports on Form 10-Q and annual reports on Form 10-K, actual results may differ materially. Other than in publicly available statements, the Company does not intend to updat",
+        "ory federal and state corporate tax rate for the applicable period. (3) Includes the effect of potential common shares, such as the Company's stock options, restricted stock units, and deferred stock units, to the extent the effect is dilutive. In periods with a net loss available to common stockholders, the anti-dilutive effect of these potential common shares is excluded and earnings per share - diluted is equal to earnings per share - basic. Adjusted weighted average shares have been adjusted for these periods to include the dilutive impact.\n\n## Reconciliation of Non-GAAP Measures \u2014 Net Income to EBITDA and Adjusted EBITDA (Quarterly)\n\nCoStar Group, Inc. Reconciliation of Non-GAAP Financial Measures - Unaudited (in millions) Reconciliation of Net Income (Loss) to EBITDA and Adjusted EBITDA Three Months Ended June 30, Six Months Ended June 30, 2026 2025 2026 2025 Net income (loss) $ 55 $ 6 $ 58 $ (9) Amortization of acquired intangible assets in cost of revenues 27 17 54 28 Amortizat",
+        "2026 and 2025, respectively. CoStar Group, Inc. Results of Segments - Unaudited(1) (in millions) Three Months Ended June 30, Six Months Ended June 30, 2026 2025 2026 2025 EBITDA Commercial Real Estate $ 162 $ 118 $ 289 $ 221 Residential Real Estate (5) (89) (51) (193) Total EBITDA $ 157 $ 29 $ 238 $ 28 Adjusted EBITDA Commercial Real Estate $ 172 $ 161 $ 333 $ 312 Residential Real Estate 12 (76) (17) (161) Total Adjusted EBITDA $ 184 $ 85 $ 316 $ 151 __________________________ (1) During the fourth quarter of 2025, we changed the composition of our segments from geography-based to product portfolio-based. We have recast certain prior period disclosures to align with new segments.\n\n## Reconciliation of Non-GAAP Measures \u2014 Six-Quarter Trend, Net Income to Adjusted Net Income/EPS\n\nReconciliation of Net Income (Loss) to Adjusted Net Income and Adjusted EPS 2025 2026 Q1 Q2 Q3 Q4 Q1 Q2 Net income (loss) $ (15) $ 6 $ (31) $ 47 $ 3 $ 55 Income tax expense (benefit) 8 16 (15) 14 9 19 Income (lo"
+      ],
+      "cited_sources": [
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt"
+      ],
+      "reason": "Passage chunk 4 directly states: 'The Company expects revenue for the third quarter of 2026 in the range of $935 million to $945 million, representing revenue growth of approximately 13% year-over-year at the midpoint of the range.'",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    },
+    {
+      "id": "C25",
+      "text": "Full-year 2026 adjusted EPS guidance is reaffirmed at $1.32 to $1.39 based on 405 million shares.",
+      "shape": {
+        "ok": true,
+        "reason": null
+      },
+      "verdict": "entails",
+      "judged": true,
+      "agreement": "3/3",
+      "cited_chunks": [
+        1,
+        4,
+        5,
+        16,
+        17
+      ],
+      "cited_passages": [
+        "hat revenue for the quarter ended June 30, 2026 was $925 million, up 18% over revenue of $781 million for the quarter ended June 30, 2025. Net new bookings were $69 million, up 3% from Q1 2026. Net income was $55 million and earnings per diluted share was $0.14 for the second quarter of 2026, compared with net income of $6 million, and earnings per diluted share of $0.01, in the prior year period. Adjusted Net Income rose to $128 million in the second quarter, up 73% year-over-year. Adjusted EPS was $0.32 in the second quarter, up 88% year-over-year. EBITDA was $157 million, up 441% year-over-year. Adjusted EBITDA was $184 million in the second quarter of 2026, an increase of 116% from the prior year. \u201cThe second quarter marked a profitability inflection point for CoStar Group as Adjusted EBITDA more than doubled year-over-year to $184 million. We held operating cost growth to just 2%, and we delivered our 61st consecutive quarter of double-digit revenue growth,\" said Andy Florance, Fo",
+        "20 414 404 EBITDA $(1) $29 $13 $129 $81 $157 Adjusted EBITDA $66 $85 $114 $177 $132 $184 Adjusted Net Income $63 $74 $96 $131 $94 $128 Adjusted EPS $0.15 $0.17 $0.23 $0.31 $0.23 $0.32 2026 Outlook The Company is affirming its Adjusted EBITDA guidance for the full year of 2026 in a range of $780 million to $820 million, which represents an increase of $30 million at the midpoint of the range from its guidance in February 2026. For the third quarter of 2026, the Company expects Adjusted EBITDA in the range of $190 million to $210 million, representing a margin of 21% at the midpoint of the range. The Company is revising its revenue guidance for 2026 to a range of $3.715 billion to $3.755 billion, representing revenue growth of approximately 15% year-over-year at the midpoint of the range. The Company expects revenue for the third quarter of 2026 in the range of $935 million to $945 million, representing revenue growth of approximately 13% year-over-year at the midpoint of the range. The",
+        ", representing revenue growth of approximately 13% year-over-year at the midpoint of the range. The Company reaffirms its full year 2026 Adjusted EPS in a range of $1.32 to $1.39 based on 405 million shares. For the third quarter of 2026, the Company expects Adjusted EPS in a range of $0.31 to $0.34 based on 403 million shares. These ranges include an estimated non-GAAP tax rate of 26% for the full year and the third quarter of 2026. The preceding forward-looking statements reflect CoStar Group\u2019s expectations as of July 28, 2026, including forward-looking non-GAAP financial measures on a consolidated basis, based on current estimates, expectations, observations, and trends. Given the risk factors, rapidly evolving economic environment, and uncertainties and assumptions discussed in this release and in our quarterly reports on Form 10-Q and annual reports on Form 10-K, actual results may differ materially. Other than in publicly available statements, the Company does not intend to updat",
+        "7 Other Commercial Real Estate 31 60 64 62 56 57 Total Commercial Real Estate 409 446 461 471 472 481 Residential Real Estate 323 335 373 429 425 444 Total revenue $ 732 $ 781 $ 834 $ 900 $ 897 $ 925\n\n## Reconciliation of Forward-Looking Guidance \u2014 Net Income to Adjusted Net Income and Adjusted EPS\n\nCoStar Group, Inc. Reconciliation of Forward-Looking Guidance - Unaudited (in millions, except per share data) Reconciliation of Forward-Looking Guidance, Net Income to Adjusted Net Income and Adjusted EPS Guidance Range Guidance Range For the Three Months For the Year Ending Ending September 30, 2026 December 31, 2026 Low High Low High Net income $ 51 $ 65 $ 218 $ 247 Income tax expense 19 25 87 98 Income before income taxes 70 90 305 345 Amortization of acquired intangible assets 62 62 251 251 Stock-based compensation expense 34 34 156 156 Acquisition and integration related costs 2 2 15 15 Interest related to settlements \u2014 \u2014 9 9 Restructuring and related costs \u2014 \u2014 4 4 Settlements and imp",
+        "Interest related to settlements \u2014 \u2014 9 9 Restructuring and related costs \u2014 \u2014 4 4 Settlements and impairments \u2014 \u2014 (18) (18) Adjusted income before income taxes 168 188 722 762 Assumed rate for income tax expense(1) 26 % 26 % 26 % 26 % Assumed provision for income tax expense (44) (49) (187) (198) Adjusted Net Income $ 124 $ 139 $ 535 $ 564 Earnings per share - diluted $ 0.13 $ 0.16 $ 0.54 $ 0.61 Adjusted EPS $ 0.31 $ 0.34 $ 1.32 $ 1.39 Adjusted weighted average outstanding shares - diluted 403.0 403.0 405.0 405.0 __________________________ (1) The assumed tax rate approximates our statutory federal and state corporate tax rate for the applicable period.\n\n## Reconciliation of Forward-Looking Guidance \u2014 Net Income to Adjusted EBITDA\n\nReconciliation of Forward-Looking Guidance, Net Income to Adjusted EBITDA Guidance Range Guidance Range For the Three Months Ending For the Year Ending September 30, 2026 December 31, 2026 Low High Low High Net income $ 51 $ 65 $ 218 $ 247 Amortization of acq"
+      ],
+      "cited_sources": [
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt",
+        "costar_retry.txt"
+      ],
+      "reason": "Chunk 5 states: 'The Company reaffirms its full year 2026 Adjusted EPS in a range of $1.32 to $1.39 based on 405 million shares.' This exactly matches the claim.",
+      "escalated": false,
+      "escalated_from": "",
+      "escalation_model": "",
+      "judge_method": "majority_vote",
+      "confidence": null,
+      "decided": true,
+      "source_ref": null,
+      "structurally_overridden": false,
+      "structurally_overridden_from": "",
+      "retrieval_widened_for_clauses": false
+    }
+  ],
+  "gap_report": {
+    "ran": true,
+    "skipped_reason": "",
+    "per_concept": {
+      "financial_metric": {
+        "spread": {
+          "low": 90,
+          "high": 94,
+          "probable": [
+            "3D tour usage increase",
+            "Acquisition and integration related costs",
+            "Adjusted EBITDA",
+            "Adjusted EBITDA 2025 Q1",
+            "Adjusted EBITDA 2025 Q2",
+            "Adjusted EBITDA 2025 Q3",
+            "Adjusted EBITDA 2025 Q4",
+            "Adjusted EBITDA 2026 Q1",
+            "Adjusted EBITDA 2026 Q2",
+            "Adjusted EBITDA Q1 2026",
+            "Adjusted EBITDA Q2 2026",
+            "Adjusted EBITDA guidance Q3 2026",
+            "Adjusted EBITDA margin Q3 2026",
+            "Adjusted EPS",
+            "Adjusted EPS 2025 Q1",
+            "Adjusted EPS 2025 Q2",
+            "Adjusted EPS 2025 Q3",
+            "Adjusted EPS 2025 Q4",
+            "Adjusted EPS 2026 Q1",
+            "Adjusted EPS 2026 Q2",
+            "Adjusted EPS Q2 2026",
+            "Adjusted EPS guidance Q3 2026",
+            "Adjusted Net Income",
+            "Adjusted Net Income 2025 Q1",
+            "Adjusted Net Income 2025 Q2",
+            "Adjusted Net Income 2025 Q3",
+            "Adjusted Net Income 2025 Q4",
+            "Adjusted Net Income 2026 Q1",
+            "Adjusted Net Income 2026 Q2",
+            "Adjusted Net Income Q2 2026",
+            "Adjusted income before income taxes",
+            "Amortization of acquired intangible assets in cost of revenues",
+            "Amortization of acquired intangible assets in operating expenses",
+            "Assumed provision for income tax expense",
+            "Depreciation and other amortization",
+            "EBITDA",
+            "EBITDA 2025 Q1",
+            "EBITDA 2025 Q2",
+            "EBITDA 2025 Q3",
+            "EBITDA 2025 Q4",
+            "EBITDA 2026 Q1",
+            "EBITDA 2026 Q2",
+            "EBITDA Q2 2026",
+            "Earnings per diluted share Q2 2025",
+            "Earnings per diluted share Q2 2026",
+            "Earnings per share - diluted",
+            "Income tax expense, net",
+            "Interest income (expense), net",
+            "Net income (loss)",
+            "Net income 2025 Q1",
+            "Net income 2025 Q2",
+            "Net income 2025 Q3",
+            "Net income 2025 Q4",
+            "Net income 2026 Q1",
+            "Net income 2026 Q2",
+            "Net income Q2 2025",
+            "Net income Q2 2026",
+            "Net new bookings Q2 2026",
+            "Non-GAAP tax rate 2026",
+            "Other income (expense), net",
+            "Restructuring and related costs",
+            "Revenue 2025 Q1",
+            "Revenue 2025 Q2",
+            "Revenue 2025 Q3",
+            "Revenue 2025 Q4",
+            "Revenue 2026 Q1",
+            "Revenue 2026 Q2",
+            "Revenue Q2 2025",
+            "Revenue Q2 2026",
+            "Revenue guidance Q3 2026",
+            "Settlements and impairments",
+            "Stock-based compensation expense",
+            "Traffic-to-lead conversion increase",
+            "Weighted-average outstanding shares - diluted",
+            "Weighted-average outstanding shares diluted 2025 Q1",
+            "Weighted-average outstanding shares diluted 2025 Q2",
+            "Weighted-average outstanding shares diluted 2025 Q3",
+            "Weighted-average outstanding shares diluted 2025 Q4",
+            "Weighted-average outstanding shares diluted 2026 Q1",
+            "Weighted-average outstanding shares diluted 2026 Q2"
+          ]
+        },
+        "claims_never_addressed": [],
+        "claims_never_addressed_reasons": {},
+        "addressed_count": 80
+      },
+      "reporting_period": {
+        "spread": {
+          "low": 18,
+          "high": 22,
+          "probable": [
+            "2025-2026 quarterly results",
+            "Full year 2026",
+            "Full year 2028",
+            "Full year 2030",
+            "Q1 2025",
+            "Q1 2026",
+            "Q2 2025",
+            "Q2 2026",
+            "Q3 2025",
+            "Q4 2025",
+            "Quarter ended June 30 2025",
+            "Quarter ended June 30 2026",
+            "Second quarter 2026",
+            "Six Months Ended June 30, 2025",
+            "Six Months Ended June 30, 2026",
+            "Third quarter 2026",
+            "Three Months Ended June 30, 2025",
+            "Three Months Ended June 30, 2026",
+            "second quarter of 2026"
+          ]
+        },
+        "claims_never_addressed": [
+          "2025-2026 quarterly results",
+          "second quarter of 2026"
+        ],
+        "claims_never_addressed_reasons": {
+          "2025-2026 quarterly results": "no verified citation \u2014 the census never confirmed a location for this name (or a close paraphrase of it), independent of what any claim cited",
+          "second quarter of 2026": "census cites chunk 30; no claim's own citation reached it"
+        },
+        "addressed_count": 17
+      },
+      "business_segment": {
+        "spread": {
+          "low": 3,
+          "high": 4,
+          "probable": [
+            "Commercial Real Estate",
+            "Residential Real Estate",
+            "Residential segment"
+          ]
+        },
+        "claims_never_addressed": [],
+        "claims_never_addressed_reasons": {},
+        "addressed_count": 3
+      },
+      "product_or_service": {
+        "spread": {
+          "low": 18,
+          "high": 19,
+          "probable": [
+            "3D digital twin technology",
+            "Apartment rentals platform",
+            "Apartments Ai",
+            "Apartments.com AI",
+            "CoStar Rent Benchmark",
+            "Commercial real estate auctions and negotiated bids platform",
+            "Commercial real estate data, analytics, and news",
+            "Commercial real estate marketplace",
+            "Homes Ai",
+            "Homes.com AI",
+            "Hospitality data and benchmarking",
+            "Information and analytics",
+            "Online real estate marketplaces",
+            "Property marketplace",
+            "Residential property portal",
+            "Residential real estate marketplace",
+            "Spatial data platform",
+            "residential property portal in the United Kingdom"
+          ]
+        },
+        "claims_never_addressed": [],
+        "claims_never_addressed_reasons": {},
+        "addressed_count": 18
+      },
+      "company_entity": {
+        "spread": {
+          "low": 14,
+          "high": 15,
+          "probable": [
+            "Apartments.com",
+            "Bora Inc. and its subsidiaries (Zonda)",
+            "CoStar",
+            "CoStar Group",
+            "CoStar Group, Inc.",
+            "Domain",
+            "Domain Holdings Australia Pty Limited",
+            "Homes.com",
+            "LoopNet",
+            "Matterport",
+            "Matterport, LLC",
+            "OnTheMarket",
+            "STR",
+            "Ten-X"
+          ]
+        },
+        "claims_never_addressed": [
+          "Bora Inc. and its subsidiaries (Zonda)",
+          "CoStar Group",
+          "Domain Holdings Australia Pty Limited",
+          "Matterport, LLC"
+        ],
+        "claims_never_addressed_reasons": {
+          "Bora Inc. and its subsidiaries (Zonda)": "census cites chunk 33; no claim's own citation reached it",
+          "CoStar Group": "census cites chunk 30; no claim's own citation reached it",
+          "Domain Holdings Australia Pty Limited": "census cites chunk 33; no claim's own citation reached it",
+          "Matterport, LLC": "census cites chunk 33; no claim's own citation reached it"
+        },
+        "addressed_count": 10
+      },
+      "non_gaap_adjustment": {
+        "spread": {
+          "low": 12,
+          "high": 17,
+          "probable": [
+            "Acquisition and integration-related costs",
+            "Amortization of acquired intangible assets",
+            "Assumed provision for income taxes",
+            "Deal-contingent financial instruments",
+            "Gains or losses on equity investments",
+            "Gains/losses on investments and deal-contingent foreign currency forward contracts",
+            "Interest related to settlements",
+            "Non-recurring interest",
+            "Restructuring and related costs",
+            "Settlements and impairments",
+            "Settlements and impairments outside ordinary course",
+            "Stock-based compensation expense"
+          ]
+        },
+        "claims_never_addressed": [
+          "Amortization of acquired intangible assets",
+          "Assumed provision for income taxes",
+          "Deal-contingent financial instruments",
+          "Gains or losses on equity investments",
+          "Gains/losses on investments and deal-contingent foreign currency forward contracts",
+          "Interest related to settlements",
+          "Non-recurring interest",
+          "Settlements and impairments"
+        ],
+        "claims_never_addressed_reasons": {
+          "Amortization of acquired intangible assets": "census cites chunk 8; no claim's own citation reached it",
+          "Assumed provision for income taxes": "census cites chunk 8; no claim's own citation reached it",
+          "Deal-contingent financial instruments": "census cites chunk 8; no claim's own citation reached it",
+          "Gains or losses on equity investments": "census cites chunk 8 (matched via the census's own paraphrase 'Gains or losses on equity investments in prospective targets'); no claim's own citation reached it",
+          "Gains/losses on investments and deal-contingent foreign currency forward contracts": "census cites chunk 24; no claim's own citation reached it",
+          "Interest related to settlements": "census cites chunk 24; no claim's own citation reached it",
+          "Non-recurring interest": "census cites chunk 8; no claim's own citation reached it",
+          "Settlements and impairments": "census cites chunk 24; no claim's own citation reached it"
+        },
+        "addressed_count": 4
+      },
+      "market_opportunity": {
+        "spread": {
+          "low": 2,
+          "high": 5,
+          "probable": [
+            "Digitizing the world's real estate",
+            "Total addressable market $100 billion"
+          ]
+        },
+        "claims_never_addressed": [],
+        "claims_never_addressed_reasons": {},
+        "addressed_count": 2
+      },
+      "performance_achievement": {
+        "spread": {
+          "low": 11,
+          "high": 13,
+          "probable": [
+            "118 million average monthly unique visitors in Q2 2026",
+            "118 million average website visitors",
+            "61st consecutive quarter of double-digit revenue growth",
+            "CoStar market entry into France",
+            "Four major launches on CoStar platform",
+            "Profitability inflection point",
+            "Residential segment turned Adjusted EBITDA positive",
+            "Second-highest quarterly Adjusted EBITDA level in company history"
+          ]
+        },
+        "claims_never_addressed": [
+          "118 million average monthly unique visitors in Q2 2026"
+        ],
+        "claims_never_addressed_reasons": {
+          "118 million average monthly unique visitors in Q2 2026": "census cites chunk 30 (matched via the census's own paraphrase '118 million average monthly unique visitors'); no claim's own citation reached it"
+        },
+        "addressed_count": 7
+      }
+    },
+    "structural_coverage": {
+      "sections_read": 10,
+      "sections_total": 15
+    }
+  },
+  "quality": {
+    "claims_submitted": 25,
+    "shape_checked": 25,
+    "shape_violations": 0,
+    "shape_profile_source": "llm",
+    "shape_profile_overridden_by_request": false,
+    "retrieval_found_nothing": 0,
+    "retrieval_widened_for_clauses": 0,
+    "judged": 25,
+    "entailed": 25,
+    "mentions_only": 0,
+    "contradicted": 0,
+    "no_evidence": 0,
+    "undecided": 0,
+    "escalated": 1,
+    "escalation_failed_batches": 0,
+    "overturned": 1,
+    "structurally_overridden": 0,
+    "main_model": "AnthropicClient (claude-haiku-4-5)",
+    "judge_model": "AnthropicClient (claude-haiku-4-5)",
+    "judge_method": "majority_vote",
+    "runs": 3,
+    "concepts_covered": 8,
+    "concepts_total": 8,
+    "llm_calls": 44,
+    "input_tokens": 219060,
+    "output_tokens": 68039,
+    "total_tokens": 287099,
+    "cost_cents": "not available",
+    "usage_by_phase": {
+      "ontology": {
+        "calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "total_tokens": 0,
+        "cost_cents": "not available"
+      },
+      "retrieval": {
+        "calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "total_tokens": 0,
+        "cost_cents": "not available"
+      },
+      "shape_check": {
+        "calls": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "total_tokens": 0,
+        "cost_cents": "not available"
+      },
+      "entailment": {
+        "calls": 27,
+        "input_tokens": 166653,
+        "output_tokens": 5888,
+        "total_tokens": 172541,
+        "cost_cents": "not available"
+      },
+      "completeness": {
+        "calls": 17,
+        "input_tokens": 52407,
+        "output_tokens": 62151,
+        "total_tokens": 114558,
+        "cost_cents": "not available"
+      }
+    }
+  },
+  "duration_seconds": 340.2,
+  "excel_report": "/data/reports/job_7404b791fbac.xlsx",
+  "report_url": "/api/validations/job_7404b791fbac/report"
+}
