@@ -1,0 +1,177 @@
+<title>Validating LLM Output</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+  :root {
+    --bg: #faf9f5;
+    --surface: #ffffff;
+    --surface-2: #f1efe8;
+    --ink: #1c1a17;
+    --ink-soft: #4a463f;
+    --muted: #726c60;
+    --rule: #dedacf;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #15171a;
+      --surface: #1d1f22;
+      --surface-2: #23262a;
+      --ink: #ece9e1;
+      --ink-soft: #c7c3b8;
+      --muted: #9a9686;
+      --rule: #33352f;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #15171a;
+    --surface: #1d1f22;
+    --surface-2: #23262a;
+    --ink: #ece9e1;
+    --ink-soft: #c7c3b8;
+    --muted: #9a9686;
+    --rule: #33352f;
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+  }
+  body {
+    font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 16px;
+  }
+  main {
+    width: 100%;
+    max-width: 900px;
+  }
+  .eyebrow {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: center;
+    margin: 0 0 10px;
+  }
+  h1 {
+    font-family: "Fraunces", Georgia, serif;
+    font-weight: 600;
+    font-size: clamp(24px, 4vw, 32px);
+    text-align: center;
+    text-wrap: balance;
+    margin: 0 0 28px;
+  }
+  figure {
+    margin: 0;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    padding: 24px clamp(12px, 3vw, 32px) 20px;
+  }
+  svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    color: var(--ink-soft);
+  }
+  figcaption {
+    margin-top: 18px;
+    padding-top: 16px;
+    border-top: 1px solid var(--rule);
+    font-size: 14.5px;
+    color: var(--muted);
+    text-align: center;
+    line-height: 1.5;
+  }
+  .source {
+    margin-top: 20px;
+    text-align: center;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .source a { color: inherit; }
+</style>
+
+<main>
+  <p class="eyebrow">Claim Validator</p>
+  <h1>Validating LLM Output</h1>
+
+  <figure>
+    <svg viewBox="0 0 940 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="LLM output, i.e. a claim, and reference document(s) flow into the Claim Validator, which exchanges requests and verdicts with an external model such as Anthropic, then outputs four per-claim verdicts — entails, contradicts, mentions only, no evidence — each defined, plus a separate Missing gap report.">
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+          <path d="M0,0 L10,5 L0,10 z" fill="currentColor"></path>
+        </marker>
+      </defs>
+
+      <!-- Inputs -->
+      <rect x="20" y="80" width="210" height="60" rx="6" fill="none" stroke="currentColor" stroke-width="1.4"></rect>
+      <text x="125" y="104" text-anchor="middle" font-size="13" font-weight="600">LLM Output (Claim)</text>
+      <text x="125" y="122" text-anchor="middle" font-size="10" opacity="0.7">Claude, OpenAI, etc.</text>
+
+      <rect x="20" y="210" width="210" height="60" rx="6" fill="none" stroke="currentColor" stroke-width="1.4"></rect>
+      <text x="125" y="234" text-anchor="middle" font-size="13" font-weight="600">Reference Document(s)</text>
+      <text x="125" y="252" text-anchor="middle" font-size="10" opacity="0.7">spec, report, code, ...</text>
+
+      <!-- Arrows into CV -->
+      <line x1="230" y1="110" x2="345" y2="175" stroke="currentColor" stroke-width="1.3" marker-end="url(#arrow)"></line>
+      <line x1="230" y1="240" x2="345" y2="205" stroke="currentColor" stroke-width="1.3" marker-end="url(#arrow)"></line>
+
+      <!-- Claim Validator box -->
+      <rect x="350" y="115" width="180" height="150" rx="8" fill="none" stroke="currentColor" stroke-width="1.8"></rect>
+      <text x="440" y="185" text-anchor="middle" font-size="16" font-weight="700">Claim</text>
+      <text x="440" y="206" text-anchor="middle" font-size="16" font-weight="700">Validator</text>
+      <text x="440" y="226" text-anchor="middle" font-size="10" opacity="0.65">(CV)</text>
+
+      <!-- External model — single bidirectional arrow -->
+      <rect x="365" y="15" width="150" height="55" rx="6" fill="none" stroke="currentColor" stroke-width="1.4"></rect>
+      <text x="440" y="37" text-anchor="middle" font-size="12" font-weight="600">External Model</text>
+      <text x="440" y="53" text-anchor="middle" font-size="9.5" opacity="0.85">Anthropic, etc.</text>
+
+      <line x1="440" y1="115" x2="440" y2="70" stroke="currentColor" stroke-width="1.3" marker-start="url(#arrow)" marker-end="url(#arrow)"></line>
+
+      <!-- Outputs: 4 criteria, each with a one-line definition -->
+      <text x="745" y="42" text-anchor="middle" font-size="10.5" opacity="0.7">4 verdicts — one per claim, each citing a passage</text>
+
+      <line x1="530" y1="135" x2="610" y2="83"  stroke="currentColor" stroke-width="1.2" marker-end="url(#arrow)"></line>
+      <line x1="530" y1="165" x2="610" y2="149" stroke="currentColor" stroke-width="1.2" marker-end="url(#arrow)"></line>
+      <line x1="530" y1="195" x2="610" y2="215" stroke="currentColor" stroke-width="1.2" marker-end="url(#arrow)"></line>
+      <line x1="530" y1="225" x2="610" y2="281" stroke="currentColor" stroke-width="1.2" marker-end="url(#arrow)"></line>
+
+      <rect x="615" y="55"  width="260" height="56" rx="6" fill="none" stroke="currentColor" stroke-width="1.3"></rect>
+      <text x="745" y="77" text-anchor="middle" font-size="13" font-weight="600">entails</text>
+      <text x="745" y="94" text-anchor="middle" font-size="9.5" opacity="0.75">claim is confirmed by the document</text>
+
+      <rect x="615" y="121" width="260" height="56" rx="6" fill="none" stroke="currentColor" stroke-width="1.3"></rect>
+      <text x="745" y="143" text-anchor="middle" font-size="13" font-weight="600">contradicts</text>
+      <text x="745" y="160" text-anchor="middle" font-size="9.5" opacity="0.75">claim conflicts with the document</text>
+
+      <rect x="615" y="187" width="260" height="56" rx="6" fill="none" stroke="currentColor" stroke-width="1.3"></rect>
+      <text x="745" y="209" text-anchor="middle" font-size="13" font-weight="600">mentions_only</text>
+      <text x="745" y="226" text-anchor="middle" font-size="9.5" opacity="0.75">topic present, not actually confirmed</text>
+
+      <rect x="615" y="253" width="260" height="56" rx="6" fill="none" stroke="currentColor" stroke-width="1.3"></rect>
+      <text x="745" y="275" text-anchor="middle" font-size="13" font-weight="600">no_evidence</text>
+      <text x="745" y="292" text-anchor="middle" font-size="9.5" opacity="0.75">document is silent on this claim</text>
+
+      <!-- Missing / gap report — same square style as the four verdict boxes -->
+      <text x="745" y="333" text-anchor="middle" font-size="10" opacity="0.7">document-level, not per-claim</text>
+      <line x1="530" y1="240" x2="610" y2="368" stroke="currentColor" stroke-width="1.3" marker-end="url(#arrow)"></line>
+
+      <rect x="615" y="345" width="260" height="56" rx="6" fill="none" stroke="currentColor" stroke-width="1.3"></rect>
+      <text x="745" y="367" text-anchor="middle" font-size="13" font-weight="600">Missing</text>
+      <text x="745" y="384" text-anchor="middle" font-size="9.5" opacity="0.85">gap report — never cited by any claim</text>
+    </svg>
+    <figcaption>A claim — whether written by an LLM or a person — and the document it's checked against both go into Claim Validator. CV calls an external judge model to reach a verdict, and reports one of four outcomes per claim, plus a separate gap report for what no claim ever addressed.</figcaption>
+  </figure>
+
+  <p class="source">Part of the <a href="https://github.com/QA-AU/claim-validator">Claim Validator</a> project</p>
+</main>
