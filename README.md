@@ -29,8 +29,11 @@ source rather than rendering them). For the full argument — why this
 exists, the evidence behind every claim above, and where it doesn't
 work — see the **[paper](https://qa-au.github.io/claim-validator/paper.html)**
 (source: [paper/index.html](paper/index.html), also published at
-[docs/paper.html](docs/paper.html) for GitHub Pages). This file covers what the manual
-doesn't: how the pieces fit together, how it's deployed, and what's tested.
+[docs/paper.html](docs/paper.html) for GitHub Pages). For a shorter, general-audience
+version of the same argument — the recurring ways an LLM-as-a-judge setup fails, and what
+actually fixes each one — see the **[Medium article](https://medium.com/@azam.asif/llm-as-a-judge-keeps-failing-in-the-same-four-ways-heres-what-actually-fixes-it-78e0c3a332c5)**
+(source: [docs/medium-llm-as-judge.md](docs/medium-llm-as-judge.md)). This file covers
+what the manual doesn't: how the pieces fit together, how it's deployed, and what's tested.
 
 ## What it does
 
